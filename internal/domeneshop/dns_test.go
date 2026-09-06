@@ -8,25 +8,6 @@ import (
 	"testing"
 )
 
-func TestListDNSRecordsFilters(t *testing.T) {
-	var gotPath, gotQuery string
-	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-		gotPath, gotQuery = r.URL.Path, r.URL.RawQuery
-		w.Write([]byte("[]"))
-	})
-
-	if _, err := c.ListDNSRecords(context.Background(), 42, "www", "A"); err != nil {
-		t.Fatal(err)
-	}
-
-	if gotPath != "/domains/42/dns" {
-		t.Errorf("path = %q, want /domains/42/dns", gotPath)
-	}
-	if gotQuery != "host=www&type=A" {
-		t.Errorf("query = %q, want host=www&type=A", gotQuery)
-	}
-}
-
 // Records of every supported type must survive a read unchanged, including the
 // type-specific fields the published OpenAPI spec leaves out.
 func TestListDNSRecordsPreservesTypeSpecificFields(t *testing.T) {

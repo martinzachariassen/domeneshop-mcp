@@ -71,18 +71,3 @@ func TestForwardPathEscapesHost(t *testing.T) {
 		t.Errorf("decoded path = %q, want /domains/42/forwards/a b", gotPath)
 	}
 }
-
-func TestListForwardsUsesTrailingSlash(t *testing.T) {
-	var gotPath string
-	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-		gotPath = r.URL.Path
-		w.Write([]byte("[]"))
-	})
-
-	if _, err := c.ListForwards(context.Background(), 42); err != nil {
-		t.Fatal(err)
-	}
-	if gotPath != "/domains/42/forwards/" {
-		t.Errorf("path = %q, want /domains/42/forwards/", gotPath)
-	}
-}

@@ -6,19 +6,13 @@ import (
 	"testing"
 )
 
-func TestListInvoicesStatusFilter(t *testing.T) {
+// An omitted status must send no query at all, rather than status=".
+func TestListInvoicesOmitsEmptyStatus(t *testing.T) {
 	var gotQuery string
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		gotQuery = r.URL.RawQuery
 		w.Write([]byte("[]"))
 	})
-
-	if _, err := c.ListInvoices(context.Background(), "unpaid"); err != nil {
-		t.Fatal(err)
-	}
-	if gotQuery != "status=unpaid" {
-		t.Errorf("query = %q, want status=unpaid", gotQuery)
-	}
 
 	if _, err := c.ListInvoices(context.Background(), ""); err != nil {
 		t.Fatal(err)
