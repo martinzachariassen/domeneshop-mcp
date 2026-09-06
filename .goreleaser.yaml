@@ -1,0 +1,63 @@
+version: 2
+
+project_name: domeneshop-mcp
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: domeneshop-mcp
+    main: .
+    binary: domeneshop-mcp
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/martinzachariassen/domeneshop-mcp/internal/version.version={{ .Version }}
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+
+# Sigstore keyless signing of the checksums file (and thus, transitively, the
+# archives it hashes) using the CI job's GitHub OIDC identity. No private key
+# to manage; verification and the signing event are public in Rekor's
+# transparency log. Only runs where cosign + GitHub Actions OIDC are
+# available, i.e. in CI - not locally.
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - --output-signature=${signature}
+      - --output-certificate=${certificate}
+      - ${artifact}
+      - --yes
+    artifacts: checksum
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  github:
+    owner: martinzachariassen
+    name: domeneshop-mcp
