@@ -11,7 +11,7 @@ func TestListInvoicesOmitsEmptyStatus(t *testing.T) {
 	var gotQuery string
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		gotQuery = r.URL.RawQuery
-		w.Write([]byte("[]"))
+		_, _ = w.Write([]byte("[]"))
 	})
 
 	if _, err := c.ListInvoices(context.Background(), ""); err != nil {
@@ -27,7 +27,7 @@ func TestGetInvoiceDecodesFields(t *testing.T) {
 		if r.URL.Path != "/invoices/1" {
 			t.Errorf("path = %q, want /invoices/1", r.URL.Path)
 		}
-		w.Write([]byte(`{"id":1,"type":"invoice","amount":120,"currency":"NOK",
+		_, _ = w.Write([]byte(`{"id":1,"type":"invoice","amount":120,"currency":"NOK",
 		  "due_date":"2026-01-31","issued_date":"2026-01-01","paid_date":"2026-01-15",
 		  "status":"paid","url":"https://www.domeneshop.no/invoice?nr=1&code=x"}`))
 	})

@@ -23,7 +23,7 @@ func TestRequestSendsBasicAuthAndAccept(t *testing.T) {
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		gotAuth = r.Header.Get("Authorization")
 		gotAccept = r.Header.Get("Accept")
-		w.Write([]byte("[]"))
+		_, _ = w.Write([]byte("[]"))
 	})
 
 	if _, err := c.ListDomains(context.Background(), ""); err != nil {
@@ -42,7 +42,7 @@ func TestRequestSendsBasicAuthAndAccept(t *testing.T) {
 func TestRequestReturnsAPIError(t *testing.T) {
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"code":"authentication:failed"}`))
+		_, _ = w.Write([]byte(`{"code":"authentication:failed"}`))
 	})
 
 	_, err := c.ListDomains(context.Background(), "")

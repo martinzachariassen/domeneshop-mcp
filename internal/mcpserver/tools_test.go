@@ -120,7 +120,7 @@ func TestToolCalls(t *testing.T) {
 				if tc.status != 0 {
 					w.WriteHeader(tc.status)
 				}
-				io.WriteString(w, tc.response)
+				_, _ = io.WriteString(w, tc.response)
 			})
 
 			res, err := session.CallTool(context.Background(), &mcp.CallToolParams{
@@ -153,7 +153,7 @@ func TestToolCallsReportAPIErrors(t *testing.T) {
 		t.Run(tc.tool, func(t *testing.T) {
 			session := connect(t, func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusForbidden)
-				io.WriteString(w, `{"code":"forbidden"}`)
+				_, _ = io.WriteString(w, `{"code":"forbidden"}`)
 			})
 
 			res, err := session.CallTool(context.Background(), &mcp.CallToolParams{

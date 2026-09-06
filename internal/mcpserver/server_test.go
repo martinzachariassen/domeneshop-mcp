@@ -26,14 +26,14 @@ func connect(t *testing.T, handler http.HandlerFunc) *mcp.ClientSession {
 	clientTransport, serverTransport := mcp.NewInMemoryTransports()
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
-	go server.Run(ctx, serverTransport)
+	go func() { _ = server.Run(ctx, serverTransport) }()
 
 	session, err := mcp.NewClient(&mcp.Implementation{Name: "test"}, nil).
 		Connect(ctx, clientTransport, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { session.Close() })
+	t.Cleanup(func() { _ = session.Close() })
 	return session
 }
 
@@ -192,7 +192,7 @@ func TestDNSRecordTypeEnum(t *testing.T) {
 // is not rejected by schema validation.
 func TestOptionalFiltersAreNotConstrainedByEnum(t *testing.T) {
 	session := connect(t, func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("[]"))
+		_, _ = w.Write([]byte("[]"))
 	})
 	tools := listTools(t, session)
 
@@ -229,9 +229,9 @@ func resultText(res *mcp.CallToolResult) string {
 func TestCreateDNSRecordEndToEnd(t *testing.T) {
 	var got map[string]any
 	session := connect(t, func(w http.ResponseWriter, r *http.Request) {
-		json.NewDecoder(r.Body).Decode(&got)
+		_ = json.NewDecoder(r.Body).Decode(&got)
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(`{"id":99}`))
+		_, _ = w.Write([]byte(`{"id":99}`))
 	})
 
 	res, err := session.CallTool(context.Background(), &mcp.CallToolParams{
@@ -307,7 +307,7 @@ func TestCreateForwardEndToEnd(t *testing.T) {
 func TestAPIErrorSurfacesAsToolError(t *testing.T) {
 	session := connect(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"code":"authentication:failed"}`))
+		_, _ = w.Write([]byte(`{"code":"authentication:failed"}`))
 	})
 
 	res, err := session.CallTool(context.Background(), &mcp.CallToolParams{

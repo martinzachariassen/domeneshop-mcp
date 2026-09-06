@@ -21,7 +21,7 @@ func TestListDNSRecordsPreservesTypeSpecificFields(t *testing.T) {
 	  {"id":7,"host":"sub","type":"NS","data":"ns1.example.com"}
 	]`
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(body))
+		_, _ = w.Write([]byte(body))
 	})
 
 	records, err := c.ListDNSRecords(context.Background(), 1, "", "")
@@ -72,9 +72,9 @@ func TestCreateDNSRecordOmitsUnsetFields(t *testing.T) {
 	var got map[string]any
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		b, _ := io.ReadAll(r.Body)
-		json.Unmarshal(b, &got)
+		_ = json.Unmarshal(b, &got)
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(`{"id":7}`))
+		_, _ = w.Write([]byte(`{"id":7}`))
 	})
 
 	id, err := c.CreateDNSRecord(context.Background(), 1, DNSRecord{
@@ -102,8 +102,8 @@ func TestCreateDNSRecordSendsTypeSpecificFields(t *testing.T) {
 	var got map[string]any
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		b, _ := io.ReadAll(r.Body)
-		json.Unmarshal(b, &got)
-		w.Write([]byte(`{"id":1}`))
+		_ = json.Unmarshal(b, &got)
+		_, _ = w.Write([]byte(`{"id":1}`))
 	})
 
 	flags, ttl := 0, 3600
@@ -132,7 +132,7 @@ func TestUpdateDNSRecordUsesRecordIDInPath(t *testing.T) {
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		gotPath, gotMethod = r.URL.Path, r.Method
 		b, _ := io.ReadAll(r.Body)
-		json.Unmarshal(b, &got)
+		_ = json.Unmarshal(b, &got)
 		w.WriteHeader(http.StatusNoContent)
 	})
 

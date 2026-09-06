@@ -160,7 +160,7 @@ func TestOperationRequests(t *testing.T) {
 				if op.status != 0 {
 					w.WriteHeader(op.status)
 				}
-				io.WriteString(w, op.response)
+				_, _ = io.WriteString(w, op.response)
 			})
 
 			if err := op.call(context.Background(), c); err != nil {
@@ -198,7 +198,7 @@ func TestOperationsReportAPIErrors(t *testing.T) {
 		t.Run(op.method, func(t *testing.T) {
 			c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusForbidden)
-				io.WriteString(w, `{"code":"forbidden"}`)
+				_, _ = io.WriteString(w, `{"code":"forbidden"}`)
 			})
 
 			err := op.call(context.Background(), c)
