@@ -17,6 +17,8 @@
     "node": ">=20"
   },
   "imports": {
+    "#domeneshop/*": "./src/domeneshop/*",
+    "#mcp/*": "./src/mcp/*",
     "#testing/*": "./src/testing/*"
   },
   "scripts": {

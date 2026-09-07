@@ -1,0 +1,46 @@
+name: release
+
+# Runs once you push a version tag (e.g. `git tag v0.1.0 && git push --tags`).
+# Publishes to npm using trusted publishing (OIDC, no stored token) with
+# provenance attached, then creates the matching GitHub Release.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # create the GitHub Release
+  id-token: write # npm trusted publishing: mint a short-lived OIDC identity
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+      - name: Verify tag matches package.json version
+        run: |
+          pkg_version="v$(node -p "require('./package.json').version")"
+          if [ "$pkg_version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $pkg_version"
+            exit 1
+          fi
+
+      - run: npm publish --provenance --access public
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
