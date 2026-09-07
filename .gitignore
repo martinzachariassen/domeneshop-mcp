@@ -1,4 +1,5 @@
-/domeneshop-mcp
-/bin/
-/dist/
+node_modules
+dist
+coverage
+*.log
 .DS_Store

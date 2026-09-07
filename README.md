@@ -7,34 +7,22 @@ manage your domains, DNS records, HTTP forwards and invoices.
 Every operation the Domeneshop API offers is available as a tool — 15 of them,
 covering domains, DNS, HTTP forwarding, dynamic DNS and invoices.
 
-[![ci](https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/ci.yml)
-[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
 ## Requirements
 
 - A Domeneshop account with API credentials, created at
   [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api).
-- Go 1.27 or newer, if you install from source.
+- Node.js 20 or newer.
 
 ## Installation
 
 ```sh
-go install github.com/martinzachariassen/domeneshop-mcp@latest
+npm install -g domeneshop-mcp
 ```
 
-Or download a prebuilt binary for macOS or Linux from the
-[releases page](https://github.com/martinzachariassen/domeneshop-mcp/releases).
-
-Release archives are checksummed, and the checksums file is keyless-signed with
-[cosign](https://github.com/sigstore/cosign) from the GitHub Actions run that
-built it. To verify a download:
+Or run it directly without installing, via `npx`:
 
 ```sh
-cosign verify-blob checksums.txt \
-  --certificate checksums.txt.pem \
-  --signature checksums.txt.sig \
-  --certificate-identity-regexp 'https://github.com/martinzachariassen/domeneshop-mcp/.*' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+npx domeneshop-mcp
 ```
 
 ## Configuration
@@ -56,7 +44,7 @@ directly.
 claude mcp add domeneshop \
   --env DOMENESHOP_API_TOKEN=your-token \
   --env DOMENESHOP_API_SECRET=your-secret \
-  -- domeneshop-mcp
+  -- npx -y domeneshop-mcp
 ```
 
 ### Claude Desktop and other clients
@@ -68,7 +56,8 @@ Add the server to your client's MCP configuration — for Claude Desktop that is
 {
   "mcpServers": {
     "domeneshop": {
-      "command": "domeneshop-mcp",
+      "command": "npx",
+      "args": ["-y", "domeneshop-mcp"],
       "env": {
         "DOMENESHOP_API_TOKEN": "your-token",
         "DOMENESHOP_API_SECRET": "your-secret"
@@ -77,9 +66,6 @@ Add the server to your client's MCP configuration — for Claude Desktop that is
   }
 }
 ```
-
-Use the absolute path to the binary (`which domeneshop-mcp`) if your client does
-not inherit your shell's `PATH`.
 
 ## Tools
 
@@ -155,6 +141,7 @@ spec, but are supported and used by their own client libraries:
 - `GET /invoices` accepts a `status` filter, which domeneshop.js uses.
 - `POST /forwards/` answers `201` with an empty body and names the new forward
   only in the `Location` header.
+- `GET /dyndns/update` answers with a plain-text status line, not JSON.
 
 The `tag` field is deliberately untyped: it is a numeric key tag for `DS` and a
 property tag such as `issue` for `CAA`, and Domeneshop documents neither.
@@ -162,20 +149,35 @@ property tag such as `issue` for `CAA`, and Domeneshop documents neither.
 ## Development
 
 ```sh
-make build           # build ./bin/domeneshop-mcp
-make install         # build and install into $GOBIN
-make dist            # cross-compile release binaries into ./dist
-go test ./...        # run the tests
+npm install          # install dependencies
+npm run dev          # run the server from source with tsx
+npm run build        # compile to ./dist
+npm run typecheck    # type-check without emitting
+npm run lint         # lint with Biome
+npm run format       # format with Biome
+npm test             # run the test suite (vitest)
 ```
 
-The tests stub the Domeneshop API with `httptest` and drive the MCP server over
-an in-memory transport, so they need no credentials and make no network calls.
+The tests stub the Domeneshop API with a local `node:http` server and drive the
+MCP server over an in-memory transport, so they need no credentials and make no
+network calls.
+
+### Project layout
+
+```
+src/
+  domeneshop/       Domeneshop API client (HTTP transport + one resource per endpoint group)
+  mcp/              MCP server: tool registration, schemas, result/error helpers
+  index.ts          CLI entry point
+test/
+  domeneshop/       Client tests, against a local HTTP server
+  mcp/              End-to-end tool tests, against an in-memory MCP transport
+```
 
 ## Contributing
 
-Issues and pull requests are welcome. Please keep `go vet ./...` and
-`go test ./...` clean, and run `gofmt` on anything you touch — CI checks all
-three.
+Issues and pull requests are welcome. Please keep `npm run typecheck`, `npm run lint`
+and `npm test` clean on anything you touch — CI checks all three.
 
 ## License
 
