@@ -1,7 +1,7 @@
 import { startTestServer, type TestServer } from "#testing/testServer.js";
 import { describe, expect, it } from "vitest";
-import { HttpTransport } from "../http.js";
-import { ForwardsResource } from "./forwards.js";
+import { HttpTransport } from "#domeneshop/http.js";
+import { ForwardsResource } from "#domeneshop/resources/forwards.js";
 
 async function withResource(
   handler: Parameters<typeof startTestServer>[0],

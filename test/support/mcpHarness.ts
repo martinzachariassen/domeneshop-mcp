@@ -1,8 +1,8 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { DomeneshopClient } from "../domeneshop/index.js";
-import { createServer } from "../mcp/server.js";
+import { DomeneshopClient } from "#domeneshop/index.js";
+import { createServer } from "#mcp/server.js";
 import { type Handler, startTestServer, type TestServer } from "./testServer.js";
 
 export interface Harness {

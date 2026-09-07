@@ -19,7 +19,7 @@
   "imports": {
     "#domeneshop/*": "./src/domeneshop/*",
     "#mcp/*": "./src/mcp/*",
-    "#testing/*": "./src/testing/*"
+    "#testing/*": "./test/support/*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && chmod +x dist/index.js",

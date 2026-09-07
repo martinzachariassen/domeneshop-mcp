@@ -1,7 +1,7 @@
 import { sendJson, startTestServer, type TestServer } from "#testing/testServer.js";
 import { describe, expect, it } from "vitest";
-import { HttpTransport } from "../http.js";
-import { DnsResource, RECORD_TYPES } from "./dns.js";
+import { HttpTransport } from "#domeneshop/http.js";
+import { DnsResource, RECORD_TYPES } from "#domeneshop/resources/dns.js";
 
 async function withResource(
   handler: Parameters<typeof startTestServer>[0],

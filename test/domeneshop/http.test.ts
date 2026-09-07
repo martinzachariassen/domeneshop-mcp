@@ -1,6 +1,6 @@
 import { sendJson, startTestServer, type TestServer } from "#testing/testServer.js";
 import { describe, expect, it } from "vitest";
-import { DomeneshopApiError, HttpTransport } from "./http.js";
+import { DomeneshopApiError, HttpTransport } from "#domeneshop/http.js";
 
 async function withServer(
   handler: Parameters<typeof startTestServer>[0],
