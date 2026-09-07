@@ -1,6 +1,6 @@
-import { sendJson, startTestServer } from "#testing/testServer.js";
 import { describe, expect, it } from "vitest";
 import { DomeneshopClient } from "#domeneshop/client.js";
+import { sendJson, startTestServer } from "#testing/testServer.js";
 
 describe("DomeneshopClient", () => {
   it("wires every resource to the configured base URL", async () => {

@@ -176,8 +176,12 @@ test/
 
 ## Contributing
 
-Issues and pull requests are welcome. Please keep `npm run typecheck`, `npm run lint`
-and `npm test` clean on anything you touch — CI checks all three.
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md)
+for the development workflow and changelog conventions.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
 
 ## License
 

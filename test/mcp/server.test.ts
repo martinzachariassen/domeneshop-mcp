@@ -1,7 +1,7 @@
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
+import { describe, expect, it } from "vitest";
 import { RECORD_TYPES } from "#domeneshop/index.js";
 import { connect, listToolsByName, resultText, schemaProperties } from "#testing/mcpHarness.js";
-import { describe, expect, it } from "vitest";
 
 const ALL_TOOLS = [
   "list_domains",

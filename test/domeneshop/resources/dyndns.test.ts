@@ -1,7 +1,7 @@
-import { startTestServer } from "#testing/testServer.js";
 import { describe, expect, it } from "vitest";
 import { HttpTransport } from "#domeneshop/http.js";
 import { DynDnsResource } from "#domeneshop/resources/dyndns.js";
+import { startTestServer } from "#testing/testServer.js";
 
 describe("DynDnsResource", () => {
   it("sends hostname and myip as query parameters", async () => {
