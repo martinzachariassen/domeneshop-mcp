@@ -1,5 +1,12 @@
 # domeneshop-mcp
 
+## 1.0.1
+
+### Patch Changes
+
+- Make the release workflow idempotent: skip `npm publish` when the current
+  version is already on the registry instead of failing the run.
+
 ## 1.0.0
 
 Initial public release: an MCP server exposing the Domeneshop API (domains,
