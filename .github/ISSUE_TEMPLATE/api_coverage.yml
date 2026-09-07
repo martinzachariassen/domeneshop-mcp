@@ -1,0 +1,45 @@
+name: Missing API coverage
+description: The Domeneshop API supports something this MCP server doesn't expose as a tool yet.
+labels: ["enhancement", "api-coverage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when the [Domeneshop API](https://api.domeneshop.no/docs/) has an endpoint or field
+        that isn't yet available as an MCP tool.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Domains
+        - DNS
+        - HTTP forwarding
+        - Dynamic DNS
+        - Invoices
+        - Other / cross-cutting
+    validations:
+      required: true
+
+  - type: input
+    id: endpoint
+    attributes:
+      label: Domeneshop API endpoint
+      description: The specific endpoint or field, e.g. `GET /domains/{id}/dns/{recordId}`.
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What would you use this for through an AI assistant?
+    validations:
+      required: true
+
+  - type: textarea
+    id: shape
+    attributes:
+      label: Suggested tool shape (optional)
+      description: If you have thoughts on the tool name, inputs, or output shape, share them here.

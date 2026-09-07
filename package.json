@@ -1,0 +1,76 @@
+{
+  "name": "domeneshop-mcp",
+  "version": "1.0.0",
+  "description": "MCP server exposing the Domeneshop API — manage domains, DNS records, HTTP forwards, dynamic DNS and invoices from an AI assistant.",
+  "type": "module",
+  "bin": {
+    "domeneshop-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "imports": {
+    "#domeneshop/*": "./src/domeneshop/*",
+    "#mcp/*": "./src/mcp/*",
+    "#testing/*": "./test/support/*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/index.js",
+    "dev": "tsx src/index.ts",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "changeset": "changeset",
+    "prepare": "husky",
+    "prepublishOnly": "npm run build"
+  },
+  "lint-staged": {
+    "*": "biome check --write --no-errors-on-unmatched"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "domeneshop",
+    "dns",
+    "domains",
+    "claude"
+  ],
+  "author": "Martin Zachariassen",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martinzachariassen/domeneshop-mcp.git"
+  },
+  "homepage": "https://github.com/martinzachariassen/domeneshop-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/martinzachariassen/domeneshop-mcp/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.12",
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.2",
+    "@types/node": "^26.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.0",
+    "tsx": "^4.23.13",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.0"
+  }
+}
