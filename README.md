@@ -10,11 +10,17 @@ manage your domains, DNS records, HTTP forwards and invoices.
 Every operation the Domeneshop API offers is available as a tool — 15 of them,
 covering domains, DNS, HTTP forwarding, dynamic DNS and invoices.
 
+This is a standard MCP server communicating over stdio, so it works with
+**any MCP-compatible client**. That includes Claude Code,
+Claude Desktop, Cursor, VS Code (with GitHub Copilot), Codex, Windsurf, Cline,
+and anything else that speaks MCP. See [Configuration](#configuration) for
+setup in each of those, and [Tools](#tools) for everything the server can do.
+
 ## Quick start
 
 1. Get an API token and secret from
    [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api).
-2. Register the server with Claude Code:
+2. Register the server with your MCP client. For Claude Code:
 
    ```sh
    claude mcp add domeneshop \
@@ -23,11 +29,10 @@ covering domains, DNS, HTTP forwarding, dynamic DNS and invoices.
      -- npx -y domeneshop-mcp
    ```
 
-That's it — ask Claude to list your domains and it will pick up the new
-tools. This registers the server for the current project only; add `-s user`
-to make it available everywhere. See [Configuration](#configuration) for
-Claude Desktop and other MCP clients, and [Tools](#tools) for everything the
-server can do.
+That's it — ask your assistant to list your domains and it will pick up the
+new tools. This registers the server for the current project only; add
+`--scope user` to make it available everywhere. If you're using a different
+client, jump to [Configuration](#configuration) for the equivalent setup.
 
 ## Contents
 
@@ -71,9 +76,17 @@ start without them:
 | `DOMENESHOP_API_SECRET` | The matching API secret |
 
 It speaks MCP over stdio, so it is launched by your MCP client rather than run
-directly.
+directly — `npx -y domeneshop-mcp` is the command every client below runs to
+start it. Swap in your real token and secret wherever you see the placeholders.
 
-### Claude Code
+Most clients also let you scope a server to just the current project (private,
+or shared with your team via a file checked into version control) or make it
+available everywhere on your machine — usually by picking which config file
+you write to. Each client below notes this where it applies; Claude Desktop
+and Codex only have a single, machine-wide config file.
+
+<details>
+<summary><strong>Claude Code</strong></summary>
 
 ```sh
 claude mcp add domeneshop \
@@ -82,10 +95,29 @@ claude mcp add domeneshop \
   -- npx -y domeneshop-mcp
 ```
 
-### Claude Desktop and other clients
+This defaults to `--scope local` (private to you, only in this project). Use
+`--scope project` to write it to `<your-project>/.mcp.json` instead (shared via
+version control — see the block below), or `--scope user` for every project on
+your account.
 
-Add the server to your client's MCP configuration — for Claude Desktop that is
-`claude_desktop_config.json`:
+If you'd rather not resolve the package via `npx` on every launch, install it
+once and point Claude Code at the binary directly:
+
+```sh
+npm install -g domeneshop-mcp
+claude mcp add domeneshop \
+  --env DOMENESHOP_API_TOKEN=your-token \
+  --env DOMENESHOP_API_SECRET=your-secret \
+  -- domeneshop-mcp
+```
+
+You can also add it from raw JSON:
+
+```sh
+claude mcp add-json domeneshop '{"command":"npx","args":["-y","domeneshop-mcp"],"env":{"DOMENESHOP_API_TOKEN":"your-token","DOMENESHOP_API_SECRET":"your-secret"}}'
+```
+
+Or, for `--scope project`, edit `<your-project>/.mcp.json` directly:
 
 ```json
 {
@@ -101,6 +133,143 @@ Add the server to your client's MCP configuration — for Claude Desktop that is
   }
 }
 ```
+
+</details>
+
+<details>
+<summary><strong>Claude Desktop</strong></summary>
+
+Edit `claude_desktop_config.json` (Settings → Developer → Edit Config), found at:
+
+| Platform | Full path |
+| --- | --- |
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+| Linux (unofficial builds) | `~/.config/Claude/claude_desktop_config.json` |
+
+```json
+{
+  "mcpServers": {
+    "domeneshop": {
+      "command": "npx",
+      "args": ["-y", "domeneshop-mcp"],
+      "env": {
+        "DOMENESHOP_API_TOKEN": "your-token",
+        "DOMENESHOP_API_SECRET": "your-secret"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Cursor</strong></summary>
+
+Add the same `mcpServers` block to a `mcp.json` file, found at:
+
+| Scope | Full path |
+| --- | --- |
+| This project only | `<your-project>/.cursor/mcp.json` |
+| Every project (macOS/Linux) | `~/.cursor/mcp.json` |
+| Every project (Windows) | `%USERPROFILE%\.cursor\mcp.json` |
+
+```json
+{
+  "mcpServers": {
+    "domeneshop": {
+      "command": "npx",
+      "args": ["-y", "domeneshop-mcp"],
+      "env": {
+        "DOMENESHOP_API_TOKEN": "your-token",
+        "DOMENESHOP_API_SECRET": "your-secret"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>VS Code (GitHub Copilot)</strong></summary>
+
+VS Code uses a `servers` key instead of `mcpServers`. For this project only,
+add it to `<your-project>/.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "domeneshop": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "domeneshop-mcp"],
+      "env": {
+        "DOMENESHOP_API_TOKEN": "your-token",
+        "DOMENESHOP_API_SECRET": "your-secret"
+      }
+    }
+  }
+}
+```
+
+For every project, run the command palette action **MCP: Open User
+Configuration** and add the same block there — or register it in one line
+from a terminal:
+
+```sh
+code --add-mcp '{"name":"domeneshop","command":"npx","args":["-y","domeneshop-mcp"],"env":{"DOMENESHOP_API_TOKEN":"your-token","DOMENESHOP_API_SECRET":"your-secret"}}'
+```
+
+</details>
+
+<details>
+<summary><strong>Codex</strong></summary>
+
+Codex CLI reads MCP servers from `mcp_servers` in its config file, found at:
+
+| Platform | Full path |
+| --- | --- |
+| macOS/Linux | `~/.codex/config.toml` |
+| Windows | `%USERPROFILE%\.codex\config.toml` |
+
+```toml
+[mcp_servers.domeneshop]
+command = "npx"
+args = ["-y", "domeneshop-mcp"]
+env = { DOMENESHOP_API_TOKEN = "your-token", DOMENESHOP_API_SECRET = "your-secret" }
+```
+
+Or register it from the command line:
+
+```sh
+codex mcp add domeneshop -- npx -y domeneshop-mcp
+```
+
+Then set the two env vars in the `[mcp_servers.domeneshop]` block it creates,
+since `codex mcp add` doesn't take them as flags.
+
+</details>
+
+<details>
+<summary><strong>Any other MCP client</strong></summary>
+
+Any client that supports MCP servers over stdio can run this server — Windsurf,
+Cline, Continue, LM Studio, or a client you've built yourself with the MCP SDK.
+Most follow the same `mcpServers`-with-`command`/`args`/`env` shape used above
+for Claude Desktop and Cursor; check your client's documentation for the exact
+config file and key name, then point it at:
+
+- **command**: `npx`
+- **args**: `["-y", "domeneshop-mcp"]`
+- **env**: `DOMENESHOP_API_TOKEN` and `DOMENESHOP_API_SECRET`
+
+If your client can't run `npx` directly, install the package globally with
+`npm install -g domeneshop-mcp` and use `domeneshop-mcp` as the command with no
+args instead.
+
+</details>
 
 ## Tools
 
