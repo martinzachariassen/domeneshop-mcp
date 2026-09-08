@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 1.0.2
+
+### Patch Changes
+
+- [#10](https://github.com/martinzachariassen/domeneshop-mcp/pull/10) [`c21008b`](https://github.com/martinzachariassen/domeneshop-mcp/commit/c21008bf12dd1c9f60aa434439dcddca3b59d499) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Document that this is a standard MCP server usable with any MCP-compatible client, not just Claude, and add setup instructions for Claude Desktop, Cursor, VS Code, Codex and other clients alongside Claude Code.
+
 ## 1.0.1
 
 ### Patch Changes
