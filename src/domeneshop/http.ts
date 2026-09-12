@@ -1,12 +1,5 @@
-/**
- * Minimal HTTP transport for the Domeneshop API
- * (https://api.domeneshop.no/docs/), authenticated via HTTP Basic Auth using
- * an API token and secret from https://www.domeneshop.no/admin?view=api.
- */
-
 const DEFAULT_BASE_URL = "https://api.domeneshop.no/v0";
 
-/** Thrown for non-2xx responses from the Domeneshop API. */
 export class DomeneshopApiError extends Error {
   readonly statusCode: number;
   readonly body: string;
@@ -24,33 +17,18 @@ export class DomeneshopApiError extends Error {
 }
 
 export interface RequestOptions {
-  /** Query parameters. Undefined and empty-string values are omitted. */
   query?: Record<string, string | undefined>;
-  /** Request body, marshalled as JSON. */
   body?: unknown;
-  /**
-   * Whether to parse the response body as JSON. Defaults to true; set to
-   * false for endpoints that return a non-JSON (or irrelevant) body, such
-   * as the dynamic DNS update protocol's plain-text response.
-   */
+  /** Set false for endpoints with a non-JSON body, e.g. the dynamic DNS update protocol. */
   decodeJson?: boolean;
 }
 
 export interface ApiResponse<T> {
-  /** The parsed JSON response body, or undefined if the response was empty. */
   data: T | undefined;
-  /**
-   * The raw response headers. Some endpoints report their result there
-   * rather than in the body — see ForwardsResource.create.
-   */
+  /** Some endpoints report their result here rather than in the body — see ForwardsResource.create. */
   headers: Headers;
 }
 
-/**
- * HttpTransport performs authenticated HTTP requests against the Domeneshop
- * API and decodes JSON responses. It has no knowledge of individual
- * endpoints; that lives in the resource classes built on top of it.
- */
 export class HttpTransport {
   private readonly baseUrl: string;
   private readonly authorization: string;

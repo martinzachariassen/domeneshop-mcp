@@ -11,10 +11,6 @@ export interface Harness {
   close: () => Promise<void>;
 }
 
-/**
- * Starts an MCP server backed by a stubbed Domeneshop API (via `handler`) and
- * connects an MCP client to it over an in-memory transport.
- */
 export async function connect(handler: Handler): Promise<Harness> {
   const apiServer = await startTestServer(handler);
   const domeneshopClient = new DomeneshopClient("token", "secret", { baseUrl: apiServer.baseUrl });
@@ -46,7 +42,7 @@ export function schemaProperties(tool: Tool): Record<string, { enum?: unknown[] 
   return schema.properties ?? {};
 }
 
-/** Extracts the concatenated text content of a tool call result, tolerant of the compatibility result shape. */
+/** Tolerant of the compatibility result shape, unlike a direct `.content` read. */
 export function resultText(result: unknown): string {
   const content =
     typeof result === "object" && result !== null && "content" in result

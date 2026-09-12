@@ -7,7 +7,6 @@ import { registerDynDNSTools } from "./tools/dyndns.js";
 import { registerForwardTools } from "./tools/forwards.js";
 import { registerInvoiceTools } from "./tools/invoices.js";
 
-/** Creates an MCP server with all Domeneshop tools registered. */
 export function createServer(client: DomeneshopClient): McpServer {
   const server = new McpServer({ name: "domeneshop-mcp", version: VERSION });
 

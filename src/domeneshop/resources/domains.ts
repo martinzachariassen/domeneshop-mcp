@@ -23,7 +23,6 @@ export interface Domain {
 export class DomainsResource {
   constructor(private readonly transport: HttpTransport) {}
 
-  /** Lists all domains on the account. If filter is set, only domains matching it are returned. */
   async list(filter?: string): Promise<Domain[]> {
     const { data } = await this.transport.request<Domain[]>("GET", "/domains", {
       query: { domain: filter },
@@ -31,7 +30,6 @@ export class DomainsResource {
     return data ?? [];
   }
 
-  /** Retrieves a single domain by its Domeneshop domain ID. */
   async get(domainId: number): Promise<Domain> {
     const { data } = await this.transport.request<Domain>("GET", `/domains/${String(domainId)}`);
     return assertDefined(data, "domeneshop: empty response for domain");

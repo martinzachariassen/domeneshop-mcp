@@ -1,10 +1,7 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { errorResult } from "./result.js";
 
-/**
- * Wraps a tool handler so that a thrown error (a `DomeneshopApiError` or
- * otherwise) becomes a failed tool result instead of an uncaught rejection.
- */
+/** Converts a thrown error into a failed tool result instead of an uncaught rejection. */
 export function toolHandler<Args>(
   handler: (args: Args) => Promise<CallToolResult>,
 ): (args: Args) => Promise<CallToolResult> {

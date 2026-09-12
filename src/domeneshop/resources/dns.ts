@@ -26,14 +26,6 @@ export const RECORD_TYPES = [
 
 export type RecordType = (typeof RECORD_TYPES)[number];
 
-/**
- * A DNS record.
- *
- * `host`, `type` and `data` apply to every record type; the remaining
- * fields are type-specific and are omitted when unset. `data` always
- * carries the record's main value — the address, hostname, text or hash —
- * while the numeric parameters below carry the rest.
- */
 export interface DNSRecord {
   id?: number | undefined;
   host: string;
@@ -66,7 +58,6 @@ export interface DNSRecord {
 export class DnsResource {
   constructor(private readonly transport: HttpTransport) {}
 
-  /** Lists DNS records for a domain, optionally filtered by host and/or record type. */
   async list(
     domainId: number,
     options: { host?: string | undefined; type?: string | undefined } = {},
@@ -81,7 +72,6 @@ export class DnsResource {
     return data ?? [];
   }
 
-  /** Retrieves a single DNS record. */
   async get(domainId: number, recordId: number): Promise<DNSRecord> {
     const { data } = await this.transport.request<DNSRecord>(
       "GET",
@@ -90,7 +80,6 @@ export class DnsResource {
     return assertDefined(data, "domeneshop: empty response for DNS record");
   }
 
-  /** Creates a new DNS record and returns its ID. */
   async create(domainId: number, record: DNSRecord): Promise<number> {
     const { data } = await this.transport.request<{ id: number }>(
       "POST",
@@ -110,7 +99,6 @@ export class DnsResource {
     });
   }
 
-  /** Deletes a DNS record. */
   async delete(domainId: number, recordId: number): Promise<void> {
     await this.transport.request("DELETE", `/domains/${String(domainId)}/dns/${String(recordId)}`);
   }

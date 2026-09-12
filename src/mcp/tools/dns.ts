@@ -25,8 +25,6 @@ const getDNSRecordShape = {
 };
 type GetDNSRecordArgs = InferShape<typeof getDNSRecordShape>;
 
-// Every record type takes host, type and data; the rest are type-specific
-// and must be supplied for exactly the types named in their descriptions.
 const dnsRecordShape = {
   domain_id: z.number().int().describe("the Domeneshop domain ID, from list_domains"),
   host: z
