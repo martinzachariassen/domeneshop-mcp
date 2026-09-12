@@ -15,7 +15,6 @@ export interface TestServer {
 
 export type Handler = (req: IncomingMessage, res: ServerResponse, body: string) => void;
 
-/** Starts a local HTTP server for driving DomeneshopClient tests without network calls. */
 export async function startTestServer(handler: Handler): Promise<TestServer> {
   const requests: RecordedRequest[] = [];
 
@@ -61,7 +60,6 @@ export async function startTestServer(handler: Handler): Promise<TestServer> {
   };
 }
 
-/** Sends a JSON response. */
 export function sendJson(res: ServerResponse, status: number, body: unknown): void {
   const text = JSON.stringify(body);
   res.writeHead(status, { "Content-Type": "application/json" });

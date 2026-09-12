@@ -6,15 +6,10 @@ import { ForwardsResource } from "./resources/forwards.js";
 import { InvoicesResource } from "./resources/invoices.js";
 
 export interface DomeneshopClientOptions {
-  /** Overrides the API base URL. Intended for tests. */
   baseUrl?: string;
 }
 
-/**
- * A Domeneshop API client (https://api.domeneshop.no/docs/), authenticated
- * via HTTP Basic Auth using an API token and secret from
- * https://www.domeneshop.no/admin?view=api.
- */
+/** Authenticate with a token/secret pair from https://www.domeneshop.no/admin?view=api. */
 export class DomeneshopClient {
   readonly domains: DomainsResource;
   readonly dns: DnsResource;
