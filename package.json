@@ -1,6 +1,6 @@
 {
   "name": "domeneshop-mcp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "MCP server exposing the Domeneshop API — manage domains, DNS records, HTTP forwards, dynamic DNS and invoices from an AI assistant.",
   "type": "module",
   "bin": {

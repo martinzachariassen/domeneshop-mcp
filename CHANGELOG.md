@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 1.0.3
+
+### Patch Changes
+
+- [#11](https://github.com/martinzachariassen/domeneshop-mcp/pull/11) [`fe54cb3`](https://github.com/martinzachariassen/domeneshop-mcp/commit/fe54cb30944801983814540dc4489372308d9a90) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Refresh README structure and trim non-essential comments across the codebase.
+
 ## 1.0.2
 
 ### Patch Changes
