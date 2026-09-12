@@ -59,3 +59,10 @@ Follow that pattern for new tests.
 Changesets. Any user-facing change needs `npx changeset` and the generated file
 committed alongside it. Do not hand-edit `CHANGELOG.md` or the version in
 `package.json`; the release workflow owns both.
+
+## PRs and issues
+
+Follow `.github/pull_request_template.md` when opening a PR — it has a checklist
+for typecheck/lint/test, tests, README updates and changesets. Blank issues are
+disabled; use the templates under `.github/ISSUE_TEMPLATE/` (bug report, feature
+request, API coverage) or the security advisory link in `config.yml`.
