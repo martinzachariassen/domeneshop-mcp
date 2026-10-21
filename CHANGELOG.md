@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 1.1.5
+
+### Patch Changes
+
+- [#48](https://github.com/martinzachariassen/domeneshop-mcp/pull/48) [`bc85e18`](https://github.com/martinzachariassen/domeneshop-mcp/commit/bc85e1839ab51018ce62560b0a3f45f4d493f597) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Add one-click install buttons for Cursor and VS Code to the README. The VS Code button prompts for the API token and secret and stores them securely.
+
 ## 1.1.4
 
 ### Patch Changes
