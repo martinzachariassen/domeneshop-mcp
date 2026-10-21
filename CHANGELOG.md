@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 1.1.1
+
+### Patch Changes
+
+- [#37](https://github.com/martinzachariassen/domeneshop-mcp/pull/37) [`d24cf89`](https://github.com/martinzachariassen/domeneshop-mcp/commit/d24cf89e1f90d4db3f6d6ff4f28d732e19700224) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Install with Homebrew: `brew install martinzachariassen/tap/domeneshop-mcp`. Every release now also updates the Homebrew tap.
+
 ## 1.1.0
 
 ### Minor Changes
