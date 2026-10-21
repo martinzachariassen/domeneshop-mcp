@@ -57,13 +57,18 @@ jobs:
 
       - run: npm run build
 
+      # Unpacks the tarball and installs only its runtime dependencies from the
+      # lockfile, so a file missing from `files`, a broken bin entry or a
+      # runtime dependency listed under devDependencies all fail here.
       - name: Pack and install the tarball
         run: |
           npm pack --pack-destination "$RUNNER_TEMP"
-          cd "$RUNNER_TEMP"
-          npm init -y >/dev/null
-          npm install ./domeneshop-mcp-*.tgz
-          npx --no-install domeneshop-mcp --version
+          mkdir "$RUNNER_TEMP/pkg"
+          tar -xzf "$RUNNER_TEMP"/domeneshop-mcp-*.tgz -C "$RUNNER_TEMP/pkg" --strip-components=1
+          cp package-lock.json "$RUNNER_TEMP/pkg/"
+          cd "$RUNNER_TEMP/pkg"
+          npm ci --omit=dev --ignore-scripts
+          node "$(node -p "require('./package.json').bin['domeneshop-mcp']")" --version
 
       - name: Validate the Claude Desktop bundle
         run: npm run mcpb:build
