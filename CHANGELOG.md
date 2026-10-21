@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 1.1.4
+
+### Patch Changes
+
+- [#46](https://github.com/martinzachariassen/domeneshop-mcp/pull/46) [`46cbb8f`](https://github.com/martinzachariassen/domeneshop-mcp/commit/46cbb8f549be5d61f23cb71de542375930d0002a) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - GitHub Releases now include the npm tarball and SLSA build provenance (`multiple.intoto.jsonl`) for both the tarball and the Claude Desktop bundle. See SECURITY.md for how to verify them.
+
 ## 1.1.3
 
 ### Patch Changes
