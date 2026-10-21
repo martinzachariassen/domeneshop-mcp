@@ -17,6 +17,8 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/domeneshop-mcp"><b>npm package</b></a>
   &nbsp;·&nbsp;
+  <a href="https://github.com/martinzachariassen/homebrew-tap"><b>Homebrew tap</b></a>
+  &nbsp;·&nbsp;
   <a href="https://api.domeneshop.no/docs/"><b>Domeneshop API</b></a>
   &nbsp;·&nbsp;
   <a href="https://www.domeneshop.no/admin?view=api"><b>Get API credentials</b></a>
@@ -34,7 +36,8 @@ Code, Claude Desktop, Cursor, VS Code, Codex, Windsurf, Cline and others.
 
 ## Quick start
 
-You need Node.js 20.3 or newer and a Domeneshop account.
+You need a Domeneshop account, plus either Node.js 20.3 or newer (for `npx`) or
+[Homebrew](https://brew.sh).
 
 **1. Create an API token and secret** at
 [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api).
@@ -49,6 +52,13 @@ claude mcp add domeneshop \
 ```
 
 **3. Ask for something.** "List my domains" is enough to confirm the tools loaded.
+
+**Using Homebrew instead of npx?** Install once, then register the binary in
+step 2 with `-- domeneshop-mcp` in place of `-- npx -y domeneshop-mcp`:
+
+```sh
+brew install martinzachariassen/tap/domeneshop-mcp
+```
 
 Using a different client? See [Client setup](#client-setup) below.
 
@@ -214,13 +224,39 @@ it at:
 </details>
 
 <details>
-<summary><strong>Skipping npx</strong></summary>
+<summary><strong>Skipping npx (npm or Homebrew)</strong></summary>
 
 To avoid resolving the package on every launch, install it once and use
-`domeneshop-mcp` as the command with no args:
+`domeneshop-mcp` as the command with no args. With npm:
 
 ```sh
 npm install -g domeneshop-mcp
+```
+
+Or with [Homebrew](https://brew.sh) on macOS or Linux, which also installs
+Node.js for you if it is missing:
+
+```sh
+brew install martinzachariassen/tap/domeneshop-mcp
+```
+
+`brew upgrade domeneshop-mcp` picks up new releases. GUI apps such as Claude
+Desktop usually do not see Homebrew's `PATH`, so give them the full path
+(`brew --prefix` prints the prefix: `/opt/homebrew` on Apple silicon,
+`/usr/local` on Intel Macs, `/home/linuxbrew/.linuxbrew` on Linux):
+
+```json
+{
+  "mcpServers": {
+    "domeneshop": {
+      "command": "/opt/homebrew/bin/domeneshop-mcp",
+      "env": {
+        "DOMENESHOP_API_TOKEN": "your-token",
+        "DOMENESHOP_API_SECRET": "your-secret"
+      }
+    }
+  }
+}
 ```
 
 </details>

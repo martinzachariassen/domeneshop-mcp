@@ -3,7 +3,8 @@ name: release
 # Runs once you push a version tag (e.g. `git tag v0.1.0 && git push --tags`).
 # Publishes to npm using trusted publishing (OIDC, no stored token) with
 # provenance attached, publishes server.json to the MCP Registry (GitHub OIDC),
-# then creates the matching GitHub Release with the Claude Desktop bundle.
+# then creates the matching GitHub Release with the Claude Desktop bundle and
+# opens a PR bumping the Homebrew formula in martinzachariassen/homebrew-tap.
 on:
   push:
     tags:
@@ -91,3 +92,11 @@ jobs:
         with:
           generate_release_notes: true
           files: domeneshop-mcp-*.mcpb
+
+      # Opens a PR in martinzachariassen/homebrew-tap pointing the formula at
+      # the tarball just published to npm, with auto-merge enabled. Skips if
+      # the tap is already on this version, so re-runs are safe.
+      - name: Bump the Homebrew formula
+        run: ./scripts/bump-homebrew-formula.sh
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
