@@ -1,7 +1,13 @@
 export type { DomeneshopClientOptions } from "./client.js";
 export { DomeneshopClient } from "./client.js";
-export type { ApiResponse, RequestOptions } from "./http.js";
-export { DomeneshopApiError } from "./http.js";
+export type {
+  ApiResponse,
+  CallOptions,
+  HttpTransportOptions,
+  RequestEvent,
+  RequestOptions,
+} from "./http.js";
+export { DomeneshopApiError, DomeneshopNetworkError } from "./http.js";
 export type { DNSRecord, RecordType } from "./resources/dns.js";
 export { DnsResource, RECORD_TYPES } from "./resources/dns.js";
 export type { Domain, DomainServices } from "./resources/domains.js";

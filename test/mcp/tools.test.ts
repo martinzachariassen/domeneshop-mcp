@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { connect, resultText } from "#testing/mcpHarness.js";
+import { sendJson } from "#testing/testServer.js";
 
 describe("domain tools", () => {
   it("lists domains", async () => {
@@ -79,7 +80,11 @@ describe("dns record tools", () => {
 
   it("updates a DNS record, sending every field through to the API", async () => {
     let received: Record<string, unknown> = {};
-    const harness = await connect((_req, res, body) => {
+    const harness = await connect((req, res, body) => {
+      if (req.method === "GET") {
+        sendJson(res, 200, { id: 7, ...received });
+        return;
+      }
       received = JSON.parse(body) as Record<string, unknown>;
       res.writeHead(204);
       res.end();
@@ -102,6 +107,72 @@ describe("dns record tools", () => {
       expect(harness.apiServer.requests[0]?.url).toBe("/domains/42/dns/7");
       expect(received["data"]).toBe("5.6.7.8");
       expect(received["ttl"]).toBe(120);
+      expect(harness.apiServer.requests[1]?.method).toBe("GET");
+      expect(resultText(result)).toContain("5.6.7.8");
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("returns the record that was sent when the read-back after a write fails", async () => {
+    const harness = await connect((req, res) => {
+      if (req.method === "GET") {
+        res.writeHead(500);
+        res.end();
+        return;
+      }
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dns_record",
+        arguments: { domain_id: 42, record_id: 7, host: "www", type: "A", data: "5.6.7.8" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      expect(result.structuredContent).toMatchObject({ id: 7, data: "5.6.7.8" });
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("rejects an MX record without priority before calling the API", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(201);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "create_dns_record",
+        arguments: { domain_id: 42, host: "@", type: "MX", data: "mx.example.com" },
+      });
+
+      expect(result.isError).toBe(true);
+      expect(resultText(result)).toBe("MX records require priority; missing: priority");
+      expect(harness.apiServer.requests).toHaveLength(0);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it.each([
+    ["ttl not a multiple of 60", { ttl: 90 }],
+    ["ttl below the minimum", { ttl: 30 }],
+    ["ttl above the maximum", { ttl: 604860 }],
+  ])("rejects %s", async (_label, extra) => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(201);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "create_dns_record",
+        arguments: { domain_id: 42, host: "www", type: "A", data: "1.2.3.4", ...extra },
+      });
+
+      expect(result.isError).toBe(true);
+      expect(harness.apiServer.requests).toHaveLength(0);
     } finally {
       await harness.close();
     }
@@ -207,9 +278,47 @@ describe("forward tools", () => {
       await harness.close();
     }
   });
+
+  it("rejects a forward URL that is not http or https", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(201);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "create_forward",
+        arguments: { domain_id: 42, host: "www", url: "ftp://example.com" },
+      });
+
+      expect(result.isError).toBe(true);
+      expect(harness.apiServer.requests).toHaveLength(0);
+    } finally {
+      await harness.close();
+    }
+  });
 });
 
 describe("invoice tools", () => {
+  it("lists invoices filtered by status, with structured content", async () => {
+    const harness = await connect((_req, res) => {
+      sendJson(res, 200, [{ id: 1, status: "unpaid", amount: 250 }]);
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "list_invoices",
+        arguments: { status: "unpaid" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      expect(harness.apiServer.requests[0]?.url).toBe("/invoices?status=unpaid");
+      expect(result.structuredContent).toEqual({
+        invoices: [{ id: 1, status: "unpaid", amount: 250 }],
+      });
+    } finally {
+      await harness.close();
+    }
+  });
+
   it("gets a single invoice", async () => {
     const harness = await connect((_req, res) => {
       res.writeHead(200, { "Content-Type": "application/json" });
@@ -264,6 +373,144 @@ describe("dynamic DNS tools", () => {
 
       expect(result.isError).not.toBe(true);
       expect(harness.apiServer.requests[0]?.url).toBe("/dyndns/update?hostname=home.example.com");
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("accepts a comma-separated IPv4 and IPv6 list", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: "home.example.com", myip: "192.0.2.1,2001:db8::1" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      expect(harness.apiServer.requests[0]?.url).toBe(
+        "/dyndns/update?hostname=home.example.com&myip=192.0.2.1%2C2001%3Adb8%3A%3A1",
+      );
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("updates several comma-separated hostnames in one call", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: "home.example.com,vpn.example.com", myip: "192.0.2.1" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      expect(harness.apiServer.requests[0]?.url).toBe(
+        "/dyndns/update?hostname=home.example.com%2Cvpn.example.com&myip=192.0.2.1",
+      );
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("strips whitespace around commas in hostname and myip lists", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: " a.example.com, b.example.com ", myip: "192.0.2.1, 2001:db8::1" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      expect(harness.apiServer.requests[0]?.url).toBe(
+        "/dyndns/update?hostname=a.example.com%2Cb.example.com&myip=192.0.2.1%2C2001%3Adb8%3A%3A1",
+      );
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("treats an empty myip as omitted", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: "home.example.com", myip: "" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      expect(resultText(result)).toContain("caller's apparent IP");
+      expect(harness.apiServer.requests[0]?.url).toBe("/dyndns/update?hostname=home.example.com");
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("rejects a hostname that is only commas and whitespace", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: " , " },
+      });
+
+      expect(result.isError).toBe(true);
+      expect(harness.apiServer.requests).toHaveLength(0);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("rejects a myip that is not an IP address", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: "home.example.com", myip: "not-an-ip" },
+      });
+
+      expect(result.isError).toBe(true);
+      expect(harness.apiServer.requests).toHaveLength(0);
+    } finally {
+      await harness.close();
+    }
+  });
+});
+
+describe("cancellation", () => {
+  it("aborts the API request when the MCP client cancels the call", async () => {
+    let received = 0;
+    const harness = await connect(() => {
+      received++;
+      // never respond: only cancellation can end this call
+    });
+    try {
+      const controller = new AbortController();
+      const pending = harness.client.callTool({ name: "list_domains", arguments: {} }, undefined, {
+        signal: controller.signal,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      controller.abort();
+
+      await expect(pending).rejects.toThrow();
+      expect(received).toBe(1);
     } finally {
       await harness.close();
     }

@@ -1,13 +1,12 @@
-import { HttpTransport } from "./http.js";
+import { HttpTransport, type HttpTransportOptions } from "./http.js";
 import { DnsResource } from "./resources/dns.js";
 import { DomainsResource } from "./resources/domains.js";
 import { DynDnsResource } from "./resources/dyndns.js";
 import { ForwardsResource } from "./resources/forwards.js";
 import { InvoicesResource } from "./resources/invoices.js";
 
-export interface DomeneshopClientOptions {
-  baseUrl?: string;
-}
+/** See HttpTransportOptions for timeout, retry and logging defaults. */
+export type DomeneshopClientOptions = HttpTransportOptions;
 
 /** Authenticate with a token/secret pair from https://www.domeneshop.no/admin?view=api. */
 export class DomeneshopClient {
@@ -18,7 +17,7 @@ export class DomeneshopClient {
   readonly invoices: InvoicesResource;
 
   constructor(token: string, secret: string, options: DomeneshopClientOptions = {}) {
-    const transport = new HttpTransport(token, secret, options.baseUrl);
+    const transport = new HttpTransport(token, secret, options);
     this.domains = new DomainsResource(transport);
     this.dns = new DnsResource(transport);
     this.forwards = new ForwardsResource(transport);

@@ -2,7 +2,8 @@ name: release
 
 # Runs once you push a version tag (e.g. `git tag v0.1.0 && git push --tags`).
 # Publishes to npm using trusted publishing (OIDC, no stored token) with
-# provenance attached, then creates the matching GitHub Release.
+# provenance attached, publishes server.json to the MCP Registry (GitHub OIDC),
+# then creates the matching GitHub Release with the Claude Desktop bundle.
 on:
   push:
     tags:
@@ -10,15 +11,18 @@ on:
 
 permissions:
   contents: write # create the GitHub Release
-  id-token: write # npm trusted publishing: mint a short-lived OIDC identity
+  id-token: write # npm trusted publishing and MCP Registry login
+
+env:
+  MCP_PUBLISHER_VERSION: v1.8.1
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
@@ -28,6 +32,7 @@ jobs:
 
       - run: npm run typecheck
       - run: npm run lint
+      - run: npm run format:check
       - run: npm test
       - run: npm run build
 
@@ -53,6 +58,36 @@ jobs:
       - if: steps.check.outputs.published == 'false'
         run: npm publish --provenance --access public
 
-      - uses: softprops/action-gh-release@v2
+      # Checked separately from npm, so re-running the workflow after a failed
+      # Registry publish retries it instead of skipping it with the npm step.
+      - name: Check if this version is already in the MCP Registry
+        id: registry
+        run: |
+          name="$(node -p "require('./server.json').name")"
+          version="$(node -p "require('./server.json').version")"
+          found="$(curl -fsSL --get "https://registry.modelcontextprotocol.io/v0/servers" \
+            --data-urlencode "search=$name" \
+            | jq -r --arg n "$name" --arg v "$version" \
+              '[.servers[]? | (.server // .) | select(.name == $n and .version == $v)] | length' \
+            || echo 0)"
+          if [ "${found:-0}" -gt 0 ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to the MCP Registry
+        if: steps.registry.outputs.published == 'false'
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" \
+            | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
+
+      - name: Build the Claude Desktop bundle
+        run: npm run mcpb:build
+
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           generate_release_notes: true
+          files: domeneshop-mcp-*.mcpb

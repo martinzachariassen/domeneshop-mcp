@@ -1,5 +1,5 @@
 import { assertDefined } from "../assert.js";
-import type { HttpTransport } from "../http.js";
+import type { CallOptions, HttpTransport } from "../http.js";
 
 /**
  * Every DNS record type the Domeneshop API accepts.
@@ -61,30 +61,33 @@ export class DnsResource {
   async list(
     domainId: number,
     options: { host?: string | undefined; type?: string | undefined } = {},
+    call: CallOptions = {},
   ): Promise<DNSRecord[]> {
     const { data } = await this.transport.request<DNSRecord[]>(
       "GET",
       `/domains/${String(domainId)}/dns`,
       {
         query: { host: options.host, type: options.type },
+        signal: call.signal,
       },
     );
     return data ?? [];
   }
 
-  async get(domainId: number, recordId: number): Promise<DNSRecord> {
+  async get(domainId: number, recordId: number, call: CallOptions = {}): Promise<DNSRecord> {
     const { data } = await this.transport.request<DNSRecord>(
       "GET",
       `/domains/${String(domainId)}/dns/${String(recordId)}`,
+      { signal: call.signal },
     );
     return assertDefined(data, "domeneshop: empty response for DNS record");
   }
 
-  async create(domainId: number, record: DNSRecord): Promise<number> {
+  async create(domainId: number, record: DNSRecord, call: CallOptions = {}): Promise<number> {
     const { data } = await this.transport.request<{ id: number }>(
       "POST",
       `/domains/${String(domainId)}/dns`,
-      { body: record },
+      { body: record, signal: call.signal },
     );
     return assertDefined(data, "domeneshop: empty response for created DNS record").id;
   }
@@ -93,13 +96,21 @@ export class DnsResource {
    * Replaces an existing DNS record. Fields left unset on `record` are
    * dropped from the stored record, so callers should send it in full.
    */
-  async update(domainId: number, recordId: number, record: DNSRecord): Promise<void> {
+  async update(
+    domainId: number,
+    recordId: number,
+    record: DNSRecord,
+    call: CallOptions = {},
+  ): Promise<void> {
     await this.transport.request("PUT", `/domains/${String(domainId)}/dns/${String(recordId)}`, {
       body: record,
+      signal: call.signal,
     });
   }
 
-  async delete(domainId: number, recordId: number): Promise<void> {
-    await this.transport.request("DELETE", `/domains/${String(domainId)}/dns/${String(recordId)}`);
+  async delete(domainId: number, recordId: number, call: CallOptions = {}): Promise<void> {
+    await this.transport.request("DELETE", `/domains/${String(domainId)}/dns/${String(recordId)}`, {
+      signal: call.signal,
+    });
   }
 }

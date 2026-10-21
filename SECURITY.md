@@ -27,6 +27,10 @@ and credited in the release notes unless you prefer otherwise.
 This server holds your Domeneshop API token and secret (read from
 `DOMENESHOP_API_TOKEN` / `DOMENESHOP_API_SECRET`) and uses them to call the
 Domeneshop API on your behalf over HTTPS. It does not store, log, or transmit
-those credentials anywhere else. Vulnerabilities in the upstream
+those credentials anywhere else, including in `DOMENESHOP_DEBUG` output.
+To limit what an assistant can do with them, see the
+[Access control](README.md#access-control) section of the README.
+
+Vulnerabilities in the upstream
 [Domeneshop API](https://api.domeneshop.no/docs/) itself are out of scope —
 please report those to Domeneshop directly.

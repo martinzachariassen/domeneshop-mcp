@@ -1,12 +1,17 @@
 <h1 align="center">domeneshop-mcp</h1>
 
 <p align="center">
-  Manage your Domeneshop domains, DNS records, HTTP forwards and invoices from any AI assistant.
+  Manage your Domeneshop domains, DNS records, HTTP forwards, dynamic DNS and invoices from any AI assistant.
 </p>
 
 <p align="center">
   <a href="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/ci.yml"><img src="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://www.npmjs.com/package/domeneshop-mcp"><img src="https://img.shields.io/npm/v/domeneshop-mcp" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/domeneshop-mcp"><img src="https://img.shields.io/npm/dm/domeneshop-mcp" alt="npm downloads"></a>
+  <a href="package.json"><img src="https://img.shields.io/node/v/domeneshop-mcp" alt="Node.js version"></a>
+  <a href="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/codeql.yml"><img src="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/martinzachariassen/domeneshop-mcp"><img src="https://api.scorecard.dev/projects/github.com/martinzachariassen/domeneshop-mcp/badge" alt="OpenSSF Scorecard"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/domeneshop-mcp" alt="License"></a>
 </p>
 
 <p align="center">
@@ -15,11 +20,13 @@
   <a href="https://api.domeneshop.no/docs/"><b>Domeneshop API</b></a>
   &nbsp;·&nbsp;
   <a href="https://www.domeneshop.no/admin?view=api"><b>Get API credentials</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://registry.modelcontextprotocol.io/v0/servers?search=io.github.martinzachariassen/domeneshop-mcp"><b>MCP Registry</b></a>
 </p>
 
 An [MCP](https://modelcontextprotocol.io) server that turns the
 [Domeneshop API](https://api.domeneshop.no/docs/) into tools an assistant can call.
-Every operation the API offers is covered — 15 tools across domains, DNS, HTTP
+Every operation the API offers is covered — 17 tools across domains, DNS, HTTP
 forwarding, dynamic DNS and invoices.
 
 It talks MCP over stdio, so it works with **any MCP-compatible client**: Claude
@@ -27,7 +34,7 @@ Code, Claude Desktop, Cursor, VS Code, Codex, Windsurf, Cline and others.
 
 ## Quick start
 
-You need Node.js 20 or newer and a Domeneshop account.
+You need Node.js 20.3 or newer and a Domeneshop account.
 
 **1. Create an API token and secret** at
 [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api).
@@ -54,6 +61,17 @@ credentials from two environment variables:
 | --- | --- |
 | `DOMENESHOP_API_TOKEN` | API token from the Domeneshop control panel |
 | `DOMENESHOP_API_SECRET` | The matching API secret |
+
+Optional settings (see [Access control](#access-control) and
+[Troubleshooting](#troubleshooting)):
+
+| Variable | Description |
+| --- | --- |
+| `DOMENESHOP_READ_ONLY` | `true` to expose only read-only tools |
+| `DOMENESHOP_TOOLS` | Comma-separated allowlist of tool names to expose |
+| `DOMENESHOP_DISABLED_TOOLS` | Comma-separated tool names to hide |
+| `DOMENESHOP_TIMEOUT_MS` | Per-request timeout in milliseconds (default `30000`) |
+| `DOMENESHOP_DEBUG` | `true` to log every API request to stderr |
 
 Most clients take the same **standard config**. Swap in your real token and
 secret wherever you see the placeholders.
@@ -98,7 +116,12 @@ Or write the standard config straight into `<your-project>/.mcp.json`.
 <details>
 <summary><strong>Claude Desktop</strong></summary>
 
-Add the standard config to `claude_desktop_config.json`, reachable from
+The easiest route is the one-click bundle: download `domeneshop-mcp-<version>.mcpb`
+from the [latest release](https://github.com/martinzachariassen/domeneshop-mcp/releases/latest)
+and open it. Claude Desktop asks for your token and secret, stores them securely,
+and offers a read-only toggle.
+
+To configure it by hand instead, add the standard config to `claude_desktop_config.json`, reachable from
 Settings → Developer → Edit Config:
 
 | Platform | Full path |
@@ -209,6 +232,7 @@ npm install -g domeneshop-mcp
 | Domains | "Which domains are on my account, and when do they renew?" |
 | DNS | "Show every DNS record for example.no" |
 | DNS | "Point blog.example.no at 203.0.113.10" |
+| DNS | "Lower the TTL on the www record for example.no to 5 minutes" |
 | DNS | "Add the TXT record Google gave me for domain verification" |
 | DNS | "Set up Fastmail's MX records on example.no" |
 | Forwarding | "Forward old.example.no to https://example.no" |
@@ -217,8 +241,11 @@ npm install -g domeneshop-mcp
 
 ## Tools
 
-Every tool declares MCP annotations, so clients know which ones are safe to run
-without asking you first. The Access column below mirrors those annotations.
+Every tool declares MCP annotations and a title, so clients know which ones are
+safe to run without asking you first. The Access column below mirrors those
+annotations. Arguments are validated before anything is sent to Domeneshop (TTL
+range, URL scheme, IP addresses, and the fields each record type requires), and
+read-only tools also return structured output for clients that support it.
 
 ### Domains
 
@@ -233,14 +260,17 @@ without asking you first. The Access column below mirrors those annotations.
 | --- | --- | --- |
 | `list_dns_records` | Read-only | List a domain's records, optionally filtered by host and type |
 | `get_dns_record` | Read-only | Get a single record by ID |
-| `create_dns_record` | Adds | Create a record |
-| `update_dns_record` | Overwrites | Replace a record — see the warning below |
+| `create_dns_record` | Adds | Create a record and return it as stored |
+| `update_dns_record` | Overwrites | Replace a record and return it as stored — see the warning below |
+| `patch_dns_record` | Overwrites | Change only the given fields of a record; the rest keep their stored values |
+| `upsert_dns_record` | Overwrites | Update the single record for a host and type, or create it if there is none |
 | `delete_dns_record` | Deletes | Delete a record |
 
 > **Heads up:** `update_dns_record` replaces the whole record rather than
 > patching it. Any field left out is dropped, and omitting `ttl` resets it to
-> the default 3600 seconds. Read the record first if you are only changing part
-> of it.
+> the default 3600 seconds. Use `patch_dns_record` to change only some fields.
+> `upsert_dns_record` refuses to act when a host has several records of the
+> same type (typical for `MX` and `TXT`) and lists their IDs instead.
 
 ### HTTP forwarding
 
@@ -256,7 +286,7 @@ without asking you first. The Access column below mirrors those annotations.
 
 | Tool | Access | Description |
 | --- | --- | --- |
-| `update_dyndns` | Overwrites | Point a hostname at a given IP, or at the caller's apparent IP |
+| `update_dyndns` | Overwrites | Point one or more comma-separated hostnames at up to nine IPv4/IPv6 addresses, or at the caller's apparent IP; creates the record if missing |
 
 ### Invoices
 
@@ -264,6 +294,42 @@ without asking you first. The Access column below mirrors those annotations.
 | --- | --- | --- |
 | `list_invoices` | Read-only | List invoices from the past three years, optionally filtered by status |
 | `get_invoice` | Read-only | Get a single invoice |
+
+## Access control
+
+The Domeneshop API has no scoped tokens: a token can do everything the account
+can. To limit what the assistant can do, limit which tools the server exposes.
+Hidden tools are not registered at all, so the model never sees them.
+
+- **Read-only mode.** Set `DOMENESHOP_READ_ONLY=true` to expose only the eight
+  read-only tools. This is a good default if you mainly ask questions about your
+  domains, DNS and invoices.
+- **Allowlist.** Set `DOMENESHOP_TOOLS=list_domains,list_dns_records,patch_dns_record`
+  to expose exactly those tools.
+- **Denylist.** Set `DOMENESHOP_DISABLED_TOOLS=delete_dns_record,delete_forward`
+  to hide specific tools.
+
+The settings combine, and a misspelled tool name stops the server at startup
+instead of being silently ignored.
+
+Most clients ask before running a tool not annotated read-only. Keep that
+confirmation on for this server: write tools change live DNS, and a wrong
+record can take a site or mailbox offline.
+
+## Troubleshooting
+
+- **`API returned status 401`**: the token or secret is wrong. Copy both again
+  from [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api).
+  Surrounding whitespace is trimmed automatically.
+- **`API returned status 404`**: the domain or record ID does not exist on this
+  account. Ask the assistant to list domains or records first.
+- **Timeouts**: requests give up after 30 seconds. Idempotent requests are
+  retried on rate limiting and temporary errors. Raise the limit with
+  `DOMENESHOP_TIMEOUT_MS` if needed.
+- **The tools do not show up**: run `npx -y domeneshop-mcp --version` to check
+  that Node.js 20.3+ and npx work, then check your client's MCP logs. With
+  `DOMENESHOP_DEBUG=true` the server logs every API request (method, path,
+  status and duration, never credentials) to stderr, which most clients capture.
 
 ## Reference
 
@@ -300,7 +366,8 @@ spec, but are supported and used by their own client libraries:
 - `GET /invoices` accepts a `status` filter, which domeneshop.js uses.
 - `POST /forwards/` answers `201` with an empty body and names the new forward
   only in the `Location` header.
-- `GET /dyndns/update` answers with a plain-text status line, not JSON.
+- `GET /dyndns/update` answers `204` with no body rather than JSON, so the
+  client does not try to decode it.
 
 </details>
 
@@ -338,7 +405,8 @@ test/
 ## Contributing
 
 Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md)
-for the development workflow and changelog conventions.
+for the development workflow and changelog conventions. Everyone taking part is
+expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Security
 

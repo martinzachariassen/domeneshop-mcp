@@ -4,6 +4,7 @@ export interface RecordedRequest {
   method: string;
   url: string;
   authorization: string | undefined;
+  userAgent: string | undefined;
   body: string;
 }
 
@@ -29,6 +30,7 @@ export async function startTestServer(handler: Handler): Promise<TestServer> {
         method: req.method ?? "",
         url: req.url ?? "",
         authorization: req.headers.authorization,
+        userAgent: req.headers["user-agent"],
         body,
       });
       handler(req, res, body);
