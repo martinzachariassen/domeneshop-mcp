@@ -2,17 +2,18 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { additive, destructive, readOnly } from "../annotations.js";
-import { jsonResult, textResult } from "../result.js";
+import { domainIdField, forwardOutput, httpUrlField } from "../fields.js";
+import { jsonResult, listResult, textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
 
 const listForwardsShape = {
-  domain_id: z.number().int().describe("the Domeneshop domain ID, from list_domains"),
+  domain_id: domainIdField,
 };
 type ListForwardsArgs = InferShape<typeof listForwardsShape>;
 
 const getForwardShape = {
-  domain_id: z.number().int().describe("the Domeneshop domain ID, from list_domains"),
+  domain_id: domainIdField,
   host: z
     .string()
     .describe("the host/subdomain the forward applies to, e.g. 'www' or '@' for the root"),
@@ -20,18 +21,18 @@ const getForwardShape = {
 type GetForwardArgs = InferShape<typeof getForwardShape>;
 
 const forwardShape = {
-  domain_id: z.number().int().describe("the Domeneshop domain ID, from list_domains"),
+  domain_id: domainIdField,
   host: z.string().describe("the host/subdomain to forward, e.g. 'www' or '@' for the root"),
-  url: z.string().describe("the destination URL to forward requests to"),
+  url: httpUrlField,
   frame: z
     .boolean()
     .optional()
-    .describe("if true, show the destination in a frame instead of redirecting"),
+    .describe("if true, show the destination in a frame instead of redirecting; defaults to false"),
 };
 type ForwardArgs = InferShape<typeof forwardShape>;
 
 const deleteForwardShape = {
-  domain_id: z.number().int().describe("the Domeneshop domain ID, from list_domains"),
+  domain_id: domainIdField,
   host: z.string().describe("the host/subdomain whose forward should be deleted"),
 };
 type DeleteForwardArgs = InferShape<typeof deleteForwardShape>;
@@ -42,11 +43,12 @@ export function registerForwardTools(server: McpServer, client: DomeneshopClient
     {
       description: "List all HTTP forwards configured for a domain.",
       inputSchema: listForwardsShape,
-      annotations: readOnly(),
+      outputSchema: { forwards: z.array(forwardOutput) },
+      ...readOnly("List HTTP forwards"),
     },
-    toolHandler<ListForwardsArgs>(async ({ domain_id }) => {
-      const forwards = await client.forwards.list(domain_id);
-      return jsonResult(forwards);
+    toolHandler<ListForwardsArgs>(async ({ domain_id }, { signal }) => {
+      const forwards = await client.forwards.list(domain_id, { signal });
+      return listResult("forwards", forwards);
     }),
   );
 
@@ -55,10 +57,11 @@ export function registerForwardTools(server: McpServer, client: DomeneshopClient
     {
       description: "Get the HTTP forward configured for a specific host.",
       inputSchema: getForwardShape,
-      annotations: readOnly(),
+      outputSchema: forwardOutput,
+      ...readOnly("Get HTTP forward"),
     },
-    toolHandler<GetForwardArgs>(async ({ domain_id, host }) => {
-      const forward = await client.forwards.get(domain_id, host);
+    toolHandler<GetForwardArgs>(async ({ domain_id, host }, { signal }) => {
+      const forward = await client.forwards.get(domain_id, host, { signal });
       return jsonResult(forward);
     }),
   );
@@ -69,10 +72,14 @@ export function registerForwardTools(server: McpServer, client: DomeneshopClient
       description:
         "Create a new HTTP forward for a domain. Fails if the host already has a forward or a conflicting A, AAAA, ANAME or CNAME record.",
       inputSchema: forwardShape,
-      annotations: additive(),
+      ...additive("Create HTTP forward"),
     },
-    toolHandler<ForwardArgs>(async ({ domain_id, host, url, frame }) => {
-      const created = await client.forwards.create(domain_id, { host, url, frame: frame ?? false });
+    toolHandler<ForwardArgs>(async ({ domain_id, host, url, frame }, { signal }) => {
+      const created = await client.forwards.create(
+        domain_id,
+        { host, url, frame: frame ?? false },
+        { signal },
+      );
       return jsonResult(created);
     }),
   );
@@ -80,16 +87,19 @@ export function registerForwardTools(server: McpServer, client: DomeneshopClient
   server.registerTool(
     "update_forward",
     {
-      description: "Update an existing HTTP forward for a domain.",
+      description:
+        "Update an existing HTTP forward for a domain. Returns the stored forward. " +
+        "frame is reset to false unless given.",
       inputSchema: forwardShape,
-      annotations: destructive(),
+      ...destructive("Update HTTP forward"),
     },
-    toolHandler<ForwardArgs>(async ({ domain_id, host, url, frame }) => {
-      const updated = await client.forwards.update(domain_id, host, {
+    toolHandler<ForwardArgs>(async ({ domain_id, host, url, frame }, { signal }) => {
+      const updated = await client.forwards.update(
+        domain_id,
         host,
-        url,
-        frame: frame ?? false,
-      });
+        { host, url, frame: frame ?? false },
+        { signal },
+      );
       return jsonResult(updated);
     }),
   );
@@ -97,13 +107,13 @@ export function registerForwardTools(server: McpServer, client: DomeneshopClient
   server.registerTool(
     "delete_forward",
     {
-      description: "Delete an HTTP forward.",
+      description: "Delete an HTTP forward. This cannot be undone.",
       inputSchema: deleteForwardShape,
-      annotations: destructive(),
+      ...destructive("Delete HTTP forward"),
     },
-    toolHandler<DeleteForwardArgs>(async ({ domain_id, host }) => {
-      await client.forwards.delete(domain_id, host);
-      return textResult("Forward deleted.");
+    toolHandler<DeleteForwardArgs>(async ({ domain_id, host }, { signal }) => {
+      await client.forwards.delete(domain_id, host, { signal });
+      return textResult(`Forward for host '${host}' deleted from domain ${String(domain_id)}.`);
     }),
   );
 }

@@ -1,6 +1,6 @@
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { describe, expect, it } from "vitest";
-import { RECORD_TYPES } from "#domeneshop/index.js";
+import { INVOICE_STATUSES, RECORD_TYPES } from "#domeneshop/index.js";
 import { connect, listToolsByName, resultText, schemaProperties } from "#testing/mcpHarness.js";
 
 const ALL_TOOLS = [
@@ -146,7 +146,7 @@ describe("createServer", () => {
     }
   });
 
-  it("leaves optional filters free of an enum constraint", async () => {
+  it("constrains optional filters to their enum while still accepting an empty string", async () => {
     const harness = await connect((_req, res) => {
       res.writeHead(200);
       res.end("[]");
@@ -154,17 +154,83 @@ describe("createServer", () => {
     try {
       const tools = await listToolsByName(harness.client);
 
-      const listDnsProps = schemaProperties(requireTool(tools, "list_dns_records"));
-      expect(listDnsProps["type"]?.enum).toBeUndefined();
+      const listDnsType = JSON.stringify(
+        schemaProperties(requireTool(tools, "list_dns_records"))["type"],
+      );
+      for (const type of RECORD_TYPES) {
+        expect(listDnsType).toContain(`"${type}"`);
+      }
 
-      const listInvoicesProps = schemaProperties(requireTool(tools, "list_invoices"));
-      expect(listInvoicesProps["status"]?.enum).toBeUndefined();
+      const listInvoicesStatus = JSON.stringify(
+        schemaProperties(requireTool(tools, "list_invoices"))["status"],
+      );
+      for (const status of INVOICE_STATUSES) {
+        expect(listInvoicesStatus).toContain(`"${status}"`);
+      }
 
-      const result = await harness.client.callTool({
+      const empty = await harness.client.callTool({
         name: "list_invoices",
         arguments: { status: "" },
       });
-      expect(result.isError).not.toBe(true);
+      expect(empty.isError).not.toBe(true);
+      expect(harness.apiServer.requests[0]?.url).toBe("/invoices");
+
+      const invalid = await harness.client.callTool({
+        name: "list_invoices",
+        arguments: { status: "overdue" },
+      });
+      expect(invalid.isError).toBe(true);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("gives every tool a title and marks it as reaching an external system", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(200);
+      res.end();
+    });
+    try {
+      const tools = await listToolsByName(harness.client);
+      for (const name of ALL_TOOLS) {
+        const tool = requireTool(tools, name);
+        expect(tool.title, name).toMatch(/^[A-Z]/);
+        expect(tool.annotations?.title, name).toBe(tool.title);
+        expect(tool.annotations?.openWorldHint, name).toBe(true);
+      }
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("declares an output schema on every read-only tool", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(200);
+      res.end();
+    });
+    try {
+      const tools = await listToolsByName(harness.client);
+      for (const tool of tools.values()) {
+        if (tool.annotations?.readOnlyHint) {
+          expect(tool.outputSchema, tool.name).toBeDefined();
+        }
+      }
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("sends server instructions and identity on initialize", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(200);
+      res.end();
+    });
+    try {
+      expect(harness.client.getInstructions()).toContain("list_domains");
+      expect(harness.client.getServerVersion()).toMatchObject({
+        name: "domeneshop-mcp",
+        title: "Domeneshop",
+      });
     } finally {
       await harness.close();
     }
@@ -174,7 +240,12 @@ describe("createServer", () => {
 describe("tool calls end-to-end", () => {
   it("creates a CAA DNS record, surviving tool arguments, client and HTTP body", async () => {
     let received: Record<string, unknown> = {};
-    const harness = await connect((_req, res, body) => {
+    const harness = await connect((req, res, body) => {
+      if (req.method === "GET") {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ id: 99, ttl: 3600, ...received }));
+        return;
+      }
       received = JSON.parse(body) as Record<string, unknown>;
       res.writeHead(201, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ id: 99 }));
@@ -196,7 +267,8 @@ describe("tool calls end-to-end", () => {
       expect(received["type"]).toBe("CAA");
       expect(received["tag"]).toBe("issue");
       expect(received["flags"]).toBe(0);
-      expect(resultText(result)).toContain("99");
+      expect(harness.apiServer.requests[1]?.url).toBe("/domains/42/dns/99");
+      expect(result.structuredContent).toMatchObject({ id: 99, type: "CAA", ttl: 3600 });
     } finally {
       await harness.close();
     }

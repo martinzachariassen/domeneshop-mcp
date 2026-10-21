@@ -3,30 +3,36 @@ import { z } from "zod";
 import type { DNSRecord, DomeneshopClient } from "../../domeneshop/index.js";
 import { RECORD_TYPES } from "../../domeneshop/index.js";
 import { additive, destructive, readOnly } from "../annotations.js";
-import { jsonResult, textResult } from "../result.js";
+import { dnsRecordOutput, domainIdField, optionalFilter, ttlField } from "../fields.js";
+import { validateRecord } from "../records.js";
+import { jsonResult, listResult, textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
 
+const recordIdField = z
+  .number()
+  .int()
+  .positive()
+  .describe("the DNS record ID, from list_dns_records");
+
 const listDNSRecordsShape = {
-  domain_id: z.number().int().describe("the Domeneshop domain ID, from list_domains"),
-  host: z.string().optional().describe("only return records for this host/subdomain"),
-  type: z
+  domain_id: domainIdField,
+  host: z
     .string()
     .optional()
-    .describe(
-      "only return records of this type: A, AAAA, ANAME, CAA, CNAME, DS, MX, NS, SRV, TLSA or TXT",
-    ),
+    .describe("only return records for this host/subdomain, e.g. 'www' or '@'"),
+  type: optionalFilter(RECORD_TYPES).describe("only return records of this type"),
 };
 type ListDNSRecordsArgs = InferShape<typeof listDNSRecordsShape>;
 
 const getDNSRecordShape = {
-  domain_id: z.number().int().describe("the Domeneshop domain ID, from list_domains"),
-  record_id: z.number().int().describe("the DNS record ID, from list_dns_records"),
+  domain_id: domainIdField,
+  record_id: recordIdField,
 };
 type GetDNSRecordArgs = InferShape<typeof getDNSRecordShape>;
 
 const dnsRecordShape = {
-  domain_id: z.number().int().describe("the Domeneshop domain ID, from list_domains"),
+  domain_id: domainIdField,
   host: z
     .string()
     .describe("the host/subdomain the record applies to, e.g. 'www' or '@' for the root"),
@@ -36,11 +42,7 @@ const dnsRecordShape = {
     .describe(
       "the record's main value: an IP address for A/AAAA, a hostname for ANAME/CNAME/MX/NS/SRV, free text for TXT, the CAA property value, or the hex hash for DS/TLSA",
     ),
-  ttl: z
-    .number()
-    .int()
-    .optional()
-    .describe("time-to-live in seconds, 60-604800, must be a multiple of 60, defaults to 3600"),
+  ttl: ttlField.optional(),
   priority: z
     .number()
     .int()
@@ -51,7 +53,13 @@ const dnsRecordShape = {
     .int()
     .optional()
     .describe("required for SRV: relative weight among records with the same priority"),
-  port: z.number().int().optional().describe("required for SRV: the port the service is found on"),
+  port: z
+    .number()
+    .int()
+    .min(0)
+    .max(65535)
+    .optional()
+    .describe("required for SRV: the port the service is found on"),
   usage: z
     .number()
     .int()
@@ -93,13 +101,13 @@ type DNSRecordArgs = InferShape<typeof dnsRecordShape>;
 
 const updateDNSRecordShape = {
   ...dnsRecordShape,
-  record_id: z.number().int().describe("the DNS record ID to update, from list_dns_records"),
+  record_id: recordIdField.describe("the DNS record ID to update, from list_dns_records"),
 };
 type UpdateDNSRecordArgs = InferShape<typeof updateDNSRecordShape>;
 
 const deleteDNSRecordShape = {
-  domain_id: z.number().int().describe("the Domeneshop domain ID, from list_domains"),
-  record_id: z.number().int().describe("the DNS record ID to delete, from list_dns_records"),
+  domain_id: domainIdField,
+  record_id: recordIdField.describe("the DNS record ID to delete, from list_dns_records"),
 };
 type DeleteDNSRecordArgs = InferShape<typeof deleteDNSRecordShape>;
 
@@ -122,17 +130,37 @@ function toDNSRecord(args: DNSRecordArgs): DNSRecord {
   };
 }
 
+/**
+ * Reads the record back after a write so the model sees what the API
+ * actually stored (defaults included). The write already succeeded, so a
+ * failed read falls back to what was sent instead of reporting an error.
+ */
+async function readBack(
+  client: DomeneshopClient,
+  domainId: number,
+  recordId: number,
+  sent: DNSRecord,
+  signal: AbortSignal,
+): Promise<DNSRecord> {
+  try {
+    return await client.dns.get(domainId, recordId, { signal });
+  } catch {
+    return { ...sent, id: recordId };
+  }
+}
+
 export function registerDNSTools(server: McpServer, client: DomeneshopClient): void {
   server.registerTool(
     "list_dns_records",
     {
       description: "List DNS records for a domain, optionally filtered by host and/or record type.",
       inputSchema: listDNSRecordsShape,
-      annotations: readOnly(),
+      outputSchema: { records: z.array(dnsRecordOutput) },
+      ...readOnly("List DNS records"),
     },
-    toolHandler<ListDNSRecordsArgs>(async ({ domain_id, host, type }) => {
-      const records = await client.dns.list(domain_id, { host, type });
-      return jsonResult(records);
+    toolHandler<ListDNSRecordsArgs>(async ({ domain_id, host, type }, { signal }) => {
+      const records = await client.dns.list(domain_id, { host, type }, { signal });
+      return listResult("records", records);
     }),
   );
 
@@ -141,10 +169,11 @@ export function registerDNSTools(server: McpServer, client: DomeneshopClient): v
     {
       description: "Get a single DNS record by ID.",
       inputSchema: getDNSRecordShape,
-      annotations: readOnly(),
+      outputSchema: dnsRecordOutput,
+      ...readOnly("Get DNS record"),
     },
-    toolHandler<GetDNSRecordArgs>(async ({ domain_id, record_id }) => {
-      const record = await client.dns.get(domain_id, record_id);
+    toolHandler<GetDNSRecordArgs>(async ({ domain_id, record_id }, { signal }) => {
+      const record = await client.dns.get(domain_id, record_id, { signal });
       return jsonResult(record);
     }),
   );
@@ -152,13 +181,16 @@ export function registerDNSTools(server: McpServer, client: DomeneshopClient): v
   server.registerTool(
     "create_dns_record",
     {
-      description: "Create a new DNS record for a domain. Returns the new record's ID.",
+      description:
+        "Create a new DNS record for a domain. Returns the stored record, including its new ID.",
       inputSchema: dnsRecordShape,
-      annotations: additive(),
+      ...additive("Create DNS record"),
     },
-    toolHandler<DNSRecordArgs>(async (args) => {
-      const id = await client.dns.create(args.domain_id, toDNSRecord(args));
-      return jsonResult({ id });
+    toolHandler<DNSRecordArgs>(async (args, { signal }) => {
+      const record = toDNSRecord(args);
+      validateRecord(record);
+      const id = await client.dns.create(args.domain_id, record, { signal });
+      return jsonResult(await readBack(client, args.domain_id, id, record, signal));
     }),
   );
 
@@ -169,26 +201,31 @@ export function registerDNSTools(server: McpServer, client: DomeneshopClient): v
         "Replace an existing DNS record. This overwrites the whole record, " +
         "so send every field it should keep: any omitted field is dropped, and " +
         "leaving out ttl resets it to the default 3600 seconds. " +
-        "Read the record with get_dns_record first if you are changing only part of it.",
+        "Read the record with get_dns_record first if you are changing only part of it. " +
+        "Returns the stored record.",
       inputSchema: updateDNSRecordShape,
-      annotations: destructive(),
+      ...destructive("Replace DNS record"),
     },
-    toolHandler<UpdateDNSRecordArgs>(async (args) => {
-      await client.dns.update(args.domain_id, args.record_id, toDNSRecord(args));
-      return textResult("DNS record updated.");
+    toolHandler<UpdateDNSRecordArgs>(async (args, { signal }) => {
+      const record = toDNSRecord(args);
+      validateRecord(record);
+      await client.dns.update(args.domain_id, args.record_id, record, { signal });
+      return jsonResult(await readBack(client, args.domain_id, args.record_id, record, signal));
     }),
   );
 
   server.registerTool(
     "delete_dns_record",
     {
-      description: "Delete a DNS record.",
+      description: "Delete a DNS record. This cannot be undone.",
       inputSchema: deleteDNSRecordShape,
-      annotations: destructive(),
+      ...destructive("Delete DNS record"),
     },
-    toolHandler<DeleteDNSRecordArgs>(async ({ domain_id, record_id }) => {
-      await client.dns.delete(domain_id, record_id);
-      return textResult("DNS record deleted.");
+    toolHandler<DeleteDNSRecordArgs>(async ({ domain_id, record_id }, { signal }) => {
+      await client.dns.delete(domain_id, record_id, { signal });
+      return textResult(
+        `DNS record ${String(record_id)} deleted from domain ${String(domain_id)}.`,
+      );
     }),
   );
 }

@@ -217,8 +217,11 @@ npm install -g domeneshop-mcp
 
 ## Tools
 
-Every tool declares MCP annotations, so clients know which ones are safe to run
-without asking you first. The Access column below mirrors those annotations.
+Every tool declares MCP annotations and a title, so clients know which ones are
+safe to run without asking you first. The Access column below mirrors those
+annotations. Arguments are validated before anything is sent to Domeneshop (TTL
+range, URL scheme, IP addresses, and the fields each record type requires), and
+read-only tools also return structured output for clients that support it.
 
 ### Domains
 
@@ -233,8 +236,8 @@ without asking you first. The Access column below mirrors those annotations.
 | --- | --- | --- |
 | `list_dns_records` | Read-only | List a domain's records, optionally filtered by host and type |
 | `get_dns_record` | Read-only | Get a single record by ID |
-| `create_dns_record` | Adds | Create a record |
-| `update_dns_record` | Overwrites | Replace a record — see the warning below |
+| `create_dns_record` | Adds | Create a record and return it as stored |
+| `update_dns_record` | Overwrites | Replace a record and return it as stored — see the warning below |
 | `delete_dns_record` | Deletes | Delete a record |
 
 > **Heads up:** `update_dns_record` replaces the whole record rather than
@@ -256,7 +259,7 @@ without asking you first. The Access column below mirrors those annotations.
 
 | Tool | Access | Description |
 | --- | --- | --- |
-| `update_dyndns` | Overwrites | Point a hostname at a given IP, or at the caller's apparent IP |
+| `update_dyndns` | Overwrites | Point a hostname at up to nine IPv4/IPv6 addresses, or at the caller's apparent IP; creates the record if missing |
 
 ### Invoices
 

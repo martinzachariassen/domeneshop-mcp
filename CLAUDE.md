@@ -36,10 +36,16 @@ Imports use subpath aliases in tests only (`#domeneshop/*`, `#mcp/*`, `#testing/
 ## Conventions
 
 - Every tool handler is wrapped in `toolHandler()` so thrown errors become
-  `isError` results rather than rejections.
-- Return values go through `jsonResult` / `textResult` from `mcp/result.ts`.
-- Every tool declares annotations explicitly via `readOnly()`, `additive()` or
-  `destructive()` from `mcp/annotations.ts`. Do not omit them.
+  `isError` results rather than rejections. Handlers receive `{ signal }` and
+  must pass it to every client call so MCP cancellation aborts the request.
+- Return values go through `jsonResult` / `listResult` / `textResult` from
+  `mcp/result.ts`. Read-only tools declare an `outputSchema` (loose objects from
+  `mcp/fields.ts`); lists are wrapped as `{ <plural>: [...] }`.
+- Every tool spreads `...readOnly(title)`, `...additive(title)` or
+  `...destructive(title)` from `mcp/annotations.ts` into its config, which sets
+  the title and all annotation hints. Do not omit them.
+- Reuse the shared fields in `mcp/fields.ts` (`domainIdField`, `ttlField`, …)
+  and run `validateRecord()` from `mcp/records.ts` before any DNS write.
 - Zod shapes are defined as objects and the arg type derived with `InferShape`.
   Every field gets a `.describe()` — the model relies on it, so mention required
   combinations (e.g. `priority` for MX/SRV) there.
