@@ -1,9 +1,18 @@
 name: release-pr
 
-# Keeps a "Version Packages" PR open while there are unreleased changesets.
-# Merging it bumps package.json, server.json and mcpb/manifest.json and writes
-# CHANGELOG.md. Publishing still happens in release.yml when the version tag
-# is pushed (`git tag vX.Y.Z && git push --tags`).
+# Drives the whole release from main, so merging the release PR is the only
+# manual step:
+#
+# - While changesets are pending, keeps a "chore: release" PR open. Merging it
+#   bumps package.json, server.json and mcpb/manifest.json and writes
+#   CHANGELOG.md.
+# - Once nothing is pending and package.json's version has no tag yet (i.e. the
+#   release PR was just merged), tags the merge commit vX.Y.Z. That triggers
+#   release.yml: npm, MCP Registry, GitHub Release and the Homebrew tap.
+#
+# Writes use a GitHub App token rather than GITHUB_TOKEN: the App's commits are
+# signed (required on main), and its PRs and tags trigger other workflows (CI on
+# the release PR, release.yml on the tag), which GITHUB_TOKEN's do not.
 on:
   push:
     branches: [main]
@@ -11,13 +20,21 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
-  contents: write # push the release branch
-  pull-requests: write # open and update the PR
+  contents: read
 
 jobs:
   release-pr:
     runs-on: ubuntu-latest
     steps:
+      - name: Get a release token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.HOMEBREW_APP_CLIENT_ID }}
+          private-key: ${{ secrets.HOMEBREW_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
@@ -28,6 +45,7 @@ jobs:
       - run: npm ci
 
       - uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        id: changesets
         with:
           version: npm run version
           title: "chore: release"
@@ -36,4 +54,20 @@ jobs:
           # passes the "required signatures" rule on main.
           commitMode: github-api
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      # Idempotent: ordinary merges without a version bump find the tag
+      # already there and do nothing.
+      - name: Tag the release
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          tag="v$(node -p "require('./package.json').version")"
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" >/dev/null 2>&1; then
+            echo "${tag} already exists, nothing to release."
+            exit 0
+          fi
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/git/refs" \
+            -f ref="refs/tags/${tag}" -f sha="${GITHUB_SHA}" >/dev/null
+          echo "Tagged ${GITHUB_SHA} as ${tag}; release.yml takes it from here."
