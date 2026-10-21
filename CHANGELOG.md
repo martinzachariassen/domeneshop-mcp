@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 1.1.3
+
+### Patch Changes
+
+- [#44](https://github.com/martinzachariassen/domeneshop-mcp/pull/44) [`a369442`](https://github.com/martinzachariassen/domeneshop-mcp/commit/a369442f0a0e50de5dee77c9ec220fc35a7818f6) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - README: add a short "New to MCP?" primer, expand the Claude Code quick start (read-only and scope flags, `/mcp` check), document the Claude Desktop bundle step by step, and add a configuration table and more troubleshooting.
+
 ## 1.1.2
 
 ### Patch Changes
