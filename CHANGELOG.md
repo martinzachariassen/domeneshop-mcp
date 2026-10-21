@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 1.1.2
+
+### Patch Changes
+
+- [#42](https://github.com/martinzachariassen/domeneshop-mcp/pull/42) [`b4145b9`](https://github.com/martinzachariassen/domeneshop-mcp/commit/b4145b910774e8f7e1c1ad66c9e2a226d036b0cc) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Update dependencies, including zod 4.6.7, and add a banner to the README.
+
 ## 1.1.1
 
 ### Patch Changes
