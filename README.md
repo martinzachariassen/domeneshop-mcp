@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/assets/banner.png" alt="domeneshop-mcp — MCP server for Domeneshop domains, DNS, HTTP forwards, dynamic DNS and invoices" width="100%">
+</p>
+
 <h1 align="center">domeneshop-mcp</h1>
 
 <p align="center">
