@@ -74,7 +74,8 @@ or renaming a tool means updating `mcpb/manifest.json` too.
 
 After npm publish, `release.yml` runs `scripts/bump-homebrew-formula.sh`, which
 opens an auto-merging PR in `martinzachariassen/homebrew-tap` updating the
-formula's tarball `url` and `sha256` (needs the `HOMEBREW_TAP_TOKEN` secret).
+formula's tarball `url` and `sha256` (token from a GitHub App: `HOMEBREW_APP_CLIENT_ID` variable +
+`HOMEBREW_APP_PRIVATE_KEY` secret; App commits are signed, PAT commits are not).
 The tap has no versioning of its own; never edit the formula by hand for a release.
 
 ## PRs and issues
