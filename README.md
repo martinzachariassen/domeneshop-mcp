@@ -286,7 +286,7 @@ read-only tools also return structured output for clients that support it.
 
 | Tool | Access | Description |
 | --- | --- | --- |
-| `update_dyndns` | Overwrites | Point a hostname at up to nine IPv4/IPv6 addresses, or at the caller's apparent IP; creates the record if missing |
+| `update_dyndns` | Overwrites | Point one or more comma-separated hostnames at up to nine IPv4/IPv6 addresses, or at the caller's apparent IP; creates the record if missing |
 
 ### Invoices
 

@@ -11,9 +11,10 @@ export interface Invoice {
   type: string;
   amount: number;
   currency: string;
-  due_date: string;
+  due_date: string | null;
   issued_date: string;
-  paid_date: string;
+  /** null until the invoice is paid. */
+  paid_date: string | null;
   status: string;
   url: string;
 }

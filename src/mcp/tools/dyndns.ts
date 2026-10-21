@@ -8,7 +8,12 @@ import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
 
 const updateDynDNSShape = {
-  hostname: z.string().describe("the fully qualified hostname to update, e.g. 'home.example.com'"),
+  hostname: z
+    .string()
+    .min(1)
+    .describe(
+      "the fully qualified hostname to update, e.g. 'home.example.com'; several hostnames can be updated at once by separating them with commas",
+    ),
   myip: ipListField.optional(),
 };
 type UpdateDynDNSArgs = InferShape<typeof updateDynDNSShape>;
@@ -18,7 +23,7 @@ export function registerDynDNSTools(server: ToolRegistrar, client: DomeneshopCli
     "update_dyndns",
     {
       description:
-        "Point a hostname at the given (or the caller's apparent) IP address using Domeneshop's dynamic DNS protocol. " +
+        "Point one or more hostnames at the given (or the caller's apparent) IP address using Domeneshop's dynamic DNS protocol. " +
         "The record type (A or AAAA) follows from the address; a missing record is created, an existing one overwritten.",
       inputSchema: updateDynDNSShape,
       ...destructive("Update dynamic DNS"),

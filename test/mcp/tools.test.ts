@@ -398,6 +398,26 @@ describe("dynamic DNS tools", () => {
     }
   });
 
+  it("updates several comma-separated hostnames in one call", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: "home.example.com,vpn.example.com", myip: "192.0.2.1" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      expect(harness.apiServer.requests[0]?.url).toBe(
+        "/dyndns/update?hostname=home.example.com%2Cvpn.example.com&myip=192.0.2.1",
+      );
+    } finally {
+      await harness.close();
+    }
+  });
+
   it("rejects a myip that is not an IP address", async () => {
     const harness = await connect((_req, res) => {
       res.writeHead(204);
