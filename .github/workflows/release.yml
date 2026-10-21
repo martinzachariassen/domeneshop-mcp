@@ -1,6 +1,7 @@
 name: release
 
-# Runs once you push a version tag (e.g. `git tag v0.1.0 && git push --tags`).
+# Runs on a vX.Y.Z tag, which release-pr.yml creates when the release PR is
+# merged (pushing a tag by hand works too).
 # Publishes to npm using trusted publishing (OIDC, no stored token) with
 # provenance attached, publishes server.json to the MCP Registry (GitHub OIDC),
 # then creates the matching GitHub Release with the Claude Desktop bundle and
@@ -83,7 +84,14 @@ jobs:
           curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" \
             | tar xz mcp-publisher
           ./mcp-publisher login github-oidc
-          ./mcp-publisher publish
+          # The Registry checks npm for the version, which can take a minute to
+          # show up right after publish, so retry before giving up.
+          for attempt in 1 2 3 4 5 6; do
+            ./mcp-publisher publish && exit 0
+            echo "Publish attempt ${attempt} failed, retrying in 20s..."
+            sleep 20
+          done
+          exit 1
 
       - name: Build the Claude Desktop bundle
         run: npm run mcpb:build
@@ -93,10 +101,24 @@ jobs:
           generate_release_notes: true
           files: domeneshop-mcp-*.mcpb
 
+      # Short-lived token from a GitHub App installed only on the tap. Commits
+      # the App creates through the API are signed by GitHub, which the tap's
+      # required-signatures rule needs (a personal token's are not).
+      - name: Get a token for the Homebrew tap
+        id: tap-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.HOMEBREW_APP_CLIENT_ID }}
+          private-key: ${{ secrets.HOMEBREW_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: homebrew-tap
+          permission-contents: write
+          permission-pull-requests: write
+
       # Opens a PR in martinzachariassen/homebrew-tap pointing the formula at
       # the tarball just published to npm, with auto-merge enabled. Skips if
       # the tap is already on this version, so re-runs are safe.
       - name: Bump the Homebrew formula
         run: ./scripts/bump-homebrew-formula.sh
         env:
-          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          GH_TOKEN: ${{ steps.tap-token.outputs.token }}

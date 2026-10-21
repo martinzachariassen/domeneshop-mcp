@@ -7,7 +7,8 @@
 # by GitHub and satisfies the tap's required-signatures rule.
 #
 # Env:
-#   GH_TOKEN      token with Contents + Pull requests write on the tap (required)
+#   GH_TOKEN      GitHub App token with Contents + Pull requests write on the
+#                 tap (required; App commits are signed, PAT commits are not)
 #   TAP_REPO      default: martinzachariassen/homebrew-tap
 #   FORMULA_PATH  default: Formula/<package name>.rb
 #   VERSION       default: version from package.json
@@ -15,7 +16,7 @@
 set -euo pipefail
 
 if [ -z "${GH_TOKEN:-}" ]; then
-  echo "GH_TOKEN is not set: add the HOMEBREW_TAP_TOKEN secret to bump the Homebrew tap." >&2
+  echo "GH_TOKEN is not set: configure HOMEBREW_APP_CLIENT_ID and HOMEBREW_APP_PRIVATE_KEY to bump the Homebrew tap." >&2
   exit 1
 fi
 
