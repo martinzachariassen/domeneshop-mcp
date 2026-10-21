@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="banner-title">
+  <title id="banner-title">domeneshop-mcp — MCP server for Domeneshop domains, DNS, HTTP forwards, dynamic DNS and invoices</title>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0 H0 V40" fill="none" stroke="#caced3" stroke-width="1" stroke-opacity="0.45"/>
+    </pattern>
+    <pattern id="grid-major" width="160" height="160" patternUnits="userSpaceOnUse">
+      <path d="M160 0 H0 V160" fill="none" stroke="#caced3" stroke-width="1"/>
+    </pattern>
+    <style>
+      .mono { font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+      .display { font-family: Newsreader, Georgia, "Times New Roman", serif; font-style: italic; font-variation-settings: "opsz" 72; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="640" fill="#ebeff2"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <rect width="1280" height="640" fill="url(#grid-major)"/>
+
+  <!-- corner marks -->
+  <g fill="none" stroke="#968dfd" stroke-width="2">
+    <path d="M24 48 V24 H48"/><path d="M1232 24 H1256 V48"/>
+    <path d="M24 592 V616 H48"/><path d="M1232 616 H1256 V592"/>
+  </g>
+
+  <!-- brand -->
+  <g transform="translate(72 56)">
+    <g transform="scale(1.375)">
+      <rect x="1" y="1" width="30" height="30" rx="6" fill="#101214"/>
+      <polygon points="7,25 7,7 11.5,7 16,18.5 20.5,7 25,7 25,25" fill="#ebeff2"/>
+    </g>
+    <text x="60" y="31" class="mono" font-size="28" font-weight="700" letter-spacing="-0.8" fill="#101214">mlz<tspan fill="#4d4691">.</tspan></text>
+  </g>
+  <g transform="translate(1004 62)">
+    <rect width="204" height="32" rx="4" fill="#ebeff2" stroke="#caced3" stroke-width="1.5"/>
+    <text x="103" y="21" text-anchor="middle" class="mono" font-size="12" letter-spacing="2.6" fill="#3b3d40">OPEN SOURCE · MIT</text>
+  </g>
+
+  <!-- headline -->
+  <text x="72" y="196" class="mono" font-size="14" letter-spacing="4.5" fill="#3b3d40">MCP SERVER<tspan fill="#4d4691" dx="10">/</tspan><tspan dx="10">DOMENESHOP API</tspan></text>
+  <text x="66" y="306" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="#101214">Domeneshop</text>
+  <g class="display" font-size="106" font-weight="500" letter-spacing="-1">
+    <text x="66" y="405" fill="#c94c18" fill-opacity="0.7">MCP</text>
+    <text x="71" y="407" fill="#968dfd" fill-opacity="0.8">MCP</text>
+    <text x="68" y="406" fill="#101214">MCP</text>
+  </g>
+  <text class="mono" font-size="17" fill="#3b3d40">
+    <tspan x="72" y="468">Domains, DNS, HTTP forwards, dynamic DNS</tspan>
+    <tspan x="72" dy="28">and invoices — from any AI assistant.</tspan>
+  </text>
+
+  <!-- session card -->
+  <g transform="translate(748 150)" class="mono">
+    <rect width="460" height="364" rx="4" fill="#f3f5f7" stroke="#101214" stroke-width="1.5"/>
+    <text x="22" y="30" font-size="11" letter-spacing="2.4" fill="#5c6166">ASSISTANT SESSION</text>
+    <text x="438" y="30" text-anchor="end" font-size="11" letter-spacing="2.4" fill="#4d4691">● CONNECTED</text>
+    <line x1="0" y1="46" x2="460" y2="46" stroke="#101214" stroke-width="1.5"/>
+
+    <g font-size="14">
+      <text x="22" y="84" fill="#5c6166">&gt;</text>
+      <text x="42" y="84" fill="#101214">Point www.example.no at my new server</text>
+
+      <rect x="22" y="115" width="8" height="8" fill="#4d4691"/>
+      <text x="42" y="124"><tspan fill="#4d4691" font-weight="700">list_dns_records</tspan><tspan fill="#5c6166"> domain_id=1337</tspan></text>
+      <text x="42" y="148" fill="#5c6166">└ 6 records · www A 198.51.100.4</text>
+
+      <rect x="22" y="179" width="8" height="8" fill="#4d4691"/>
+      <text x="42" y="188" fill="#4d4691" font-weight="700">upsert_dns_record</text>
+      <line x1="26" y1="198" x2="26" y2="292" stroke="#caced3" stroke-width="1.5"/>
+      <g fill="#3b3d40">
+        <text x="58" y="214" xml:space="preserve">host  <tspan fill="#c94c18">"www"</tspan></text>
+        <text x="58" y="238" xml:space="preserve">type  <tspan fill="#c94c18">"A"</tspan></text>
+        <text x="58" y="262" xml:space="preserve">data  <tspan fill="#c94c18">"203.0.113.10"</tspan></text>
+        <text x="58" y="286" xml:space="preserve">ttl   <tspan fill="#c94c18">3600</tspan></text>
+      </g>
+
+      <rect x="22" y="310" width="416" height="34" rx="4" fill="none" stroke="#4d4691" stroke-width="1.5"/>
+      <text x="36" y="332" fill="#4d4691">✓ www.example.no → 203.0.113.10</text>
+    </g>
+  </g>
+
+  <!-- footer -->
+  <line x1="72" y1="556" x2="1208" y2="556" stroke="#caced3" stroke-width="1.5"/>
+  <text x="72" y="592" class="mono" font-size="14" letter-spacing="3" fill="#101214">NPX DOMENESHOP-MCP</text>
+  <rect x="842" y="583" width="9" height="9" fill="#4d4691"/>
+  <text x="1208" y="592" text-anchor="end" class="mono" font-size="13" letter-spacing="2.6" fill="#3b3d40">17 TOOLS · STDIO · READ-ONLY MODE</text>
+</svg>

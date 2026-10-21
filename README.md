@@ -1,5 +1,8 @@
 <p align="center">
-  <img src=".github/assets/banner.png" alt="domeneshop-mcp — MCP server for Domeneshop domains, DNS, HTTP forwards, dynamic DNS and invoices" width="100%">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.png">
+    <img src=".github/assets/banner-light.png" alt="domeneshop-mcp — MCP server for Domeneshop domains, DNS, HTTP forwards, dynamic DNS and invoices" width="100%">
+  </picture>
 </p>
 
 <h1 align="center">domeneshop-mcp</h1>
