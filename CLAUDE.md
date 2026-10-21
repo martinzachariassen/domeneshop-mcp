@@ -27,8 +27,10 @@ Two layers, kept separate:
 - `src/mcp/` — MCP surface. One `register*Tools` function per resource in `tools/`,
   wired together in `server.ts`.
 
-`src/index.ts` is the bin entry: reads `DOMENESHOP_API_TOKEN` / `DOMENESHOP_API_SECRET`,
-builds the client, connects stdio.
+`src/index.ts` is the bin entry: parses flags, loads env config via `src/config.ts`
+(credentials, read-only mode, tool allow/deny lists, timeout, debug), builds the
+client and connects stdio. Tool filtering lives in `mcp/registry.ts`: register
+functions take a `ToolRegistrar`, not the `McpServer` itself.
 
 Imports use subpath aliases in tests only (`#domeneshop/*`, `#mcp/*`, `#testing/*`);
 `src/` uses relative paths with explicit `.js` extensions.

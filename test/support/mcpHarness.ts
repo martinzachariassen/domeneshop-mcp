@@ -2,7 +2,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { DomeneshopClient } from "#domeneshop/index.js";
-import { createServer } from "#mcp/server.js";
+import { type CreateServerOptions, createServer } from "#mcp/server.js";
 import { type Handler, startTestServer, type TestServer } from "./testServer.js";
 
 export interface Harness {
@@ -11,10 +11,13 @@ export interface Harness {
   close: () => Promise<void>;
 }
 
-export async function connect(handler: Handler): Promise<Harness> {
+export async function connect(
+  handler: Handler,
+  options: CreateServerOptions = {},
+): Promise<Harness> {
   const apiServer = await startTestServer(handler);
   const domeneshopClient = new DomeneshopClient("token", "secret", { baseUrl: apiServer.baseUrl });
-  const server = createServer(domeneshopClient);
+  const server = createServer(domeneshopClient, options);
 
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "test-client", version: "1.0.0" });

@@ -1,10 +1,10 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { DNSRecord, DomeneshopClient } from "../../domeneshop/index.js";
 import { RECORD_TYPES } from "../../domeneshop/index.js";
 import { additive, destructive, readOnly } from "../annotations.js";
 import { dnsRecordOutput, domainIdField, optionalFilter, ttlField } from "../fields.js";
 import { validateRecord } from "../records.js";
+import type { ToolRegistrar } from "../registry.js";
 import { jsonResult, listResult, textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
@@ -198,7 +198,7 @@ async function readBack(
   }
 }
 
-export function registerDNSTools(server: McpServer, client: DomeneshopClient): void {
+export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient): void {
   server.registerTool(
     "list_dns_records",
     {

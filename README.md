@@ -55,6 +55,17 @@ credentials from two environment variables:
 | `DOMENESHOP_API_TOKEN` | API token from the Domeneshop control panel |
 | `DOMENESHOP_API_SECRET` | The matching API secret |
 
+Optional settings (see [Access control](#access-control) and
+[Troubleshooting](#troubleshooting)):
+
+| Variable | Description |
+| --- | --- |
+| `DOMENESHOP_READ_ONLY` | `true` to expose only read-only tools |
+| `DOMENESHOP_TOOLS` | Comma-separated allowlist of tool names to expose |
+| `DOMENESHOP_DISABLED_TOOLS` | Comma-separated tool names to hide |
+| `DOMENESHOP_TIMEOUT_MS` | Per-request timeout in milliseconds (default `30000`) |
+| `DOMENESHOP_DEBUG` | `true` to log every API request to stderr |
+
 Most clients take the same **standard config**. Swap in your real token and
 secret wherever you see the placeholders.
 
@@ -271,6 +282,42 @@ read-only tools also return structured output for clients that support it.
 | --- | --- | --- |
 | `list_invoices` | Read-only | List invoices from the past three years, optionally filtered by status |
 | `get_invoice` | Read-only | Get a single invoice |
+
+## Access control
+
+The Domeneshop API has no scoped tokens: a token can do everything the account
+can. To limit what the assistant can do, limit which tools the server exposes.
+Hidden tools are not registered at all, so the model never sees them.
+
+- **Read-only mode.** Set `DOMENESHOP_READ_ONLY=true` to expose only the eight
+  read-only tools. This is a good default if you mainly ask questions about your
+  domains, DNS and invoices.
+- **Allowlist.** Set `DOMENESHOP_TOOLS=list_domains,list_dns_records,patch_dns_record`
+  to expose exactly those tools.
+- **Denylist.** Set `DOMENESHOP_DISABLED_TOOLS=delete_dns_record,delete_forward`
+  to hide specific tools.
+
+The settings combine, and a misspelled tool name stops the server at startup
+instead of being silently ignored.
+
+Most clients ask before running a tool not annotated read-only. Keep that
+confirmation on for this server: write tools change live DNS, and a wrong
+record can take a site or mailbox offline.
+
+## Troubleshooting
+
+- **`API returned status 401`**: the token or secret is wrong. Copy both again
+  from [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api).
+  Surrounding whitespace is trimmed automatically.
+- **`API returned status 404`**: the domain or record ID does not exist on this
+  account. Ask the assistant to list domains or records first.
+- **Timeouts**: requests give up after 30 seconds. Idempotent requests are
+  retried on rate limiting and temporary errors. Raise the limit with
+  `DOMENESHOP_TIMEOUT_MS` if needed.
+- **The tools do not show up**: run `npx -y domeneshop-mcp --version` to check
+  that Node.js 20.3+ and npx work, then check your client's MCP logs. With
+  `DOMENESHOP_DEBUG=true` the server logs every API request (method, path,
+  status and duration, never credentials) to stderr, which most clients capture.
 
 ## Reference
 

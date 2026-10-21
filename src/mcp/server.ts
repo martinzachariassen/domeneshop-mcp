@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { DomeneshopClient } from "../domeneshop/index.js";
 import { VERSION } from "../version.js";
+import { assertKnownTools, filteredRegistrar, type ToolFilter } from "./registry.js";
 import { registerDNSTools } from "./tools/dns.js";
 import { registerDomainTools } from "./tools/domains.js";
 import { registerDynDNSTools } from "./tools/dyndns.js";
@@ -17,7 +18,13 @@ export const INSTRUCTIONS = [
   "Write tools change live DNS; confirm the intended change with the user before deleting or overwriting records.",
 ].join("\n");
 
-export function createServer(client: DomeneshopClient): McpServer {
+export type CreateServerOptions = ToolFilter;
+
+/** Throws if the filter names a tool that does not exist. */
+export function createServer(
+  client: DomeneshopClient,
+  options: CreateServerOptions = {},
+): McpServer {
   const server = new McpServer(
     {
       name: "domeneshop-mcp",
@@ -25,14 +32,20 @@ export function createServer(client: DomeneshopClient): McpServer {
       version: VERSION,
       websiteUrl: "https://github.com/martinzachariassen/domeneshop-mcp",
     },
-    { instructions: INSTRUCTIONS },
+    {
+      instructions: options.readOnly
+        ? `${INSTRUCTIONS}\nThis server runs in read-only mode: no tools that change the account are available.`
+        : INSTRUCTIONS,
+    },
   );
 
-  registerDomainTools(server, client);
-  registerDNSTools(server, client);
-  registerForwardTools(server, client);
-  registerDynDNSTools(server, client);
-  registerInvoiceTools(server, client);
+  const { registrar, names } = filteredRegistrar(server, options);
+  registerDomainTools(registrar, client);
+  registerDNSTools(registrar, client);
+  registerForwardTools(registrar, client);
+  registerDynDNSTools(registrar, client);
+  registerInvoiceTools(registrar, client);
+  assertKnownTools(names, options);
 
   return server;
 }

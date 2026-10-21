@@ -1,8 +1,8 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { additive, destructive, readOnly } from "../annotations.js";
 import { domainIdField, forwardOutput, httpUrlField } from "../fields.js";
+import type { ToolRegistrar } from "../registry.js";
 import { jsonResult, listResult, textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
@@ -37,7 +37,7 @@ const deleteForwardShape = {
 };
 type DeleteForwardArgs = InferShape<typeof deleteForwardShape>;
 
-export function registerForwardTools(server: McpServer, client: DomeneshopClient): void {
+export function registerForwardTools(server: ToolRegistrar, client: DomeneshopClient): void {
   server.registerTool(
     "list_forwards",
     {

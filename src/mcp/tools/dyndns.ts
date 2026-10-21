@@ -1,8 +1,8 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { destructive } from "../annotations.js";
 import { ipListField } from "../fields.js";
+import type { ToolRegistrar } from "../registry.js";
 import { textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
@@ -13,7 +13,7 @@ const updateDynDNSShape = {
 };
 type UpdateDynDNSArgs = InferShape<typeof updateDynDNSShape>;
 
-export function registerDynDNSTools(server: McpServer, client: DomeneshopClient): void {
+export function registerDynDNSTools(server: ToolRegistrar, client: DomeneshopClient): void {
   server.registerTool(
     "update_dyndns",
     {

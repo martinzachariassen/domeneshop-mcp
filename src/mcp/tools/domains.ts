@@ -1,8 +1,8 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { readOnly } from "../annotations.js";
 import { domainIdField, domainOutput } from "../fields.js";
+import type { ToolRegistrar } from "../registry.js";
 import { jsonResult, listResult } from "../result.js";
 import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
@@ -20,7 +20,7 @@ const getDomainShape = {
 };
 type GetDomainArgs = InferShape<typeof getDomainShape>;
 
-export function registerDomainTools(server: McpServer, client: DomeneshopClient): void {
+export function registerDomainTools(server: ToolRegistrar, client: DomeneshopClient): void {
   server.registerTool(
     "list_domains",
     {
