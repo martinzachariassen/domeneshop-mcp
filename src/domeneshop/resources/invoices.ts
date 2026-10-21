@@ -1,5 +1,5 @@
 import { assertDefined } from "../assert.js";
-import type { HttpTransport } from "../http.js";
+import type { CallOptions, HttpTransport } from "../http.js";
 
 /** "settled" applies only to credit notes. */
 export const INVOICE_STATUSES = ["unpaid", "paid", "settled"] as const;
@@ -25,15 +25,22 @@ export class InvoicesResource {
    * Only returns invoices from the past three years. The status parameter is
    * undocumented but supported — see domeneshop.js (src/lib/invoices.ts).
    */
-  async list(status?: string): Promise<Invoice[]> {
+  async list(status?: string, call: CallOptions = {}): Promise<Invoice[]> {
     const { data } = await this.transport.request<Invoice[]>("GET", "/invoices", {
       query: { status },
+      signal: call.signal,
     });
     return data ?? [];
   }
 
-  async get(invoiceId: number): Promise<Invoice> {
-    const { data } = await this.transport.request<Invoice>("GET", `/invoices/${String(invoiceId)}`);
+  async get(invoiceId: number, call: CallOptions = {}): Promise<Invoice> {
+    const { data } = await this.transport.request<Invoice>(
+      "GET",
+      `/invoices/${String(invoiceId)}`,
+      {
+        signal: call.signal,
+      },
+    );
     return assertDefined(data, "domeneshop: empty response for invoice");
   }
 }

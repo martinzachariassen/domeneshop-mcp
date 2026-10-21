@@ -27,7 +27,7 @@ Code, Claude Desktop, Cursor, VS Code, Codex, Windsurf, Cline and others.
 
 ## Quick start
 
-You need Node.js 20 or newer and a Domeneshop account.
+You need Node.js 20.3 or newer and a Domeneshop account.
 
 **1. Create an API token and secret** at
 [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api).

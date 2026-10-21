@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 MCP server over the Domeneshop API (domains, DNS, HTTP forwards, dynamic DNS, invoices).
-TypeScript, ESM, Node >= 20, stdio transport.
+TypeScript, ESM, Node >= 20.3, stdio transport.
 
 ## Commands
 

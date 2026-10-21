@@ -1,5 +1,5 @@
 import { assertDefined } from "../assert.js";
-import type { HttpTransport } from "../http.js";
+import type { CallOptions, HttpTransport } from "../http.js";
 
 export interface DomainServices {
   dns: boolean;
@@ -23,15 +23,18 @@ export interface Domain {
 export class DomainsResource {
   constructor(private readonly transport: HttpTransport) {}
 
-  async list(filter?: string): Promise<Domain[]> {
+  async list(filter?: string, call: CallOptions = {}): Promise<Domain[]> {
     const { data } = await this.transport.request<Domain[]>("GET", "/domains", {
       query: { domain: filter },
+      signal: call.signal,
     });
     return data ?? [];
   }
 
-  async get(domainId: number): Promise<Domain> {
-    const { data } = await this.transport.request<Domain>("GET", `/domains/${String(domainId)}`);
+  async get(domainId: number, call: CallOptions = {}): Promise<Domain> {
+    const { data } = await this.transport.request<Domain>("GET", `/domains/${String(domainId)}`, {
+      signal: call.signal,
+    });
     return assertDefined(data, "domeneshop: empty response for domain");
   }
 }
