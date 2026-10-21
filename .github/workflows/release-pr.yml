@@ -32,5 +32,8 @@ jobs:
           version: npm run version
           title: "chore: release"
           commit: "chore: release"
+          # Commit through the GitHub API so the release commit is signed and
+          # passes the "required signatures" rule on main.
+          commitMode: github-api
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
