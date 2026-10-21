@@ -22,6 +22,26 @@ personal, unfunded open-source project, so there is no guaranteed fix
 timeline, but valid reports will be addressed as soon as reasonably possible
 and credited in the release notes unless you prefer otherwise.
 
+## Verifying releases
+
+Releases are built and published by GitHub Actions only, never from a
+maintainer's machine.
+
+- The npm package is published with
+  [npm provenance](https://docs.npmjs.com/generating-provenance-statements),
+  so `npm audit signatures` verifies it.
+- Each [GitHub Release](https://github.com/martinzachariassen/domeneshop-mcp/releases)
+  attaches the npm tarball, the Claude Desktop bundle (`.mcpb`) and SLSA
+  level 3 provenance for both (`multiple.intoto.jsonl`). Verify a file with
+  [slsa-verifier](https://github.com/slsa-framework/slsa-verifier):
+
+  ```sh
+  slsa-verifier verify-artifact domeneshop-mcp-X.Y.Z.tgz \
+    --provenance-path multiple.intoto.jsonl \
+    --source-uri github.com/martinzachariassen/domeneshop-mcp \
+    --source-tag vX.Y.Z
+  ```
+
 ## Scope notes
 
 This server holds your Domeneshop API token and secret (read from

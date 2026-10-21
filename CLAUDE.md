@@ -74,8 +74,9 @@ or renaming a tool means updating `mcpb/manifest.json` too.
 
 Merging the release PR is the only manual step. `release-pr.yml` then tags
 `vX.Y.Z`, and `release.yml` publishes to npm, the MCP Registry and a GitHub
-Release, then runs `scripts/bump-homebrew-formula.sh`, which opens an
-auto-merging PR in `martinzachariassen/homebrew-tap` updating the formula's
+Release (npm tarball + `.mcpb`, plus SLSA provenance from a second
+`provenance` job; OpenSSF Scorecard's Signed-Releases check reads it), then
+runs `scripts/bump-homebrew-formula.sh`, which opens an auto-merging PR in `martinzachariassen/homebrew-tap` updating the formula's
 tarball `url` and `sha256`. The tap has no versioning of its own; never edit the
 formula by hand for a release.
 

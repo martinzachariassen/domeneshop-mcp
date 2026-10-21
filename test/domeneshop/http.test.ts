@@ -1,3 +1,4 @@
+import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
   DomeneshopApiError,
@@ -408,5 +409,22 @@ describe("parseRetryAfter", () => {
     expect(parseRetryAfter("soon")).toBeUndefined();
     const inFuture = new Date(Date.now() + 5000).toUTCString();
     expect(parseRetryAfter(inFuture)).toBeGreaterThan(3000);
+  });
+
+  it("never returns a negative or non-finite delay for any header value", () => {
+    fc.assert(
+      fc.property(fc.string(), (value) => {
+        const delay = parseRetryAfter(value);
+        return delay === undefined || (Number.isFinite(delay) && delay >= 0);
+      }),
+    );
+  });
+
+  it("converts any non-negative delta-seconds value to milliseconds", () => {
+    fc.assert(
+      fc.property(fc.nat({ max: 86_400 }), (seconds) => {
+        expect(parseRetryAfter(String(seconds))).toBe(seconds * 1000);
+      }),
+    );
   });
 });
