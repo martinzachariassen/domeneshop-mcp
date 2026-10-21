@@ -13,13 +13,16 @@ npx changeset
 and follow the prompts. This writes a small markdown file here describing the
 change and its semver bump (patch/minor/major); commit it alongside your PR.
 
-At release time, the maintainer runs:
+While changesets are pending on `main`, the `release-pr` workflow keeps a
+"chore: release" PR open. It runs `npm run version`, which consumes the
+changeset files, bumps the version in `package.json`, `server.json` and
+`mcpb/manifest.json`, and writes the entries into `CHANGELOG.md`.
+
+After merging that PR, the maintainer tags the merge commit and pushes the tag:
 
 ```sh
-npx changeset version
+git tag vX.Y.Z && git push --tags
 ```
 
-which consumes all pending changeset files, bumps `package.json`'s version,
-and writes the corresponding entries into `CHANGELOG.md`. The version bump is
-then committed, tagged (`git tag vX.Y.Z`), and pushed — which triggers the
-`release` workflow to publish to npm.
+That triggers the `release` workflow, which publishes to npm and the MCP
+Registry and attaches the Claude Desktop bundle (`.mcpb`) to the GitHub Release.

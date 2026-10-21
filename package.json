@@ -2,6 +2,7 @@
   "name": "domeneshop-mcp",
   "version": "1.0.4",
   "description": "MCP server exposing the Domeneshop API — manage domains, DNS records, HTTP forwards, dynamic DNS and invoices from an AI assistant.",
+  "mcpName": "io.github.martinzachariassen/domeneshop-mcp",
   "type": "module",
   "bin": {
     "domeneshop-mcp": "dist/index.js"
@@ -33,7 +34,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "changeset": "changeset",
+    "version": "changeset version && node scripts/sync-version.mjs && biome format --write server.json mcpb/manifest.json",
+    "mcpb:build": "node scripts/build-mcpb.mjs",
     "prepare": "husky",
     "prepublishOnly": "npm run build"
   },
@@ -58,9 +62,13 @@
   "bugs": {
     "url": "https://github.com/martinzachariassen/domeneshop-mcp/issues"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "zod": "^4.5.4"
+    "@modelcontextprotocol/sdk": "^1.31.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",

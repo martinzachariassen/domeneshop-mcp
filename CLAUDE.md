@@ -66,7 +66,11 @@ Follow that pattern for new tests.
 
 Changesets. Any user-facing change needs `npx changeset` and the generated file
 committed alongside it. Do not hand-edit `CHANGELOG.md` or the version in
-`package.json`; the release workflow owns both.
+`package.json`; the release workflow owns both. `npm run version` (used by the
+release PR) also syncs the version into `server.json` (MCP Registry) and
+`mcpb/manifest.json` (Claude Desktop bundle); `test/distribution.test.ts` fails if
+they drift or if the manifest's tool list no longer matches the server. Adding
+or renaming a tool means updating `mcpb/manifest.json` too.
 
 ## PRs and issues
 

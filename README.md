@@ -7,6 +7,11 @@
 <p align="center">
   <a href="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/ci.yml"><img src="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://www.npmjs.com/package/domeneshop-mcp"><img src="https://img.shields.io/npm/v/domeneshop-mcp" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/domeneshop-mcp"><img src="https://img.shields.io/npm/dm/domeneshop-mcp" alt="npm downloads"></a>
+  <a href="package.json"><img src="https://img.shields.io/node/v/domeneshop-mcp" alt="Node.js version"></a>
+  <a href="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/codeql.yml"><img src="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/martinzachariassen/domeneshop-mcp"><img src="https://api.scorecard.dev/projects/github.com/martinzachariassen/domeneshop-mcp/badge" alt="OpenSSF Scorecard"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/domeneshop-mcp" alt="License"></a>
 </p>
 
 <p align="center">
@@ -15,11 +20,13 @@
   <a href="https://api.domeneshop.no/docs/"><b>Domeneshop API</b></a>
   &nbsp;·&nbsp;
   <a href="https://www.domeneshop.no/admin?view=api"><b>Get API credentials</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://registry.modelcontextprotocol.io/v0/servers?search=io.github.martinzachariassen/domeneshop-mcp"><b>MCP Registry</b></a>
 </p>
 
 An [MCP](https://modelcontextprotocol.io) server that turns the
 [Domeneshop API](https://api.domeneshop.no/docs/) into tools an assistant can call.
-Every operation the API offers is covered — 15 tools across domains, DNS, HTTP
+Every operation the API offers is covered — 17 tools across domains, DNS, HTTP
 forwarding, dynamic DNS and invoices.
 
 It talks MCP over stdio, so it works with **any MCP-compatible client**: Claude
@@ -109,7 +116,12 @@ Or write the standard config straight into `<your-project>/.mcp.json`.
 <details>
 <summary><strong>Claude Desktop</strong></summary>
 
-Add the standard config to `claude_desktop_config.json`, reachable from
+The easiest route is the one-click bundle: download `domeneshop-mcp-<version>.mcpb`
+from the [latest release](https://github.com/martinzachariassen/domeneshop-mcp/releases/latest)
+and open it. Claude Desktop asks for your token and secret, stores them securely,
+and offers a read-only toggle.
+
+To configure it by hand instead, add the standard config to `claude_desktop_config.json`, reachable from
 Settings → Developer → Edit Config:
 
 | Platform | Full path |
@@ -392,7 +404,8 @@ test/
 ## Contributing
 
 Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md)
-for the development workflow and changelog conventions.
+for the development workflow and changelog conventions. Everyone taking part is
+expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Security
 

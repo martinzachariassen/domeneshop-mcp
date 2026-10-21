@@ -1,0 +1,63 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.martinzachariassen/domeneshop-mcp",
+  "title": "Domeneshop",
+  "description": "Manage Domeneshop domains, DNS records, HTTP forwards, dynamic DNS and invoices.",
+  "version": "1.0.4",
+  "websiteUrl": "https://github.com/martinzachariassen/domeneshop-mcp#readme",
+  "repository": {
+    "url": "https://github.com/martinzachariassen/domeneshop-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "domeneshop-mcp",
+      "version": "1.0.4",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "DOMENESHOP_API_TOKEN",
+          "description": "API token from https://www.domeneshop.no/admin?view=api",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "DOMENESHOP_API_SECRET",
+          "description": "The matching API secret",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "DOMENESHOP_READ_ONLY",
+          "description": "Set to true to expose only read-only tools",
+          "format": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "DOMENESHOP_TOOLS",
+          "description": "Comma-separated allowlist of tool names to expose"
+        },
+        {
+          "name": "DOMENESHOP_DISABLED_TOOLS",
+          "description": "Comma-separated tool names to hide"
+        },
+        {
+          "name": "DOMENESHOP_TIMEOUT_MS",
+          "description": "Per-request timeout in milliseconds",
+          "format": "number",
+          "default": "30000"
+        },
+        {
+          "name": "DOMENESHOP_DEBUG",
+          "description": "Set to true to log each API request to stderr",
+          "format": "boolean",
+          "default": "false"
+        }
+      ]
+    }
+  ]
+}

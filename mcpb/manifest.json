@@ -1,0 +1,134 @@
+{
+  "manifest_version": "0.3",
+  "name": "domeneshop-mcp",
+  "display_name": "Domeneshop",
+  "version": "1.0.4",
+  "description": "Manage Domeneshop domains, DNS records, HTTP forwards, dynamic DNS and invoices.",
+  "long_description": "Turns the Domeneshop API into tools an assistant can call: list and inspect domains, create, patch and delete DNS records, manage HTTP forwards, update dynamic DNS and read invoices. Enable read-only mode to expose only the tools that never change your account.",
+  "author": {
+    "name": "Martin Zachariassen",
+    "url": "https://github.com/martinzachariassen"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/martinzachariassen/domeneshop-mcp.git"
+  },
+  "homepage": "https://github.com/martinzachariassen/domeneshop-mcp#readme",
+  "documentation": "https://github.com/martinzachariassen/domeneshop-mcp#readme",
+  "support": "https://github.com/martinzachariassen/domeneshop-mcp/issues",
+  "license": "MIT",
+  "keywords": ["domeneshop", "dns", "domains"],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "DOMENESHOP_API_TOKEN": "${user_config.api_token}",
+        "DOMENESHOP_API_SECRET": "${user_config.api_secret}",
+        "DOMENESHOP_READ_ONLY": "${user_config.read_only}"
+      }
+    }
+  },
+  "user_config": {
+    "api_token": {
+      "type": "string",
+      "title": "API token",
+      "description": "Create one at https://www.domeneshop.no/admin?view=api",
+      "sensitive": true,
+      "required": true
+    },
+    "api_secret": {
+      "type": "string",
+      "title": "API secret",
+      "description": "The secret that belongs to the token",
+      "sensitive": true,
+      "required": true
+    },
+    "read_only": {
+      "type": "boolean",
+      "title": "Read-only mode",
+      "description": "Expose only tools that never change your account",
+      "default": false,
+      "required": false
+    }
+  },
+  "tools": [
+    {
+      "name": "list_domains",
+      "description": "List domains on the account"
+    },
+    {
+      "name": "get_domain",
+      "description": "Get one domain"
+    },
+    {
+      "name": "list_dns_records",
+      "description": "List DNS records for a domain"
+    },
+    {
+      "name": "get_dns_record",
+      "description": "Get one DNS record"
+    },
+    {
+      "name": "create_dns_record",
+      "description": "Create a DNS record"
+    },
+    {
+      "name": "update_dns_record",
+      "description": "Replace a DNS record"
+    },
+    {
+      "name": "patch_dns_record",
+      "description": "Change some fields of a DNS record"
+    },
+    {
+      "name": "upsert_dns_record",
+      "description": "Create or update a DNS record by host and type"
+    },
+    {
+      "name": "delete_dns_record",
+      "description": "Delete a DNS record"
+    },
+    {
+      "name": "list_forwards",
+      "description": "List HTTP forwards for a domain"
+    },
+    {
+      "name": "get_forward",
+      "description": "Get one HTTP forward"
+    },
+    {
+      "name": "create_forward",
+      "description": "Create an HTTP forward"
+    },
+    {
+      "name": "update_forward",
+      "description": "Replace an HTTP forward"
+    },
+    {
+      "name": "delete_forward",
+      "description": "Delete an HTTP forward"
+    },
+    {
+      "name": "update_dyndns",
+      "description": "Point a hostname at an IP address"
+    },
+    {
+      "name": "list_invoices",
+      "description": "List invoices"
+    },
+    {
+      "name": "get_invoice",
+      "description": "Get one invoice"
+    }
+  ],
+  "tools_generated": false,
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=20.3.0"
+    }
+  }
+}
