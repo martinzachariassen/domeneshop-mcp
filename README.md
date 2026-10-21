@@ -209,6 +209,7 @@ npm install -g domeneshop-mcp
 | Domains | "Which domains are on my account, and when do they renew?" |
 | DNS | "Show every DNS record for example.no" |
 | DNS | "Point blog.example.no at 203.0.113.10" |
+| DNS | "Lower the TTL on the www record for example.no to 5 minutes" |
 | DNS | "Add the TXT record Google gave me for domain verification" |
 | DNS | "Set up Fastmail's MX records on example.no" |
 | Forwarding | "Forward old.example.no to https://example.no" |
@@ -238,12 +239,15 @@ read-only tools also return structured output for clients that support it.
 | `get_dns_record` | Read-only | Get a single record by ID |
 | `create_dns_record` | Adds | Create a record and return it as stored |
 | `update_dns_record` | Overwrites | Replace a record and return it as stored — see the warning below |
+| `patch_dns_record` | Overwrites | Change only the given fields of a record; the rest keep their stored values |
+| `upsert_dns_record` | Overwrites | Update the single record for a host and type, or create it if there is none |
 | `delete_dns_record` | Deletes | Delete a record |
 
 > **Heads up:** `update_dns_record` replaces the whole record rather than
 > patching it. Any field left out is dropped, and omitting `ttl` resets it to
-> the default 3600 seconds. Read the record first if you are only changing part
-> of it.
+> the default 3600 seconds. Use `patch_dns_record` to change only some fields.
+> `upsert_dns_record` refuses to act when a host has several records of the
+> same type (typical for `MX` and `TXT`) and lists their IDs instead.
 
 ### HTTP forwarding
 

@@ -10,6 +10,8 @@ const ALL_TOOLS = [
   "get_dns_record",
   "create_dns_record",
   "update_dns_record",
+  "patch_dns_record",
+  "upsert_dns_record",
   "delete_dns_record",
   "list_forwards",
   "get_forward",
@@ -30,7 +32,7 @@ function requireTool(tools: Map<string, Tool>, name: string): Tool {
 }
 
 describe("createServer", () => {
-  it("registers one tool per Domeneshop API operation", async () => {
+  it("registers one tool per Domeneshop API operation, plus the DNS helpers", async () => {
     const harness = await connect((_req, res) => {
       res.writeHead(200);
       res.end();
@@ -63,6 +65,8 @@ describe("createServer", () => {
       ];
       const destructiveTools = [
         "update_dns_record",
+        "patch_dns_record",
+        "upsert_dns_record",
         "delete_dns_record",
         "update_forward",
         "delete_forward",
