@@ -1,6 +1,7 @@
 name: release
 
-# Runs once you push a version tag (e.g. `git tag v0.1.0 && git push --tags`).
+# Runs on a vX.Y.Z tag, which release-pr.yml creates when the release PR is
+# merged (pushing a tag by hand works too).
 # Publishes to npm using trusted publishing (OIDC, no stored token) with
 # provenance attached, publishes server.json to the MCP Registry (GitHub OIDC),
 # then creates the matching GitHub Release with the Claude Desktop bundle and

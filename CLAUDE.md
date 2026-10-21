@@ -72,11 +72,17 @@ release PR) also syncs the version into `server.json` (MCP Registry) and
 they drift or if the manifest's tool list no longer matches the server. Adding
 or renaming a tool means updating `mcpb/manifest.json` too.
 
-After npm publish, `release.yml` runs `scripts/bump-homebrew-formula.sh`, which
-opens an auto-merging PR in `martinzachariassen/homebrew-tap` updating the
-formula's tarball `url` and `sha256` (token from a GitHub App: `HOMEBREW_APP_CLIENT_ID` variable +
-`HOMEBREW_APP_PRIVATE_KEY` secret; App commits are signed, PAT commits are not).
-The tap has no versioning of its own; never edit the formula by hand for a release.
+Merging the release PR is the only manual step. `release-pr.yml` then tags
+`vX.Y.Z`, and `release.yml` publishes to npm, the MCP Registry and a GitHub
+Release, then runs `scripts/bump-homebrew-formula.sh`, which opens an
+auto-merging PR in `martinzachariassen/homebrew-tap` updating the formula's
+tarball `url` and `sha256`. The tap has no versioning of its own; never edit the
+formula by hand for a release.
+
+Both workflows write with a token from one GitHub App installed on both repos
+(`HOMEBREW_APP_CLIENT_ID` variable + `HOMEBREW_APP_PRIVATE_KEY` secret), not
+`GITHUB_TOKEN` or a PAT: App commits are signed (both repos require signatures),
+and App PRs and tags trigger workflows, which `GITHUB_TOKEN`'s do not.
 
 ## PRs and issues
 
