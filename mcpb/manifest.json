@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "domeneshop-mcp",
   "display_name": "Domeneshop",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Manage Domeneshop domains, DNS records, HTTP forwards, dynamic DNS and invoices.",
   "long_description": "Turns the Domeneshop API into tools an assistant can call: list and inspect domains, create, patch and delete DNS records, manage HTTP forwards, update dynamic DNS and read invoices. Enable read-only mode to expose only the tools that never change your account.",
   "author": {
