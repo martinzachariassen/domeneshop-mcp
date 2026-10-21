@@ -29,6 +29,12 @@
   <a href="https://www.domeneshop.no/admin?view=api"><b>Get API credentials</b></a>
 </p>
 
+<p align="center">
+  <a href="https://cursor.com/en/install-mcp?name=domeneshop&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImRvbWVuZXNob3AtbWNwIl0sImVudiI6eyJET01FTkVTSE9QX0FQSV9UT0tFTiI6Ijx5b3VyLWFwaS10b2tlbj4iLCJET01FTkVTSE9QX0FQSV9TRUNSRVQiOiI8eW91ci1hcGktc2VjcmV0PiJ9fQ%3D%3D"><img src="https://img.shields.io/badge/Cursor-Install_Server-000000?style=flat-square&logo=cursor&logoColor=white" alt="Install in Cursor"></a>
+  <a href="https://insiders.vscode.dev/redirect/mcp/install?name=domeneshop&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_token%22%2C%22description%22%3A%22Domeneshop%20API%20token%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_secret%22%2C%22description%22%3A%22Domeneshop%20API%20secret%22%2C%22password%22%3Atrue%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22domeneshop-mcp%22%5D%2C%22env%22%3A%7B%22DOMENESHOP_API_TOKEN%22%3A%22%24%7Binput%3Adomeneshop_api_token%7D%22%2C%22DOMENESHOP_API_SECRET%22%3A%22%24%7Binput%3Adomeneshop_api_secret%7D%22%7D%7D"><img src="https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code"></a>
+  <a href="https://insiders.vscode.dev/redirect/mcp/install?name=domeneshop&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_token%22%2C%22description%22%3A%22Domeneshop%20API%20token%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_secret%22%2C%22description%22%3A%22Domeneshop%20API%20secret%22%2C%22password%22%3Atrue%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22domeneshop-mcp%22%5D%2C%22env%22%3A%7B%22DOMENESHOP_API_TOKEN%22%3A%22%24%7Binput%3Adomeneshop_api_token%7D%22%2C%22DOMENESHOP_API_SECRET%22%3A%22%24%7Binput%3Adomeneshop_api_secret%7D%22%7D%7D&quality=insiders"><img src="https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24BFA5?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code Insiders"></a>
+</p>
+
 An [MCP](https://modelcontextprotocol.io) server that turns the
 [Domeneshop API](https://api.domeneshop.no/docs/) into tools an assistant can call.
 Every operation the API offers is covered — 17 tools across domains, DNS, HTTP
@@ -96,7 +102,8 @@ brew install martinzachariassen/tap/domeneshop-mcp
 ```
 
 **Using a different client?** Claude Desktop has a one-click bundle that needs
-no Node.js; Cursor, VS Code, Codex and others take a short config block. See
+no Node.js, and Cursor and VS Code have one-click install buttons at the top of
+this page. Codex and others take a short config block. See
 [Client setup](#client-setup).
 
 ## What you can ask for
@@ -188,7 +195,13 @@ then restart Claude Desktop:
 <details>
 <summary><strong>Cursor</strong></summary>
 
-Add the standard config to an `mcp.json` file:
+[![Install in Cursor](https://img.shields.io/badge/Cursor-Install_Server-000000?style=flat-square&logo=cursor&logoColor=white)](https://cursor.com/en/install-mcp?name=domeneshop&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImRvbWVuZXNob3AtbWNwIl0sImVudiI6eyJET01FTkVTSE9QX0FQSV9UT0tFTiI6Ijx5b3VyLWFwaS10b2tlbj4iLCJET01FTkVTSE9QX0FQSV9TRUNSRVQiOiI8eW91ci1hcGktc2VjcmV0PiJ9fQ%3D%3D)
+
+The button installs the server with placeholder credentials. Cursor cannot
+prompt for them, so afterwards open **Settings → MCP**, edit the `domeneshop`
+entry and replace `<your-api-token>` and `<your-api-secret>` with your own.
+
+To set it up by hand instead, add the standard config to an `mcp.json` file:
 
 | Scope | Full path |
 | --- | --- |
@@ -201,7 +214,14 @@ Add the standard config to an `mcp.json` file:
 <details>
 <summary><strong>VS Code (GitHub Copilot)</strong></summary>
 
-VS Code uses a `servers` key instead of `mcpServers`, and wants an explicit
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=domeneshop&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_token%22%2C%22description%22%3A%22Domeneshop%20API%20token%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_secret%22%2C%22description%22%3A%22Domeneshop%20API%20secret%22%2C%22password%22%3Atrue%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22domeneshop-mcp%22%5D%2C%22env%22%3A%7B%22DOMENESHOP_API_TOKEN%22%3A%22%24%7Binput%3Adomeneshop_api_token%7D%22%2C%22DOMENESHOP_API_SECRET%22%3A%22%24%7Binput%3Adomeneshop_api_secret%7D%22%7D%7D)
+[![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24BFA5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=domeneshop&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_token%22%2C%22description%22%3A%22Domeneshop%20API%20token%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_secret%22%2C%22description%22%3A%22Domeneshop%20API%20secret%22%2C%22password%22%3Atrue%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22domeneshop-mcp%22%5D%2C%22env%22%3A%7B%22DOMENESHOP_API_TOKEN%22%3A%22%24%7Binput%3Adomeneshop_api_token%7D%22%2C%22DOMENESHOP_API_SECRET%22%3A%22%24%7Binput%3Adomeneshop_api_secret%7D%22%7D%7D&quality=insiders)
+
+The buttons install the server in your user configuration. VS Code then asks
+for your token and secret and stores them securely, so nothing is written to a
+config file in plain text.
+
+To set it up by hand instead, note that VS Code uses a `servers` key instead of `mcpServers`, and wants an explicit
 `type`. For this project only, add it to `<your-project>/.vscode/mcp.json`:
 
 ```json

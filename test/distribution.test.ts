@@ -52,3 +52,56 @@ describe("distribution metadata", () => {
     }
   });
 });
+
+// The README's one-click install links carry the server config encoded in the
+// URL, so a typo there would only surface when a user clicks the button.
+describe("README install links", () => {
+  const readme = readFileSync(path.join(repoRoot, "README.md"), "utf8");
+  const links = (prefix: string): URL[] =>
+    [...readme.matchAll(/https:\/\/[^\s"')]+/g)]
+      .map((match) => match[0])
+      .filter((href) => href.startsWith(prefix))
+      .map((href) => new URL(href));
+
+  type ServerConfig = { command: string; args: string[]; env: Record<string, string> };
+  const expectServerConfig = (config: ServerConfig): void => {
+    expect(config.command).toBe("npx");
+    expect(config.args).toEqual(["-y", pkg.name]);
+    expect(Object.keys(config.env).sort()).toEqual([
+      "DOMENESHOP_API_SECRET",
+      "DOMENESHOP_API_TOKEN",
+    ]);
+  };
+
+  it("encodes a valid config in every Cursor link", () => {
+    const cursor = links("https://cursor.com/en/install-mcp");
+    expect(cursor.length).toBeGreaterThan(0);
+    for (const url of cursor) {
+      expect(url.searchParams.get("name")).toBe("domeneshop");
+      const encoded = url.searchParams.get("config") ?? "";
+      expectServerConfig(
+        JSON.parse(Buffer.from(encoded, "base64").toString("utf8")) as ServerConfig,
+      );
+    }
+  });
+
+  it("encodes a valid config with password inputs in every VS Code link", () => {
+    const vscode = links("https://insiders.vscode.dev/redirect/mcp/install");
+    expect(vscode.length).toBeGreaterThan(0);
+    for (const url of vscode) {
+      expect(url.searchParams.get("name")).toBe("domeneshop");
+      const config = JSON.parse(url.searchParams.get("config") ?? "") as ServerConfig;
+      expectServerConfig(config);
+
+      const inputs = JSON.parse(url.searchParams.get("inputs") ?? "") as {
+        id: string;
+        password?: boolean;
+      }[];
+      for (const value of Object.values(config.env)) {
+        const id = /^\$\{input:(\w+)\}$/.exec(value)?.[1];
+        expect(id, `env value ${value} should reference an input`).toBeDefined();
+        expect(inputs.find((input) => input.id === id)?.password).toBe(true);
+      }
+    }
+  });
+});
