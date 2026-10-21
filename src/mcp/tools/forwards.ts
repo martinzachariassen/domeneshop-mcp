@@ -89,7 +89,8 @@ export function registerForwardTools(server: ToolRegistrar, client: DomeneshopCl
     {
       description:
         "Update an existing HTTP forward for a domain. Returns the stored forward. " +
-        "frame is reset to false unless given.",
+        "frame is reset to false unless given. The host itself cannot be changed: " +
+        "to move a forward, delete it and create it again for the new host.",
       inputSchema: forwardShape,
       ...destructive("Update HTTP forward"),
     },

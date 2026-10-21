@@ -1,7 +1,12 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { DomeneshopClient } from "../domeneshop/index.js";
 import { VERSION } from "../version.js";
-import { assertKnownTools, filteredRegistrar, type ToolFilter } from "./registry.js";
+import {
+  assertKnownTools,
+  filteredRegistrar,
+  filterWarnings,
+  type ToolFilter,
+} from "./registry.js";
 import { registerDNSTools } from "./tools/dns.js";
 import { registerDomainTools } from "./tools/domains.js";
 import { registerDynDNSTools } from "./tools/dyndns.js";
@@ -18,7 +23,10 @@ export const INSTRUCTIONS = [
   "Write tools change live DNS; confirm the intended change with the user before deleting or overwriting records.",
 ].join("\n");
 
-export type CreateServerOptions = ToolFilter;
+export interface CreateServerOptions extends ToolFilter {
+  /** Receives non-fatal configuration problems, e.g. a filter that hides every tool. */
+  onWarning?: ((message: string) => void) | undefined;
+}
 
 /** Throws if the filter names a tool that does not exist. */
 export function createServer(
@@ -39,13 +47,16 @@ export function createServer(
     },
   );
 
-  const { registrar, names } = filteredRegistrar(server, options);
+  const { registrar, names, exposed } = filteredRegistrar(server, options);
   registerDomainTools(registrar, client);
   registerDNSTools(registrar, client);
   registerForwardTools(registrar, client);
   registerDynDNSTools(registrar, client);
   registerInvoiceTools(registrar, client);
   assertKnownTools(names, options);
+  for (const warning of filterWarnings(names, exposed, options)) {
+    options.onWarning?.(warning);
+  }
 
   return server;
 }

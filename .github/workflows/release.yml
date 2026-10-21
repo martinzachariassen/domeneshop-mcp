@@ -32,6 +32,7 @@ jobs:
 
       - run: npm run typecheck
       - run: npm run lint
+      - run: npm run format:check
       - run: npm test
       - run: npm run build
 
@@ -57,8 +58,26 @@ jobs:
       - if: steps.check.outputs.published == 'false'
         run: npm publish --provenance --access public
 
+      # Checked separately from npm, so re-running the workflow after a failed
+      # Registry publish retries it instead of skipping it with the npm step.
+      - name: Check if this version is already in the MCP Registry
+        id: registry
+        run: |
+          name="$(node -p "require('./server.json').name")"
+          version="$(node -p "require('./server.json').version")"
+          found="$(curl -fsSL --get "https://registry.modelcontextprotocol.io/v0/servers" \
+            --data-urlencode "search=$name" \
+            | jq -r --arg n "$name" --arg v "$version" \
+              '[.servers[]? | (.server // .) | select(.name == $n and .version == $v)] | length' \
+            || echo 0)"
+          if [ "${found:-0}" -gt 0 ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to the MCP Registry
-        if: steps.check.outputs.published == 'false'
+        if: steps.registry.outputs.published == 'false'
         run: |
           curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" \
             | tar xz mcp-publisher

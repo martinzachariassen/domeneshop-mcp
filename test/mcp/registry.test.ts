@@ -68,6 +68,40 @@ describe("tool filtering", () => {
     }
   });
 
+  it("warns when read-only mode hides an allowlisted write tool", () => {
+    const warnings: string[] = [];
+    createServer(new DomeneshopClient("token", "secret"), {
+      readOnly: true,
+      tools: new Set(["list_domains", "patch_dns_record"]),
+      onWarning: (message) => warnings.push(message),
+    });
+    expect(warnings).toEqual([
+      "patch_dns_record is listed in DOMENESHOP_TOOLS but is not exposed: read-only mode hides tools that change the account.",
+    ]);
+  });
+
+  it("warns when the filters leave no tools at all", () => {
+    const warnings: string[] = [];
+    createServer(new DomeneshopClient("token", "secret"), {
+      tools: new Set(["list_domains"]),
+      disabledTools: new Set(["list_domains"]),
+      onWarning: (message) => warnings.push(message),
+    });
+    expect(warnings).toEqual([
+      "list_domains is listed in DOMENESHOP_TOOLS but is not exposed: DOMENESHOP_DISABLED_TOOLS also lists it.",
+      "no tools are exposed; check DOMENESHOP_READ_ONLY, DOMENESHOP_TOOLS and DOMENESHOP_DISABLED_TOOLS.",
+    ]);
+  });
+
+  it("does not warn for an ordinary configuration", () => {
+    const warnings: string[] = [];
+    createServer(new DomeneshopClient("token", "secret"), {
+      readOnly: true,
+      onWarning: (message) => warnings.push(message),
+    });
+    expect(warnings).toEqual([]);
+  });
+
   it("fails fast on a misspelled tool name", () => {
     const client = new DomeneshopClient("token", "secret");
     expect(() => createServer(client, { tools: new Set(["list_domain"]) })).toThrow(

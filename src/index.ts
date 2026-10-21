@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { ConfigError, ENV_HELP, loadConfig } from "./config.js";
+import { ConfigError, ENV_HELP, isTruthy, loadConfig } from "./config.js";
 import { DomeneshopClient, type RequestEvent } from "./domeneshop/index.js";
 import { createServer } from "./mcp/index.js";
 import { VERSION } from "./version.js";
@@ -59,6 +59,7 @@ async function main(): Promise<void> {
     readOnly: config.readOnly,
     tools: config.tools,
     disabledTools: config.disabledTools,
+    onWarning: (message) => log(`warning: ${message}`),
   });
 
   let shuttingDown = false;
@@ -92,7 +93,7 @@ function logRequest(event: RequestEvent): void {
 
 main().catch((error: unknown) => {
   log(error instanceof Error ? error.message : String(error));
-  if (process.env["DOMENESHOP_DEBUG"] && error instanceof Error && error.stack) {
+  if (isTruthy(process.env["DOMENESHOP_DEBUG"]) && error instanceof Error && error.stack) {
     console.error(error.stack);
   }
   process.exitCode = 1;

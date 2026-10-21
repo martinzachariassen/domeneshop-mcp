@@ -21,18 +21,30 @@ export const httpUrlField = z
   .url({ protocol: /^https?$/ })
   .describe("the destination URL to forward requests to, starting with http:// or https://");
 
-/** The dynamic DNS endpoint accepts up to nine comma-separated IPv4/IPv6 addresses. */
+/** Splits a comma-separated list, trimming each entry and dropping empty ones. */
+export function splitList(value: string): string[] {
+  return value
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part) => part !== "");
+}
+
+/**
+ * The dynamic DNS endpoint accepts up to nine comma-separated IPv4/IPv6
+ * addresses. An empty string is accepted and treated as omitted, since some
+ * models send "" for "not set". Handlers normalise the value with splitList.
+ */
 export const ipListField = z
   .string()
   .refine(
     (value) => {
-      const parts = value.split(",").map((part) => part.trim());
+      const parts = splitList(value);
       return parts.length <= 9 && parts.every((part) => isIP(part) !== 0);
     },
     { message: "must be an IPv4 or IPv6 address, or up to 9 of them separated by commas" },
   )
   .describe(
-    "the IP address to set, IPv4 or IPv6; up to 9 addresses may be comma-separated, e.g. '192.0.2.1,2001:db8::1'. If omitted, Domeneshop uses the caller's apparent IP",
+    "the IP address to set, IPv4 or IPv6; up to 9 addresses may be comma-separated, e.g. '192.0.2.1,2001:db8::1'. If omitted or empty, Domeneshop uses the caller's apparent IP",
   );
 
 /**

@@ -52,6 +52,10 @@ export function loadConfig(env: NodeJS.ProcessEnv): Config {
   };
 }
 
+export function isTruthy(value: string | undefined): boolean {
+  return TRUE_VALUES.has((value ?? "").trim().toLowerCase());
+}
+
 function parseBoolean(env: NodeJS.ProcessEnv, name: string): boolean {
   const value = (env[name] ?? "").trim().toLowerCase();
   if (TRUE_VALUES.has(value)) {

@@ -418,6 +418,63 @@ describe("dynamic DNS tools", () => {
     }
   });
 
+  it("strips whitespace around commas in hostname and myip lists", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: " a.example.com, b.example.com ", myip: "192.0.2.1, 2001:db8::1" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      expect(harness.apiServer.requests[0]?.url).toBe(
+        "/dyndns/update?hostname=a.example.com%2Cb.example.com&myip=192.0.2.1%2C2001%3Adb8%3A%3A1",
+      );
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("treats an empty myip as omitted", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: "home.example.com", myip: "" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      expect(resultText(result)).toContain("caller's apparent IP");
+      expect(harness.apiServer.requests[0]?.url).toBe("/dyndns/update?hostname=home.example.com");
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("rejects a hostname that is only commas and whitespace", async () => {
+    const harness = await connect((_req, res) => {
+      res.writeHead(204);
+      res.end();
+    });
+    try {
+      const result = await harness.client.callTool({
+        name: "update_dyndns",
+        arguments: { hostname: " , " },
+      });
+
+      expect(result.isError).toBe(true);
+      expect(harness.apiServer.requests).toHaveLength(0);
+    } finally {
+      await harness.close();
+    }
+  });
+
   it("rejects a myip that is not an IP address", async () => {
     const harness = await connect((_req, res) => {
       res.writeHead(204);

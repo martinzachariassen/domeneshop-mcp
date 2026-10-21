@@ -1,7 +1,7 @@
 <h1 align="center">domeneshop-mcp</h1>
 
 <p align="center">
-  Manage your Domeneshop domains, DNS records, HTTP forwards and invoices from any AI assistant.
+  Manage your Domeneshop domains, DNS records, HTTP forwards, dynamic DNS and invoices from any AI assistant.
 </p>
 
 <p align="center">
@@ -366,7 +366,8 @@ spec, but are supported and used by their own client libraries:
 - `GET /invoices` accepts a `status` filter, which domeneshop.js uses.
 - `POST /forwards/` answers `201` with an empty body and names the new forward
   only in the `Location` header.
-- `GET /dyndns/update` answers with a plain-text status line, not JSON.
+- `GET /dyndns/update` answers `204` with no body rather than JSON, so the
+  client does not try to decode it.
 
 </details>
 

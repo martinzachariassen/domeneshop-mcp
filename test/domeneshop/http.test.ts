@@ -289,6 +289,66 @@ describe("HttpTransport", () => {
     expect((error as Error).message).toContain("GET /gone failed before a response was received");
   });
 
+  it("warns that a timed-out POST may still have been applied", async () => {
+    await withServer(
+      () => {
+        // never respond
+      },
+      async (server) => {
+        const transport = new HttpTransport("token", "secret", {
+          baseUrl: server.baseUrl,
+          timeoutMs: 50,
+        });
+        const error = await transport.request("POST", "/things").catch((e: unknown) => e);
+        expect(error).toBeInstanceOf(DomeneshopNetworkError);
+        expect((error as Error).message).toContain("timed out after 50 ms");
+        expect((error as Error).message).toContain("may still have been applied");
+        expect(server.requests).toHaveLength(1);
+      },
+    );
+  });
+
+  it("treats a 404 on a retried DELETE as success when the first attempt was lost", async () => {
+    let calls = 0;
+    await withServer(
+      (req, res) => {
+        calls++;
+        if (calls === 1) {
+          // The server got the DELETE but the connection dies before a response.
+          req.socket.destroy();
+          return;
+        }
+        res.writeHead(404);
+        res.end();
+      },
+      async (server) => {
+        const transport = new HttpTransport("token", "secret", {
+          baseUrl: server.baseUrl,
+          retryBaseDelayMs: 1,
+        });
+        await expect(transport.request("DELETE", "/things/1")).resolves.toMatchObject({
+          data: undefined,
+        });
+        expect(server.requests).toHaveLength(2);
+      },
+    );
+  });
+
+  it("still reports a 404 on a DELETE whose first attempt got a response", async () => {
+    await withServer(
+      (_req, res) => {
+        res.writeHead(404);
+        res.end();
+      },
+      async (server) => {
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
+        await expect(transport.request("DELETE", "/things/1")).rejects.toMatchObject({
+          statusCode: 404,
+        });
+      },
+    );
+  });
+
   it("aborts an in-flight request when the caller's signal fires", async () => {
     await withServer(
       () => {

@@ -18,6 +18,7 @@ const STATUS_HINTS: Record<number, string> = {
   403: "Access denied; the API credentials lack permission for this resource.",
   404: "Not found; check the ID or host (use the list_* tools to look it up).",
   409: "Conflict; the resource already exists or is in a conflicting state.",
+  412: "Precondition failed; a forward's host cannot be changed, so delete the forward and create it again for the new host.",
   429: "Rate limited by the Domeneshop API; wait a moment and try again.",
 };
 
@@ -141,7 +142,10 @@ export class HttpTransport {
       headers.set("Content-Type", "application/json");
     }
 
-    const canRetry = IDEMPOTENT_METHODS.has(method.toUpperCase());
+    const upperMethod = method.toUpperCase();
+    const canRetry = IDEMPOTENT_METHODS.has(upperMethod);
+    /** Whether the previous attempt died without a response, so it may have reached the server. */
+    let previousAttemptLost = false;
     for (let attempt = 1; ; attempt++) {
       const retriesLeft = canRetry && attempt <= this.maxRetries;
       const started = performance.now();
@@ -160,16 +164,23 @@ export class HttpTransport {
         if (options.signal?.aborted) {
           throw options.signal.reason;
         }
-        const networkError = toNetworkError(error, method, path, this.timeoutMs);
+        const networkError = toNetworkError(error, method, path, this.timeoutMs, canRetry);
         if (!retriesLeft) {
           throw networkError;
         }
+        previousAttemptLost = true;
         await sleep(this.backoffDelay(attempt, null), options.signal);
         continue;
       }
       this.emit(method, path, response.status, started, attempt);
 
       if (!response.ok) {
+        // A DELETE whose first attempt was lost may already have succeeded;
+        // the retry then finds nothing to delete, which is the desired end state.
+        if (upperMethod === "DELETE" && previousAttemptLost && response.status === 404) {
+          return { data: undefined, headers: response.headers };
+        }
+        previousAttemptLost = false;
         if (retriesLeft && RETRYABLE_STATUSES.has(response.status)) {
           await sleep(
             this.backoffDelay(attempt, response.headers.get("Retry-After")),
@@ -262,17 +273,23 @@ function toNetworkError(
   method: string,
   path: string,
   timeoutMs: number,
+  idempotent: boolean,
 ): DomeneshopNetworkError {
+  // A request without a response may still have been applied. Retrying an
+  // idempotent one is harmless, but repeating a create could duplicate it.
+  const suffix = idempotent
+    ? ""
+    : ". The request may still have been applied; check with the matching list tool before retrying";
   if (error instanceof DOMException && error.name === "TimeoutError") {
     return new DomeneshopNetworkError(
-      `domeneshop: ${method} ${path} timed out after ${String(timeoutMs)} ms`,
+      `domeneshop: ${method} ${path} timed out after ${String(timeoutMs)} ms${suffix}`,
       { cause: error },
     );
   }
   const cause = error instanceof Error && error.cause instanceof Error ? error.cause : error;
   const reason = cause instanceof Error ? cause.message : String(cause);
   return new DomeneshopNetworkError(
-    `domeneshop: ${method} ${path} failed before a response was received: ${reason}`,
+    `domeneshop: ${method} ${path} failed before a response was received: ${reason}${suffix}`,
     { cause: error },
   );
 }

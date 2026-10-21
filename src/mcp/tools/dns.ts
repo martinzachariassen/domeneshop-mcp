@@ -302,6 +302,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
     {
       description:
         "Make sure a host has exactly this record of the given type: updates the existing record for that host and type, or creates one if there is none. " +
+        "When updating, optional fields you leave out (e.g. ttl, priority) keep their stored value. " +
         "Fails without changing anything if the host already has several records of that type (common for MX and TXT); " +
         "then use patch_dns_record with a record_id, or create_dns_record to add another. " +
         'Returns { action: "created" | "updated", record }.',
@@ -310,7 +311,6 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
     },
     toolHandler<DNSRecordArgs>(async (args, { signal }) => {
       const record = toDNSRecord(args);
-      validateRecord(record);
       // The API filter is a convenience; compare exactly in case it is looser.
       const matches = (
         await client.dns.list(args.domain_id, { host: args.host, type: args.type }, { signal })
@@ -324,13 +324,17 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         );
       }
 
-      const existingId = matches[0]?.id;
-      if (existingId !== undefined) {
-        await client.dns.update(args.domain_id, existingId, record, { signal });
-        const stored = await readBack(client, args.domain_id, existingId, record, signal);
+      const existing = matches[0];
+      if (existing?.id !== undefined) {
+        // A PUT replaces the record, so keep stored values the caller did not restate.
+        const merged = mergeRecord(existing, record);
+        validateRecord(merged);
+        await client.dns.update(args.domain_id, existing.id, merged, { signal });
+        const stored = await readBack(client, args.domain_id, existing.id, merged, signal);
         return jsonResult({ action: "updated", record: stored });
       }
 
+      validateRecord(record);
       const id = await client.dns.create(args.domain_id, record, { signal });
       const stored = await readBack(client, args.domain_id, id, record, signal);
       return jsonResult({ action: "created", record: stored });

@@ -176,6 +176,47 @@ describe("upsert_dns_record", () => {
     }
   });
 
+  it("keeps the stored ttl and priority when the update leaves them out", async () => {
+    const zone = fakeZone([
+      { id: 5, host: "@", type: "MX", data: "mx1.example.com", ttl: 7200, priority: 10 },
+    ]);
+    const harness = await connect(zone.handler);
+    try {
+      const result = await harness.client.callTool({
+        name: "upsert_dns_record",
+        arguments: { domain_id: 42, host: "@", type: "MX", data: "mx2.example.com" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      const put = harness.apiServer.requests.find((r) => r.method === "PUT");
+      expect(JSON.parse(put?.body ?? "{}")).toEqual({
+        host: "@",
+        type: "MX",
+        data: "mx2.example.com",
+        ttl: 7200,
+        priority: 10,
+      });
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it("still requires priority when creating an MX record", async () => {
+    const harness = await connect(fakeZone([]).handler);
+    try {
+      const result = await harness.client.callTool({
+        name: "upsert_dns_record",
+        arguments: { domain_id: 42, host: "@", type: "MX", data: "mx1.example.com" },
+      });
+
+      expect(result.isError).toBe(true);
+      expect(resultText(result)).toContain("missing: priority");
+      expect(harness.apiServer.requests.some((r) => r.method === "POST")).toBe(false);
+    } finally {
+      await harness.close();
+    }
+  });
+
   it("refuses to guess when the host has several records of that type", async () => {
     const zone = fakeZone([
       { id: 1, host: "@", type: "TXT", data: "v=spf1 -all" },
