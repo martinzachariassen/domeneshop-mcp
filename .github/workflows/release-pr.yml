@@ -57,7 +57,7 @@ jobs:
       # Idempotent: ordinary merges without a version bump find the tag
       # already there and do nothing.
       - name: Tag the release
-        if: steps.changesets.outputs.hasChangesets == 'false'
+        if: steps.changesets.outputs.has-changesets == 'false'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
