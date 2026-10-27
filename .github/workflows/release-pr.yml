@@ -44,22 +44,20 @@ jobs:
 
       - run: npm ci
 
-      - uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+      - uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         id: changesets
+        # v2 commits through the GitHub API by default, so the release commit
+        # is signed and passes the "required signatures" rule on main.
         with:
-          version: npm run version
-          title: "chore: release"
-          commit: "chore: release"
-          # Commit through the GitHub API so the release commit is signed and
-          # passes the "required signatures" rule on main.
-          commitMode: github-api
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          version-script: npm run version
+          pr-title: "chore: release"
+          commit-message: "chore: release"
+          github-token: ${{ steps.app-token.outputs.token }}
 
       # Idempotent: ordinary merges without a version bump find the tag
       # already there and do nothing.
       - name: Tag the release
-        if: steps.changesets.outputs.hasChangesets == 'false'
+        if: steps.changesets.outputs.has-changesets == 'false'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
