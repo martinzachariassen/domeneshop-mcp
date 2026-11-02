@@ -69,6 +69,48 @@ describe("DnsResource", () => {
     );
   });
 
+  it("coerces numeric fields the live API returns as strings", async () => {
+    const body = [
+      { id: 1, host: "@", ttl: 3600, type: "MX", data: "mx.example.com", priority: "10" },
+      {
+        id: 2,
+        host: "_sip._tcp",
+        type: "SRV",
+        data: "sip.example.com",
+        priority: "10",
+        weight: "100",
+        port: "5060",
+      },
+      { id: 3, host: "@", type: "DS", data: "ABCD", tag: "12345", alg: "13", digest: "2" },
+      { id: 4, host: "@", type: "CAA", data: "letsencrypt.org", flags: "0", tag: "issue" },
+      { id: 5, host: "@", type: "MX", data: "mx.example.com", priority: "high" },
+    ];
+
+    await withResource(
+      (req, res) => {
+        sendJson(res, 200, req.url?.endsWith("/dns/2") ? body[1] : body);
+      },
+      async (dns) => {
+        const [mx, srv, ds, caa, odd] = await dns.list(1);
+        expect(mx).toEqual({
+          id: 1,
+          host: "@",
+          ttl: 3600,
+          type: "MX",
+          data: "mx.example.com",
+          priority: 10,
+        });
+        expect(srv).toMatchObject({ priority: 10, weight: 100, port: 5060 });
+        expect(ds).toMatchObject({ tag: 12345, alg: 13, digest: 2 });
+        // A CAA tag is a property name, not a number.
+        expect(caa).toMatchObject({ flags: 0, tag: "issue" });
+        expect(odd?.priority).toBe("high");
+
+        expect(await dns.get(1, 2)).toMatchObject({ priority: 10, weight: 100, port: 5060 });
+      },
+    );
+  });
+
   it("omits unset type-specific fields when creating a record", async () => {
     let received: Record<string, unknown> = {};
     await withResource(
