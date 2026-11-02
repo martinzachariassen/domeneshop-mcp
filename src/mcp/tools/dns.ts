@@ -134,8 +134,8 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
     "list_dns_records",
     {
       description: "List DNS records for a domain, optionally filtered by host and/or record type.",
-      inputSchema: listDNSRecordsShape,
-      outputSchema: { records: z.array(dnsRecordOutput) },
+      inputSchema: z.object(listDNSRecordsShape),
+      outputSchema: z.object({ records: z.array(dnsRecordOutput) }),
       ...readOnly("List DNS records"),
     },
     toolHandler<ListDNSRecordsArgs>(async ({ domain_id, host, type }, { signal }) => {
@@ -148,7 +148,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
     "get_dns_record",
     {
       description: "Get a single DNS record by ID.",
-      inputSchema: getDNSRecordShape,
+      inputSchema: z.object(getDNSRecordShape),
       outputSchema: dnsRecordOutput,
       ...readOnly("Get DNS record"),
     },
@@ -163,7 +163,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
     {
       description:
         "Create a new DNS record for a domain. Returns the stored record, including its new ID.",
-      inputSchema: dnsRecordShape,
+      inputSchema: z.object(dnsRecordShape),
       outputSchema: dnsRecordOutput,
       ...additive("Create DNS record"),
     },
@@ -184,7 +184,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         "leaving out ttl resets it to the default 3600 seconds. " +
         "To change only some fields, use patch_dns_record instead. " +
         "Returns the stored record.",
-      inputSchema: updateDNSRecordShape,
+      inputSchema: z.object(updateDNSRecordShape),
       outputSchema: dnsRecordOutput,
       ...destructive("Replace DNS record"),
     },
@@ -203,7 +203,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         "Change only some fields of an existing DNS record, e.g. just data or ttl. " +
         "The current record is read first and every field you leave out keeps its stored value. " +
         "Prefer this over update_dns_record. Returns the stored record.",
-      inputSchema: patchDNSRecordShape,
+      inputSchema: z.object(patchDNSRecordShape),
       outputSchema: dnsRecordOutput,
       ...destructive("Patch DNS record"),
     },
@@ -225,8 +225,8 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         "Fails without changing anything if the host already has several records of that type (common for MX and TXT); " +
         "then use patch_dns_record with a record_id, or create_dns_record to add another. " +
         'Returns { action: "created" | "updated", record }.',
-      inputSchema: dnsRecordShape,
-      outputSchema: { action: z.enum(["created", "updated"]), record: dnsRecordOutput },
+      inputSchema: z.object(dnsRecordShape),
+      outputSchema: z.object({ action: z.enum(["created", "updated"]), record: dnsRecordOutput }),
       ...destructive("Create or update DNS record"),
     },
     toolHandler<DNSRecordArgs>(async (args, { signal }) => {
@@ -265,7 +265,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
     "delete_dns_record",
     {
       description: "Delete a DNS record. This cannot be undone.",
-      inputSchema: deleteDNSRecordShape,
+      inputSchema: z.object(deleteDNSRecordShape),
       ...destructive("Delete DNS record"),
     },
     toolHandler<DeleteDNSRecordArgs>(async ({ domain_id, record_id }, { signal }) => {

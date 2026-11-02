@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import type { DomeneshopClient } from "../domeneshop/index.js";
 import { VERSION } from "../version.js";
 import {
