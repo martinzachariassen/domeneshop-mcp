@@ -9,7 +9,7 @@ async function withResource(
 ): Promise<void> {
   const server = await startTestServer(handler);
   try {
-    const transport = new HttpTransport("token", "secret", server.baseUrl);
+    const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
     await run(new ForwardsResource(transport), server);
   } finally {
     await server.close();

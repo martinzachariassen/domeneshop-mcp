@@ -28,7 +28,7 @@ describe("HttpTransport", () => {
         sendJson(res, 200, { ok: true });
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await transport.request("GET", "/ping");
 
         const expected = `Basic ${Buffer.from("token:secret").toString("base64")}`;
@@ -43,7 +43,7 @@ describe("HttpTransport", () => {
         sendJson(res, 200, {});
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await transport.request("GET", "/things", {
           query: { present: "value", missing: undefined, empty: "" },
         });
@@ -59,7 +59,7 @@ describe("HttpTransport", () => {
         sendJson(res, 200, {});
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await transport.request("POST", "/things", { body: { name: "example" } });
 
         expect(server.requests[0]?.body).toBe(JSON.stringify({ name: "example" }));
@@ -74,7 +74,7 @@ describe("HttpTransport", () => {
         res.end(JSON.stringify({ id: 42 }));
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         const { data, headers } = await transport.request<{ id: number }>("POST", "/things");
 
         expect(data).toEqual({ id: 42 });
@@ -90,7 +90,7 @@ describe("HttpTransport", () => {
         res.end();
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         const { data } = await transport.request("DELETE", "/things/1");
 
         expect(data).toBeUndefined();
@@ -105,7 +105,7 @@ describe("HttpTransport", () => {
         res.end(JSON.stringify({ message: "not found" }));
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
 
         await expect(transport.request("GET", "/missing")).rejects.toMatchObject({
           statusCode: 404,
@@ -167,7 +167,7 @@ describe("HttpTransport", () => {
         sendJson(res, 200, {});
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await transport.request("GET", "/ping");
         expect(server.requests[0]?.userAgent).toMatch(/^domeneshop-mcp\/\d+\.\d+\.\d+/);
       },
@@ -181,7 +181,7 @@ describe("HttpTransport", () => {
         res.end("{not json");
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await expect(transport.request("GET", "/broken")).rejects.toThrow(
           "GET /broken returned status 200 with a body that is not valid JSON: {not json",
         );

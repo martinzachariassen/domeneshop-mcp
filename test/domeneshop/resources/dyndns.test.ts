@@ -10,7 +10,7 @@ describe("DynDnsResource", () => {
       res.end("good");
     });
     try {
-      const transport = new HttpTransport("token", "secret", server.baseUrl);
+      const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
       await new DynDnsResource(transport).update("host.example.com", "203.0.113.5");
       expect(server.requests[0]?.url).toBe(
         "/dyndns/update?hostname=host.example.com&myip=203.0.113.5",
@@ -26,7 +26,7 @@ describe("DynDnsResource", () => {
       res.end("good");
     });
     try {
-      const transport = new HttpTransport("token", "secret", server.baseUrl);
+      const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
       await new DynDnsResource(transport).update("host.example.com");
       expect(server.requests[0]?.url).toBe("/dyndns/update?hostname=host.example.com");
     } finally {

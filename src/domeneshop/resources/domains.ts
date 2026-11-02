@@ -2,22 +2,23 @@ import { assertDefined } from "../assert.js";
 import type { CallOptions, HttpTransport } from "../http.js";
 
 export interface DomainServices {
-  dns: boolean;
-  email: boolean;
-  registrar: boolean;
-  webhotel: string;
+  dns?: boolean | undefined;
+  email?: boolean | undefined;
+  registrar?: boolean | undefined;
+  webhotel?: string | undefined;
 }
 
+/** The spec marks no field as required; `id` and `domain` are always present in practice. */
 export interface Domain {
   id: number;
   domain: string;
-  expiry_date: string;
-  nameservers: string[];
-  registrant: string;
-  registered_date: string;
-  renew: boolean;
-  services: DomainServices;
-  status: string;
+  expiry_date?: string | undefined;
+  nameservers?: string[] | undefined;
+  registrant?: string | undefined;
+  registered_date?: string | undefined;
+  renew?: boolean | undefined;
+  services?: DomainServices | undefined;
+  status?: string | undefined;
 }
 
 export class DomainsResource {

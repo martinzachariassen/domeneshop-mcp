@@ -8,14 +8,14 @@ export type InvoiceStatus = (typeof INVOICE_STATUSES)[number];
 
 export interface Invoice {
   id: number;
-  type: string;
-  amount: number;
-  currency: string;
-  due_date: string | null;
-  issued_date: string;
-  paid_date: string | null;
-  status: string;
-  url: string;
+  type?: string | undefined;
+  amount?: number | undefined;
+  currency?: string | undefined;
+  due_date?: string | null | undefined;
+  issued_date?: string | undefined;
+  paid_date?: string | null | undefined;
+  status?: string | undefined;
+  url?: string | undefined;
 }
 
 export class InvoicesResource {
