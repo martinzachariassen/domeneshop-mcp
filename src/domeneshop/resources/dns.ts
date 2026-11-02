@@ -43,6 +43,41 @@ export interface DNSRecord {
   tag?: number | string | undefined;
 }
 
+const NUMERIC_FIELDS = [
+  "ttl",
+  "priority",
+  "weight",
+  "port",
+  "usage",
+  "selector",
+  "dtype",
+  "alg",
+  "digest",
+  "flags",
+] as const;
+
+/**
+ * The live API returns some numeric fields as strings (MX/SRV `priority`,
+ * `weight` and `port` arrive as e.g. "10"), although the OpenAPI spec types
+ * them as integers. Coerce them so callers get the documented types.
+ */
+function normalizeRecord(record: DNSRecord): DNSRecord {
+  const normalized = { ...record };
+  for (const field of NUMERIC_FIELDS) {
+    if (isIntegerString(record[field])) {
+      normalized[field] = Number(record[field]);
+    }
+  }
+  if (record.type.toUpperCase() === "DS" && isIntegerString(record.tag)) {
+    normalized.tag = Number(record.tag);
+  }
+  return normalized;
+}
+
+function isIntegerString(value: unknown): value is string {
+  return typeof value === "string" && /^\d+$/.test(value);
+}
+
 export class DnsResource {
   constructor(private readonly transport: HttpTransport) {}
 
@@ -59,7 +94,7 @@ export class DnsResource {
         signal: call.signal,
       },
     );
-    return data ?? [];
+    return (data ?? []).map(normalizeRecord);
   }
 
   async get(domainId: number, recordId: number, call: CallOptions = {}): Promise<DNSRecord> {
@@ -68,7 +103,7 @@ export class DnsResource {
       `/domains/${String(domainId)}/dns/${String(recordId)}`,
       { signal: call.signal },
     );
-    return assertDefined(data, "domeneshop: empty response for DNS record");
+    return normalizeRecord(assertDefined(data, "domeneshop: empty response for DNS record"));
   }
 
   async create(domainId: number, record: DNSRecord, call: CallOptions = {}): Promise<number> {

@@ -76,6 +76,47 @@ describe("dns record tools", () => {
     );
   });
 
+  it("lists MX and SRV records whose numeric fields the API sends as strings", async () => {
+    await withHarness(
+      (_req, res) => {
+        sendJson(res, 200, [
+          { id: 1, host: "@", type: "MX", data: "mx.example.com", priority: "10" },
+          {
+            id: 2,
+            host: "_sip._tcp",
+            type: "SRV",
+            data: "sip.example.com",
+            priority: "10",
+            weight: "100",
+            port: "5060",
+          },
+        ]);
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: "list_dns_records",
+          arguments: { domain_id: 42 },
+        });
+
+        expect(result.isError).not.toBe(true);
+        expect(result.structuredContent).toEqual({
+          records: [
+            { id: 1, host: "@", type: "MX", data: "mx.example.com", priority: 10 },
+            {
+              id: 2,
+              host: "_sip._tcp",
+              type: "SRV",
+              data: "sip.example.com",
+              priority: 10,
+              weight: 100,
+              port: 5060,
+            },
+          ],
+        });
+      },
+    );
+  });
+
   it("gets a single DNS record", async () => {
     await withHarness(
       (_req, res) => {
@@ -194,6 +235,28 @@ describe("patch_dns_record", () => {
         priority: 10,
       });
       expect(result.structuredContent).toMatchObject({ id: 7, data: "mx2.example.com", ttl: 300 });
+    });
+  });
+
+  it("sends a stored priority the API returned as a string back as a number", async () => {
+    const zone = fakeZone([
+      {
+        id: 7,
+        host: "@",
+        type: "MX",
+        data: "mx1.example.com",
+        priority: "10" as unknown as number,
+      },
+    ]);
+    await withHarness(zone.handler, async (harness) => {
+      const result = await harness.client.callTool({
+        name: "patch_dns_record",
+        arguments: { domain_id: 42, record_id: 7, data: "mx2.example.com" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      const put = harness.apiServer.requests.find((r) => r.method === "PUT");
+      expect(JSON.parse(put?.body ?? "{}")).toMatchObject({ priority: 10 });
     });
   });
 
