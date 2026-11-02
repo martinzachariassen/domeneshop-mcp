@@ -24,7 +24,6 @@ export const INSTRUCTIONS = [
 ].join("\n");
 
 export interface CreateServerOptions extends ToolFilter {
-  /** Receives non-fatal configuration problems, e.g. a filter that hides every tool. */
   onWarning?: ((message: string) => void) | undefined;
 }
 

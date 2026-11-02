@@ -9,11 +9,8 @@ export class ConfigError extends Error {
 export interface Config {
   token: string;
   secret: string;
-  /** Only register tools annotated read-only. */
   readOnly: boolean;
-  /** When set, only these tools are registered. */
   tools: ReadonlySet<string> | undefined;
-  /** These tools are never registered. */
   disabledTools: ReadonlySet<string>;
   timeoutMs: number | undefined;
   debug: boolean;

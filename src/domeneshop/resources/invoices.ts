@@ -13,7 +13,6 @@ export interface Invoice {
   currency: string;
   due_date: string | null;
   issued_date: string;
-  /** null until the invoice is paid. */
   paid_date: string | null;
   status: string;
   url: string;
@@ -23,8 +22,8 @@ export class InvoicesResource {
   constructor(private readonly transport: HttpTransport) {}
 
   /**
-   * Only returns invoices from the past three years. The status parameter is
-   * undocumented but supported — see domeneshop.js (src/lib/invoices.ts).
+   * Only covers the past three years. `status` is undocumented but supported,
+   * see domeneshop.js (src/lib/invoices.ts).
    */
   async list(status?: string, call: CallOptions = {}): Promise<Invoice[]> {
     const { data } = await this.transport.request<Invoice[]>("GET", "/invoices", {

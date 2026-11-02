@@ -25,7 +25,6 @@ const STATUS_HINTS: Record<number, string> = {
 export class DomeneshopApiError extends Error {
   readonly statusCode: number;
   readonly body: string;
-  /** Human-readable advice for the status code, when there is any. */
   readonly hint: string | undefined;
 
   constructor(statusCode: number, body: string) {
@@ -63,7 +62,6 @@ export interface HttpTransportOptions {
   /** Retries for 429/502/503/504 and network errors on idempotent methods. Defaults to 2. */
   maxRetries?: number | undefined;
   userAgent?: string | undefined;
-  /** Base delay for exponential backoff when the server sends no Retry-After. */
   retryBaseDelayMs?: number | undefined;
   /** Called after every attempt, e.g. for debug logging. Never receives credentials. */
   onResponse?: ((event: RequestEvent) => void) | undefined;
@@ -83,11 +81,10 @@ export interface RequestOptions {
   body?: unknown;
   /** Set false for endpoints with a non-JSON body, e.g. the dynamic DNS update protocol. */
   decodeJson?: boolean;
-  /** Aborts the request, including any pending retry wait. */
+  /** Also aborts a pending retry wait. */
   signal?: AbortSignal | undefined;
 }
 
-/** Passed through every resource method so a caller can cancel in-flight requests. */
 export interface CallOptions {
   signal?: AbortSignal | undefined;
 }
@@ -144,7 +141,6 @@ export class HttpTransport {
 
     const upperMethod = method.toUpperCase();
     const canRetry = IDEMPOTENT_METHODS.has(upperMethod);
-    /** Whether the previous attempt died without a response, so it may have reached the server. */
     let previousAttemptLost = false;
     for (let attempt = 1; ; attempt++) {
       const retriesLeft = canRetry && attempt <= this.maxRetries;
@@ -294,11 +290,7 @@ function toNetworkError(
   );
 }
 
-/**
- * Pulls a readable message out of an error body. The API usually answers with
- * JSON, but proxies in front of it can return HTML, which is stripped so the
- * model is not handed a page of markup.
- */
+/** Proxies in front of the API can answer with HTML, which is stripped to its text. */
 function errorDetail(body: string): string {
   const trimmed = body.trim();
   if (trimmed === "") {
@@ -315,9 +307,7 @@ function errorDetail(body: string): string {
         return truncate(message);
       }
     }
-  } catch {
-    // not JSON; fall through
-  }
+  } catch {}
   if (/^<(!doctype|html)/i.test(trimmed)) {
     return truncate(
       trimmed
