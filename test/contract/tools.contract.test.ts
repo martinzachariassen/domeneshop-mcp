@@ -59,6 +59,11 @@ const CALLS: [string, Args, string[]][] = [
     { domain_id: 1, host: "www", url: "ftp://ftp.example.com", frame: true },
     ["PUT /domains/{domainId}/forwards/{host}"],
   ],
+  [
+    "update_forward",
+    { domain_id: 1, host: "www", url: "https://example.com" },
+    ["GET /domains/{domainId}/forwards/{host}", "PUT /domains/{domainId}/forwards/{host}"],
+  ],
   ["delete_forward", { domain_id: 1, host: "www" }, ["DELETE /domains/{domainId}/forwards/{host}"]],
   ["list_invoices", { status: "settled" }, ["GET /invoices"]],
   ["get_invoice", { invoice_id: 1 }, ["GET /invoices/{invoiceId}"]],
@@ -89,7 +94,7 @@ async function callAgainstSpec(name: string, args: Args) {
 describe("MCP tools against the Domeneshop spec", () => {
   it("has a contract case for every tool", async () => {
     const { tools } = await callAgainstSpec("list_domains", {});
-    expect([...tools.keys()].sort()).toEqual(CALLS.map(([name]) => name).sort());
+    expect([...tools.keys()].sort()).toEqual([...new Set(CALLS.map(([name]) => name))].sort());
   });
 
   it.each(CALLS)("%s sends only requests the spec accepts", async (name, args, expected) => {
@@ -132,7 +137,6 @@ describe("MCP tools with only the required arguments", () => {
     ["upsert_dns_record", { domain_id: 1, host: "new", type: "CNAME", data: "example.com" }],
     ["patch_dns_record", { domain_id: 1, record_id: 1 }],
     ["create_forward", { domain_id: 1, host: "www", url: "https://example.com" }],
-    ["update_forward", { domain_id: 1, host: "www", url: "https://example.com" }],
     ["update_dyndns", { hostname: "www.example.com" }],
     ["list_dns_records", { domain_id: 1 }],
     ["list_invoices", {}],

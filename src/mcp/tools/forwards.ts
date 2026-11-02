@@ -25,7 +25,10 @@ const forwardShape = {
   frame: z
     .boolean()
     .optional()
-    .describe("if true, show the destination in a frame instead of redirecting; defaults to false"),
+    .describe(
+      "if true, show the destination in a frame instead of redirecting; " +
+        "defaults to false for a new forward and to the stored value when updating",
+    ),
 };
 type ForwardArgs = InferShape<typeof forwardShape>;
 
@@ -87,16 +90,19 @@ export function registerForwardTools(server: ToolRegistrar, client: DomeneshopCl
     {
       description:
         "Update an existing HTTP forward for a domain. Returns the stored forward. " +
-        "frame is reset to false unless given. The host itself cannot be changed: " +
+        "frame keeps its stored value unless given. The host itself cannot be changed: " +
         "to move a forward, delete it and create it again for the new host.",
       inputSchema: forwardShape,
       ...destructive("Update HTTP forward"),
     },
     toolHandler<ForwardArgs>(async ({ domain_id, host, url, frame }, { signal }) => {
+      // A PUT replaces the forward, so read the stored frame rather than resetting it.
+      const keepFrame =
+        frame ?? (await client.forwards.get(domain_id, host, { signal })).frame ?? false;
       const updated = await client.forwards.update(
         domain_id,
         host,
-        { host, url, frame: frame ?? false },
+        { host, url, frame: keepFrame },
         { signal },
       );
       return jsonResult(updated);

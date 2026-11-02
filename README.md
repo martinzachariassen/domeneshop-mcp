@@ -379,7 +379,7 @@ read-only tools also return structured output for clients that support it.
 | `list_forwards` | Read-only | List a domain's HTTP forwards |
 | `get_forward` | Read-only | Get the forward for one host |
 | `create_forward` | Adds | Create a forward to an `http://`, `https://` or `ftp://` URL |
-| `update_forward` | Overwrites | Update a forward's destination or frame setting |
+| `update_forward` | Overwrites | Update a forward's destination or frame setting; an omitted `frame` keeps its stored value |
 | `delete_forward` | Deletes | Delete a forward |
 
 ### Dynamic DNS

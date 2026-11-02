@@ -130,11 +130,12 @@ describe.skipIf(!enabled)("live Domeneshop API", () => {
   });
 
   describe("HTTP forward lifecycle", () => {
-    it("creates, reads, updates and deletes a forward", async () => {
+    it("creates, reads, updates (keeping frame) and deletes a forward", async () => {
       const created = await call("create_forward", {
         domain_id: domainId,
         host: forwardHost,
         url: "https://example.com/",
+        frame: true,
       });
       forwardCreated = true;
       expect(created.structuredContent).toMatchObject({ host: forwardHost });
@@ -147,7 +148,7 @@ describe.skipIf(!enabled)("live Domeneshop API", () => {
         host: forwardHost,
         url: "https://example.org/",
       });
-      expect(updated.structuredContent).toMatchObject({ url: "https://example.org/" });
+      expect(updated.structuredContent).toMatchObject({ url: "https://example.org/", frame: true });
 
       await call("delete_forward", { domain_id: domainId, host: forwardHost });
       forwardCreated = false;
