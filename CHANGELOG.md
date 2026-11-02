@@ -1,5 +1,31 @@
 # domeneshop-mcp
 
+## 2.0.0
+
+### Major Changes
+
+- [#65](https://github.com/martinzachariassen/domeneshop-mcp/pull/65) [`575c19a`](https://github.com/martinzachariassen/domeneshop-mcp/commit/575c19a339ba4a7d0434026084f4c5352e42a686) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - **Breaking:** the npm package now exposes only the `domeneshop-mcp` command. Importing `domeneshop-mcp` used to start the MCP server as a side effect; it now fails with `ERR_PACKAGE_PATH_NOT_EXPORTED`, and the package no longer ships type declarations.
+
+- [#65](https://github.com/martinzachariassen/domeneshop-mcp/pull/65) [`575c19a`](https://github.com/martinzachariassen/domeneshop-mcp/commit/575c19a339ba4a7d0434026084f4c5352e42a686) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - **Breaking:** Node.js 20 is no longer supported, as it reached end of life in April 2026. Use Node.js 22 or newer.
+
+- [#65](https://github.com/martinzachariassen/domeneshop-mcp/pull/65) [`575c19a`](https://github.com/martinzachariassen/domeneshop-mcp/commit/575c19a339ba4a7d0434026084f4c5352e42a686) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - **Breaking:** tool input is validated more strictly, so mistakes are reported before anything reaches the Domeneshop API. Calls that the API used to accept may now be rejected, for example a DS `tag` sent as a string:
+  
+  - An empty or blank `host` is rejected. Before, `get_forward` and `delete_forward` with `host: ""` hit the list endpoint instead.
+  - DNS `data` must not be empty, and A/AAAA records must carry an IPv4/IPv6 address respectively (also checked for the merged record in `patch_dns_record` and `upsert_dns_record`).
+  - Type-specific DNS fields have ranges: `priority`, `weight`, `port` and the DS key tag 0-65535; `usage` 0-3, `selector` 0-1, `dtype` 0-2; `alg`, `digest` and `flags` 0-255. DS needs a numeric `tag`, CAA a string `tag`.
+  - `update_dyndns` rejects hostnames containing whitespace.
+
+- [#65](https://github.com/martinzachariassen/domeneshop-mcp/pull/65) [`575c19a`](https://github.com/martinzachariassen/domeneshop-mcp/commit/575c19a339ba4a7d0434026084f4c5352e42a686) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - **Breaking:** `update_forward` keeps the forward's stored `frame` setting when `frame` is omitted, instead of resetting it to `false`. Pass `frame: false` to turn framing off.
+
+### Minor Changes
+
+- [#65](https://github.com/martinzachariassen/domeneshop-mcp/pull/65) [`575c19a`](https://github.com/martinzachariassen/domeneshop-mcp/commit/575c19a339ba4a7d0434026084f4c5352e42a686) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Align tool input with Domeneshop's OpenAPI spec:
+  
+  - `create_forward` and `update_forward` accept `ftp://` destinations, which the API supports, in addition to `http://` and `https://`.
+  - `update_dyndns` checks that each hostname is a valid hostname, and sends it the way the API expects: without a trailing dot, and as punycode for internationalised names (e.g. `blåbær.no`).
+
+- [#65](https://github.com/martinzachariassen/domeneshop-mcp/pull/65) [`575c19a`](https://github.com/martinzachariassen/domeneshop-mcp/commit/575c19a339ba4a7d0434026084f4c5352e42a686) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - The DNS and forward tools that create or change something (`create_dns_record`, `update_dns_record`, `patch_dns_record`, `upsert_dns_record`, `create_forward`, `update_forward`) now declare an output schema, so clients get typed structured results from them as they already did from the read-only tools.
+
 ## 1.1.6
 
 ### Patch Changes
