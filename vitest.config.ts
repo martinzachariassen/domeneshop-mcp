@@ -3,17 +3,18 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     include: ["test/**/*.test.ts"],
+    exclude: ["test/e2e/**", "**/node_modules/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
       include: ["src/**/*.ts"],
-      // Just under the current level, so coverage cannot quietly erode.
-      // src/index.ts runs in a child process in tests and is not counted.
+      // The bin shim only wires src/cli.ts to the process; test/index.test.ts runs it as a child.
+      exclude: ["src/index.ts"],
       thresholds: {
-        statements: 85,
-        branches: 75,
+        statements: 90,
+        branches: 90,
         functions: 90,
-        lines: 85,
+        lines: 90,
       },
     },
   },

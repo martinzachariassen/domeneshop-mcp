@@ -409,6 +409,9 @@ describe("parseRetryAfter", () => {
     expect(parseRetryAfter("soon")).toBeUndefined();
     const inFuture = new Date(Date.now() + 5000).toUTCString();
     expect(parseRetryAfter(inFuture)).toBeGreaterThan(3000);
+    expect(parseRetryAfter(new Date(Date.now() - 60_000).toUTCString())).toBe(0);
+    expect(parseRetryAfter("-5")).toBe(0);
+    expect(parseRetryAfter("   ")).toBeUndefined();
   });
 
   it("never returns a negative or non-finite delay for any header value", () => {
