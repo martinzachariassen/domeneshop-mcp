@@ -7,8 +7,7 @@
   "bin": {
     "domeneshop-mcp": "dist/index.js"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {},
   "files": [
     "dist",
     "README.md",
