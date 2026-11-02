@@ -1,8 +1,8 @@
 ---
-"domeneshop-mcp": patch
+"domeneshop-mcp": major
 ---
 
-Stricter tool input validation, so mistakes are reported before anything reaches the Domeneshop API:
+**Breaking:** tool input is validated more strictly, so mistakes are reported before anything reaches the Domeneshop API. Calls that the API used to accept may now be rejected, for example a DS `tag` sent as a string:
 
 - An empty or blank `host` is rejected. Before, `get_forward` and `delete_forward` with `host: ""` hit the list endpoint instead.
 - DNS `data` must not be empty, and A/AAAA records must carry an IPv4/IPv6 address respectively (also checked for the merged record in `patch_dns_record` and `upsert_dns_record`).
