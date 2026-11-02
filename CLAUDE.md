@@ -28,7 +28,11 @@ Two layers, kept separate:
   query building and error mapping; one resource class per endpoint group under
   `resources/`, composed by `DomeneshopClient`.
 - `src/mcp/` — MCP surface. One `register*Tools` function per resource in `tools/`,
-  wired together in `server.ts`.
+  wired together in `server.ts`. Shared input fields are in `fields.ts`, and DNS
+  record handling (`pickRecord`, `mergeRecord`, `validateRecord`) is in `records.ts`.
+
+The package publishes only the `domeneshop-mcp` bin (`"exports": {}`); nothing in
+`src/` is a public API.
 
 `src/cli.ts` holds the CLI: parses flags, loads env config via `src/config.ts`
 (credentials, read-only mode, tool allow/deny lists, timeout, debug), builds the
@@ -75,7 +79,11 @@ Imports use subpath aliases in tests only (`#domeneshop/*`, `#mcp/*`, `#testing/
 Vitest, `test/` mirroring `src/`. No fetch mocking: `test/support/testServer.ts`
 starts a real `node:http` server on a random port and records requests, and
 `mcpHarness.ts` connects a real MCP client to the server over `InMemoryTransport`.
-Follow that pattern for new tests.
+Use `withTestServer` / `withHarness` from `test/support/` rather than writing
+`try/finally` cleanup by hand. Tool tests live in `test/mcp/tools/<resource>.test.ts`,
+next to the `src/mcp/tools/` file they cover; cross-cutting input validation
+lives in `test/mcp/validation.test.ts`. `test/index.test.ts` only covers what needs
+a real process (exit codes, stdio, signals); test CLI behaviour in `test/cli.test.ts`.
 
 `test/contract/` checks the client against Domeneshop's OpenAPI spec, stored in
 `test/contract/domeneshop-openapi.json`. `specServer.ts` is a fake API that
