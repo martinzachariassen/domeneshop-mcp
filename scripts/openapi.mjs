@@ -8,6 +8,10 @@ const DOCS_URL = "https://api.domeneshop.no/docs/";
 const FIXTURE = new URL("../test/contract/domeneshop-openapi.json", import.meta.url);
 const MARKER = "__redoc_state = ";
 
+/**
+ * @param {unknown} value
+ * @returns {unknown}
+ */
 function sortKeys(value) {
   if (Array.isArray(value)) {
     return value.map(sortKeys);
@@ -16,12 +20,13 @@ function sortKeys(value) {
     return Object.fromEntries(
       Object.keys(value)
         .sort()
-        .map((key) => [key, sortKeys(value[key])]),
+        .map((key) => [key, sortKeys(/** @type {Record<string, unknown>} */ (value)[key])]),
     );
   }
   return value;
 }
 
+/** @returns {Promise<unknown>} */
 async function fetchSpec() {
   const response = await fetch(DOCS_URL);
   if (!response.ok) {
@@ -37,6 +42,13 @@ async function fetchSpec() {
   return sortKeys(state.spec.data);
 }
 
+/**
+ * @param {any} a
+ * @param {any} b
+ * @param {string} path
+ * @param {string[]} out
+ * @returns {string[]}
+ */
 function diffPaths(a, b, path = "", out = []) {
   if (JSON.stringify(a) === JSON.stringify(b)) {
     return out;

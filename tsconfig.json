@@ -18,13 +18,10 @@
     "noUnusedParameters": true,
     "noUncheckedSideEffectImports": true,
 
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "*.config.ts"]
 }

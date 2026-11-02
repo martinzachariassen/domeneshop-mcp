@@ -4,7 +4,12 @@
 // via `npm run version`; test/distribution.test.ts fails if they drift.
 import { readFileSync, writeFileSync } from "node:fs";
 
+/** @param {string} file */
 const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
+/**
+ * @param {string} file
+ * @param {unknown} value
+ */
 const writeJson = (file, value) => writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
 
 const { version } = readJson("package.json");
