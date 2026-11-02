@@ -1,0 +1,52 @@
+name: spec-drift
+
+# Domeneshop can change its API docs without notice. This compares the
+# published OpenAPI spec with test/contract/domeneshop-openapi.json weekly.
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - id: check
+        run: |
+          set +e
+          node scripts/openapi.mjs --check > "$RUNNER_TEMP/drift.txt"
+          code=$?
+          cat "$RUNNER_TEMP/drift.txt"
+          exit $code
+
+      - if: failure() && steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Domeneshop OpenAPI spec changed"
+          if gh issue list --state open --search "\"$title\" in:title" --json number --jq 'length' | grep -qv '^0$'; then
+            echo "An open issue already tracks this."
+            exit 0
+          fi
+          {
+            echo "The weekly spec-drift check found changes in Domeneshop's published OpenAPI spec:"
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/drift.txt"
+            echo '```'
+            echo
+            echo "Run \`npm run spec:update\`, review the diff and update the client and contract tests."
+          } > "$RUNNER_TEMP/body.md"
+          gh issue create --title "$title" --body-file "$RUNNER_TEMP/body.md"

@@ -15,7 +15,13 @@ export async function connect(
   handler: Handler,
   options: CreateServerOptions = {},
 ): Promise<Harness> {
-  const apiServer = await startTestServer(handler);
+  return connectTo(await startTestServer(handler), options);
+}
+
+export async function connectTo(
+  apiServer: TestServer,
+  options: CreateServerOptions = {},
+): Promise<Harness> {
   const domeneshopClient = new DomeneshopClient("token", "secret", { baseUrl: apiServer.baseUrl });
   const server = createServer(domeneshopClient, options);
 

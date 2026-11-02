@@ -1,0 +1,948 @@
+{
+  "components": {
+    "parameters": {
+      "domainId": {
+        "description": "ID of the domain",
+        "in": "path",
+        "name": "domainId",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "forwardHost": {
+        "description": "Subdomain of the forward, `@` for the root domain",
+        "example": "www",
+        "in": "path",
+        "name": "host",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "invoiceId": {
+        "description": "An invoice number",
+        "in": "path",
+        "name": "invoiceId",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "recordId": {
+        "description": "ID of DNS record",
+        "in": "path",
+        "name": "recordId",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      }
+    },
+    "schemas": {
+      "A": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRecord"
+          },
+          {
+            "properties": {
+              "data": {
+                "description": "IPv4 address",
+                "format": "ipv4",
+                "type": "string"
+              },
+              "type": {
+                "enum": ["A"],
+                "type": "string"
+              }
+            },
+            "required": ["type", "data"],
+            "type": "object"
+          }
+        ]
+      },
+      "AAAA": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRecord"
+          },
+          {
+            "properties": {
+              "data": {
+                "description": "IPv6 address",
+                "format": "ipv6",
+                "type": "string"
+              },
+              "type": {
+                "enum": ["AAAA"],
+                "type": "string"
+              }
+            },
+            "required": ["type", "data"],
+            "type": "object"
+          }
+        ]
+      },
+      "BaseRecord": {
+        "properties": {
+          "host": {
+            "description": "The host/subdomain the DNS record applies to",
+            "example": "@",
+            "type": "string"
+          },
+          "id": {
+            "description": "ID of DNS record",
+            "example": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "ttl": {
+            "default": 3600,
+            "description": "TTL of DNS record in seconds. Must be a multiple of 60.",
+            "format": "int16",
+            "maximum": 604800,
+            "minimum": 60,
+            "type": "integer"
+          }
+        },
+        "required": ["id", "host"],
+        "type": "object"
+      },
+      "CNAME": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRecord"
+          },
+          {
+            "properties": {
+              "data": {
+                "description": "The target hostname",
+                "example": "www.example.com",
+                "type": "string"
+              },
+              "type": {
+                "enum": ["CNAME"],
+                "type": "string"
+              }
+            },
+            "required": ["type", "data"],
+            "type": "object"
+          }
+        ]
+      },
+      "DNSRecord": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/A"
+          },
+          {
+            "$ref": "#/components/schemas/AAAA"
+          },
+          {
+            "$ref": "#/components/schemas/CNAME"
+          },
+          {
+            "$ref": "#/components/schemas/MX"
+          },
+          {
+            "$ref": "#/components/schemas/SRV"
+          },
+          {
+            "$ref": "#/components/schemas/TLSA"
+          },
+          {
+            "$ref": "#/components/schemas/TXT"
+          }
+        ]
+      },
+      "Domain": {
+        "properties": {
+          "domain": {
+            "example": "example.com",
+            "type": "string"
+          },
+          "expiry_date": {
+            "format": "date",
+            "type": "string"
+          },
+          "id": {
+            "example": 1,
+            "format": "int32",
+            "type": "integer"
+          },
+          "nameservers": {
+            "example": ["ns1.hyp.net", "ns2.hyp.net", "ns3.hyp.net"],
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 2,
+            "type": "array"
+          },
+          "registered_date": {
+            "format": "date",
+            "type": "string"
+          },
+          "registrant": {
+            "example": "Ola Nordmann",
+            "type": "string"
+          },
+          "renew": {
+            "example": true,
+            "type": "boolean"
+          },
+          "services": {
+            "$ref": "#/components/schemas/DomainServices"
+          },
+          "status": {
+            "description": "Domain status",
+            "enum": ["active", "expired", "deactivated", "pendingDeleteRestorable"],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DomainServices": {
+        "description": "Domain services",
+        "properties": {
+          "dns": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
+          },
+          "registrar": {
+            "type": "boolean"
+          },
+          "webhotel": {
+            "enum": ["none", "webmedium", "websmall", "weblarge", "webxlarge"],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "HTTPForward": {
+        "properties": {
+          "frame": {
+            "description": "Whether to enable frame forwarding using an iframe embed. **NOT** recommended for a variety of reasons.",
+            "example": false,
+            "type": "boolean"
+          },
+          "host": {
+            "description": "The subdomain this forward applies to, without the domain part.\n\nFor instance, `www` in the context of the `example.com` domain signifies a forward for `www.example.com`.\n",
+            "example": "@",
+            "type": "string"
+          },
+          "url": {
+            "description": "The URL to forward to. Must include scheme, e.g. `https://` or `ftp://`.",
+            "example": "https://www.example.com",
+            "type": "string"
+          }
+        }
+      },
+      "Invoice": {
+        "properties": {
+          "amount": {
+            "example": 120,
+            "type": "integer"
+          },
+          "currency": {
+            "enum": ["NOK", "SEK", "DKK", "GBP", "USD"],
+            "type": "string"
+          },
+          "due_date": {
+            "description": "The invoice due date. Only available for type `invoice`.",
+            "format": "date",
+            "type": "string"
+          },
+          "id": {
+            "description": "Invoice ID/number",
+            "example": 1,
+            "type": "integer"
+          },
+          "issued_date": {
+            "description": "The date when the invoice was issued.",
+            "format": "date",
+            "type": "string"
+          },
+          "paid_date": {
+            "description": "The payment date. Only available if the invoice has status `paid`.",
+            "format": "date",
+            "type": "string"
+          },
+          "status": {
+            "description": "`settled` is only applicable to credit notes. These are usually created if \ndomains have been\n",
+            "enum": ["unpaid", "paid", "settled"],
+            "example": "paid",
+            "type": "string"
+          },
+          "type": {
+            "enum": ["invoice", "credit_node"],
+            "type": "string"
+          },
+          "url": {
+            "example": "https://www.domeneshop.no/invoice?nr=1&code=",
+            "format": "url",
+            "type": "string"
+          }
+        }
+      },
+      "MX": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRecord"
+          },
+          {
+            "properties": {
+              "data": {
+                "description": "The target MX host.",
+                "example": "mx.example.com",
+                "format": "hostname",
+                "type": "string"
+              },
+              "priority": {
+                "description": "MX record priority, also known as preference. Lower values are usually preferred first, but this is not guaranteed",
+                "example": 1,
+                "format": "int16",
+                "type": "integer"
+              },
+              "type": {
+                "enum": ["MX"],
+                "type": "string"
+              }
+            },
+            "required": ["type", "data", "priority"],
+            "type": "object"
+          }
+        ]
+      },
+      "SRV": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRecord"
+          },
+          {
+            "properties": {
+              "data": {
+                "description": "The target hostname",
+                "example": "www.example.com",
+                "format": "hostname",
+                "type": "string"
+              },
+              "port": {
+                "description": "SRV record port. The port where the service is found.",
+                "example": 443,
+                "format": "int16",
+                "type": "integer"
+              },
+              "priority": {
+                "description": "SRV record priority, also known as preference. Lower values are usually preferred first",
+                "example": 10,
+                "format": "int16",
+                "type": "integer"
+              },
+              "type": {
+                "enum": ["SRV"],
+                "type": "string"
+              },
+              "weight": {
+                "description": "SRV record weight. Relevant if multiple records have same preference",
+                "example": 100,
+                "format": "int16",
+                "type": "integer"
+              }
+            },
+            "required": ["type", "data", "priority", "weight", "port"],
+            "type": "object"
+          }
+        ],
+        "description": "SRV records yo!"
+      },
+      "TLSA": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRecord"
+          },
+          {
+            "properties": {
+              "data": {
+                "description": "TLSA hash. Lenght depends on dtype (SHA-256 = 64 characters, SHA-512 = 128 characters)",
+                "example": "7FF8B87BB269715FEF08A0F4F0033D7A2F3B680470A30E878CEB2D3E244AF3EA",
+                "type": "string"
+              },
+              "dtype": {
+                "description": "TLSA matching type. Indicates hashing algorithm. (0 = exact match; 1 = SHA-256; 2 = SHA-512)",
+                "example": 1,
+                "format": "int16",
+                "type": "integer"
+              },
+              "selector": {
+                "description": "TLSA selector. Where the hash is taken from (0 = entire certificate blob; 1 = DER format)",
+                "example": 1,
+                "format": "int16",
+                "type": "integer"
+              },
+              "type": {
+                "enum": ["TLSA"],
+                "type": "string"
+              },
+              "usage": {
+                "description": "TLSA usage. Indicates how the cryptographic hash should be interpreted (0 = PKIX-TA, certificate authority; 1 = PKIX-EE, service certificate; 2 = DANE-TA, trust anchor, 3 = DANE-EE, domain issued)",
+                "example": 3,
+                "format": "int16",
+                "type": "integer"
+              }
+            },
+            "required": ["usage", "selector", "dtype"],
+            "type": "object"
+          }
+        ]
+      },
+      "TXT": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseRecord"
+          },
+          {
+            "properties": {
+              "data": {
+                "description": "Freeform text field.",
+                "example": "v=spf1 include:_spf.domeneshop.no ~all",
+                "type": "string"
+              },
+              "type": {
+                "enum": ["TXT"],
+                "type": "string"
+              }
+            },
+            "required": ["type", "data"],
+            "type": "object"
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "basicAuth": {
+        "description": "With the **HTTP Basic Auth** authentication method, the `token` is the username,\nand the `secret` is the password.\n\nSee above for instructions on how to generate credentials.\n",
+        "scheme": "basic",
+        "type": "http"
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Domeneshop website",
+    "url": "https://www.domeneshop.no"
+  },
+  "info": {
+    "contact": {
+      "email": "kundeservice@domeneshop.no",
+      "name": "API Support"
+    },
+    "description": "# Overview\n\nDomeneshop offers a simple, REST-based API, which currently supports the following\nfeatures:\n\n- List domains\n- List invoices\n- Create, read, update and delete DNS records for domains\n- Create, read, update and delete HTTP forwards (\"WWW forwarding\") for domains\n- Dynamic DNS (DDNS) update endpoints for use in consumer routers\n\n# Authentication\n\nThe Domeneshop API currently supports only one method of authentication, **HTTP Basic Auth**. More authentication methods may\nbe added in the future.\n\nTo generate credentials, visit <a href=\"https://www.domeneshop.no/admin?view=api\" target=\"_blank\">this page</a>\nafter logging in to the control panel on our website:\n\n<a href=\"https://www.domeneshop.no/admin?view=api\" target=\"_blank\">https://www.domeneshop.no/admin?view=api</a>\n\n# Libraries\n\nDomeneshop maintains multiple API libraries to simplify using the API.\n\nThe libraries may be found in our [Github repository](https://github.com/domeneshop/).\n\nDomeneshop also maintains a plugin for [EFF's Certbot](https://certbot.eff.org/), which automates issuance and\nrenewal of SSL-certificates on your own servers for domains that use Domeneshop's DNS service. This plugin is\nfound in our Github repository [here](https://github.com/domeneshop/certbot-dns-domeneshop).\n\n<SecurityDefinitions />\n",
+    "title": "Domeneshop API Documentation",
+    "version": "v0",
+    "x-logo": {
+      "altText": "Domeneshop",
+      "url": "https://domene.shop/svg/logo-no.svg"
+    }
+  },
+  "openapi": "3.0.1",
+  "paths": {
+    "/domains": {
+      "get": {
+        "operationId": "getDomains",
+        "parameters": [
+          {
+            "description": "Only return domains whose `domain` field includes this string",
+            "example": ".no",
+            "in": "query",
+            "name": "domain",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Domain"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "List domains",
+        "tags": ["domains"]
+      }
+    },
+    "/domains/{domainId}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Domain"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Find domain by ID",
+        "tags": ["domains"]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/domainId"
+        }
+      ]
+    },
+    "/domains/{domainId}/dns": {
+      "get": {
+        "operationId": "getDnsRecords",
+        "parameters": [
+          {
+            "description": "Only return records whose `host` field matches this string",
+            "example": "www",
+            "in": "query",
+            "name": "host",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only return records whose `type` field matches this string",
+            "example": "A",
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DNSRecord"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "List DNS records",
+        "tags": ["dns"]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/domainId"
+        }
+      ],
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DNSRecord"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "description": "ID of the created DNS record",
+                      "example": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful operation",
+            "headers": {
+              "location": {
+                "description": "The URL to the DNS record resource that was created",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Domain domainId does not exist."
+          }
+        },
+        "summary": "Add DNS record",
+        "tags": ["dns"]
+      }
+    },
+    "/domains/{domainId}/dns/{recordId}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "description": "DNS record is deleted"
+          },
+          "404": {
+            "description": "DNS record does not exist"
+          }
+        },
+        "summary": "Delete DNS record by ID",
+        "tags": ["dns"]
+      },
+      "get": {
+        "operationId": "getRecordById",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DNSRecord"
+                }
+              }
+            },
+            "description": "Success"
+          }
+        },
+        "summary": "Find DNS record by ID",
+        "tags": ["dns"]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/domainId"
+        },
+        {
+          "$ref": "#/components/parameters/recordId"
+        }
+      ],
+      "put": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DNSRecord"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "DNS record failed validation"
+          },
+          "404": {
+            "description": "DNS record does not exist"
+          }
+        },
+        "summary": "Update DNS record by ID",
+        "tags": ["dns"]
+      }
+    },
+    "/domains/{domainId}/forwards/": {
+      "get": {
+        "description": "List all forwards for the specified domain.",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HTTPForward"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "List forwards",
+        "tags": ["forwards"]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/domainId"
+        }
+      ],
+      "post": {
+        "description": "Create a forwarding for the specified domain, to a given URL.\n\nThe forward must not collide with any existing forwarding or DNS record\nof types `A`, `AAAA`, `ANAME` or `CNAME`.\n",
+        "responses": {
+          "201": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid forward"
+          },
+          "409": {
+            "description": "The forward collides with an existing forwarding or DNS record"
+          }
+        },
+        "summary": "Add forward",
+        "tags": ["forwards"]
+      }
+    },
+    "/domains/{domainId}/forwards/{host}": {
+      "delete": {
+        "responses": {
+          "204": {
+            "description": "Forward is deleted"
+          },
+          "404": {
+            "description": "Forward or domain not found"
+          }
+        },
+        "summary": "Delete forward by host",
+        "tags": ["forwards"]
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPForward"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "404": {
+            "description": "Forward or domain not found"
+          }
+        },
+        "summary": "Find forward by host",
+        "tags": ["forwards"]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/domainId"
+        },
+        {
+          "$ref": "#/components/parameters/forwardHost"
+        }
+      ],
+      "put": {
+        "description": "Update a forwarding for the specified domain, to a given URL.\n\nThe `host` field must not be changed. In that case, delete the\nexisting forwarding and recreate it for the new host/subdomain.\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPForward"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPForward"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Invalid forward"
+          },
+          "404": {
+            "description": "Forward or domain not found"
+          },
+          "412": {
+            "description": "Forward host was modified"
+          }
+        },
+        "summary": "Update forward by host",
+        "tags": ["forwards"]
+      }
+    },
+    "/dyndns/update": {
+      "get": {
+        "description": "Update DNS using the \"IP update protocol\".\n\nA DNS record for the given hostname will be created if it does not exist, or updated if it does. The record\ntype (`A` or `AAAA` will automatically be detected).\n\nIf the DDNS implementation does not allow you to specify authentication, it can usually be specified inline\nin the URL:\n\n  ```\n  https://{token}:{secret}@api.domeneshop.no/v0/dyndns/update?hostname=example.com&myip=127.0.0.1\n  ```\n",
+        "parameters": [
+          {
+            "description": "The fully qualified domain (FQDN) to be updated, without trailing dot. Multiple hostnames may be provided, delimited by commas",
+            "examples": {
+              "one": {
+                "summary": "One hostname",
+                "value": "www.example.com"
+              },
+              "two": {
+                "summary": "Multiple hostnames",
+                "value": "example.com,www.example.com"
+              }
+            },
+            "in": "query",
+            "name": "hostname",
+            "required": true,
+            "schema": {
+              "format": "hostname",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The new IPv4 or IPv6 address to set. If not provided, the IP of the client making the API request will be used. Multiple IPv4 and IPv6 addresses (up to 9) can be provided, delimited by commas.",
+            "examples": {
+              "one": {
+                "summary": "One IP",
+                "value": "127.0.0.1"
+              },
+              "two": {
+                "summary": "Multiple IPs",
+                "value": "127.0.0.1,2001:db8::1"
+              }
+            },
+            "in": "query",
+            "name": "myip",
+            "required": false,
+            "schema": {
+              "format": "ipv4|ipv6",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful operation"
+          },
+          "404": {
+            "description": "Domain not found"
+          }
+        },
+        "summary": "Update",
+        "tags": ["ddns"]
+      }
+    },
+    "/invoices": {
+      "get": {
+        "description": "List invoices for your account. Only invoices from the past 3 years are returned.",
+        "operationId": "getInvoices",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Invoice"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "List invoices",
+        "tags": ["invoices"]
+      },
+      "parameters": [
+        {
+          "description": "Only return invoices with this status",
+          "in": "query",
+          "name": "status",
+          "schema": {
+            "$ref": "#/components/schemas/Invoice/properties/status"
+          }
+        }
+      ]
+    },
+    "/invoices/{invoiceId}": {
+      "get": {
+        "operationId": "findInvoiceByNumber",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "404": {
+            "description": "Invoice not found"
+          }
+        },
+        "summary": "Find invoice by invoice number",
+        "tags": ["invoices"]
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/invoiceId"
+        }
+      ]
+    }
+  },
+  "security": [
+    {
+      "basicAuth": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://api.domeneshop.no/v0"
+    }
+  ],
+  "tags": [
+    {
+      "name": "domains",
+      "x-displayName": "Domains"
+    },
+    {
+      "description": "These endpoints allow you to list, create and delete DNS records for any domain that has\nactive DNS service.\n",
+      "name": "dns",
+      "x-displayName": "DNS"
+    },
+    {
+      "description": "This group exposes endpoints that can be used by certain Dynamic DNS implementations found in consumer routers appliances.\n",
+      "name": "ddns",
+      "x-displayName": "Dynamic DDNS (DDNS)"
+    },
+    {
+      "description": "These endpoints allow you to list, create and delete HTTP forwards (\"WWW forwarding\") for any domain\nthat has active DNS service.\n\nWhile frame forwards (an `<iframe>` embed) are supported through setting the `frame` field, we strongly\ndiscourage the use of these. Use DNS records instead.\n",
+      "name": "forwards",
+      "x-displayName": "HTTP Forwards"
+    },
+    {
+      "name": "invoices",
+      "x-displayName": "Invoices"
+    },
+    {
+      "description": "These are the schema definitions for the different valid DNS record types.\n\n# A record\n<SchemaDefinition schemaRef=\"#/components/schemas/A\" />\n\n# AAAA record\n<SchemaDefinition schemaRef=\"#/components/schemas/AAAA\" />\n\n# CNAME record\n<SchemaDefinition schemaRef=\"#/components/schemas/CNAME\" />\n\n# MX record\n<SchemaDefinition schemaRef=\"#/components/schemas/MX\" />\n\n# SRV record\n<SchemaDefinition schemaRef=\"#/components/schemas/SRV\" />\n\n# TXT record\n<SchemaDefinition schemaRef=\"#/components/schemas/TXT\" />\n",
+      "name": "dns_record_models",
+      "x-displayName": "DNS record models"
+    }
+  ],
+  "x-tagGroups": [
+    {
+      "name": "Endpoints",
+      "tags": ["domains", "dns", "ddns", "forwards", "invoices"]
+    },
+    {
+      "name": "Models",
+      "tags": ["dns_record_models"]
+    }
+  ]
+}
