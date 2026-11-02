@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DomeneshopClient } from "#domeneshop/index.js";
 import { createServer } from "#mcp/server.js";
-import { connect, listToolsByName } from "#testing/mcpHarness.js";
+import { listToolsByName, withHarness } from "#testing/mcpHarness.js";
 import type { Handler } from "#testing/testServer.js";
 
 const ok: Handler = (_req, res) => {
@@ -11,61 +11,65 @@ const ok: Handler = (_req, res) => {
 
 describe("tool filtering", () => {
   it("exposes only read-only tools in read-only mode", async () => {
-    const harness = await connect(ok, { readOnly: true });
-    try {
-      const tools = await listToolsByName(harness.client);
-      expect(tools.size).toBe(8);
-      for (const tool of tools.values()) {
-        expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
-      }
-      expect(harness.client.getInstructions()).toContain("read-only mode");
-    } finally {
-      await harness.close();
-    }
+    await withHarness(
+      ok,
+      async (harness) => {
+        const tools = await listToolsByName(harness.client);
+        expect(tools.size).toBe(8);
+        for (const tool of tools.values()) {
+          expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
+        }
+        expect(harness.client.getInstructions()).toContain("read-only mode");
+      },
+      { readOnly: true },
+    );
   });
 
   it("rejects calls to a hidden write tool without reaching the API", async () => {
-    const harness = await connect(ok, { readOnly: true });
-    try {
-      let failed = false;
-      try {
-        const result = await harness.client.callTool({
-          name: "delete_dns_record",
-          arguments: { domain_id: 1, record_id: 1 },
-        });
-        failed = result.isError === true;
-      } catch {
-        failed = true;
-      }
-      expect(failed).toBe(true);
-      expect(harness.apiServer.requests).toHaveLength(0);
-    } finally {
-      await harness.close();
-    }
+    await withHarness(
+      ok,
+      async (harness) => {
+        let failed = false;
+        try {
+          const result = await harness.client.callTool({
+            name: "delete_dns_record",
+            arguments: { domain_id: 1, record_id: 1 },
+          });
+          failed = result.isError === true;
+        } catch {
+          failed = true;
+        }
+        expect(failed).toBe(true);
+        expect(harness.apiServer.requests).toHaveLength(0);
+      },
+      { readOnly: true },
+    );
   });
 
   it("registers only allowlisted tools", async () => {
-    const harness = await connect(ok, { tools: new Set(["list_domains", "patch_dns_record"]) });
-    try {
-      const tools = await listToolsByName(harness.client);
-      expect([...tools.keys()].sort()).toEqual(["list_domains", "patch_dns_record"]);
-    } finally {
-      await harness.close();
-    }
+    await withHarness(
+      ok,
+      async (harness) => {
+        const tools = await listToolsByName(harness.client);
+        expect([...tools.keys()].sort()).toEqual(["list_domains", "patch_dns_record"]);
+      },
+      { tools: new Set(["list_domains", "patch_dns_record"]) },
+    );
   });
 
   it("hides denylisted tools and combines with read-only mode", async () => {
-    const harness = await connect(ok, {
-      readOnly: true,
-      disabledTools: new Set(["list_invoices", "get_invoice"]),
-    });
-    try {
-      const tools = await listToolsByName(harness.client);
-      expect(tools.size).toBe(6);
-      expect(tools.has("list_invoices")).toBe(false);
-    } finally {
-      await harness.close();
-    }
+    await withHarness(
+      ok,
+      async (harness) => {
+        const tools = await listToolsByName(harness.client);
+        expect(tools.size).toBe(6);
+        expect(tools.has("list_invoices")).toBe(false);
+      },
+      {
+        readOnly: true,
+        disabledTools: new Set(["list_invoices", "get_invoice"]),
+      },
+    );
   });
 
   it("warns when read-only mode hides an allowlisted write tool", () => {

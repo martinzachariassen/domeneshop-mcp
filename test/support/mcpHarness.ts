@@ -41,6 +41,20 @@ export async function connectTo(
   };
 }
 
+/** Connects a harness for the duration of `run` and always closes it. */
+export async function withHarness<T>(
+  handler: Handler,
+  run: (harness: Harness) => Promise<T>,
+  options: CreateServerOptions = {},
+): Promise<T> {
+  const harness = await connect(handler, options);
+  try {
+    return await run(harness);
+  } finally {
+    await harness.close();
+  }
+}
+
 export async function listToolsByName(client: Client): Promise<Map<string, Tool>> {
   const { tools } = await client.listTools();
   return new Map(tools.map((tool) => [tool.name, tool]));

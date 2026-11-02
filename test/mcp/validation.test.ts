@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { connect, resultText } from "#testing/mcpHarness.js";
+import { resultText, withHarness } from "#testing/mcpHarness.js";
 import { sendJson } from "#testing/testServer.js";
 
 type Args = Record<string, unknown>;
@@ -242,19 +242,19 @@ describe("input validation", () => {
   it.each(REJECTED)(
     "rejects %s on %s before calling the API",
     async (_label, tool, args, fragment) => {
-      const harness = await connect((_req, res) => {
-        res.writeHead(500);
-        res.end();
-      });
-      try {
-        const result = await harness.client.callTool({ name: tool, arguments: args });
+      await withHarness(
+        (_req, res) => {
+          res.writeHead(500);
+          res.end();
+        },
+        async (harness) => {
+          const result = await harness.client.callTool({ name: tool, arguments: args });
 
-        expect(result.isError).toBe(true);
-        expect(resultText(result)).toContain(fragment);
-        expect(harness.apiServer.requests).toHaveLength(0);
-      } finally {
-        await harness.close();
-      }
+          expect(result.isError).toBe(true);
+          expect(resultText(result)).toContain(fragment);
+          expect(harness.apiServer.requests).toHaveLength(0);
+        },
+      );
     },
   );
 
@@ -266,21 +266,21 @@ describe("input validation", () => {
     ["upsert_dns_record", { type: "AAAA" }, "AAAA records need an IPv6 address"],
   ])("validates the merged record on %s %j without writing", async (tool, extra, fragment) => {
     const existing = { id: 7, host: "www", type: "A", data: "192.0.2.1", ttl: 3600 };
-    const harness = await connect((req, res) => {
-      sendJson(res, 200, req.url?.includes("/dns/7") ? existing : [existing]);
-    });
-    try {
-      const result = await harness.client.callTool({
-        name: tool,
-        arguments: { ...VALID[tool], ...extra },
-      });
+    await withHarness(
+      (req, res) => {
+        sendJson(res, 200, req.url?.includes("/dns/7") ? existing : [existing]);
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: tool,
+          arguments: { ...VALID[tool], ...extra },
+        });
 
-      expect(result.isError).toBe(true);
-      expect(resultText(result)).toContain(fragment);
-      expect(harness.apiServer.requests.every((r) => r.method === "GET")).toBe(true);
-    } finally {
-      await harness.close();
-    }
+        expect(result.isError).toBe(true);
+        expect(resultText(result)).toContain(fragment);
+        expect(harness.apiServer.requests.every((r) => r.method === "GET")).toBe(true);
+      },
+    );
   });
 
   it.each<[string, string, Args]>([
@@ -327,54 +327,54 @@ describe("input validation", () => {
     ["empty type filter", "list_dns_records", { type: "" }],
     ["empty status filter", "list_invoices", { status: "" }],
   ])("accepts %s", async (_label, tool, extra) => {
-    const harness = await connect((req, res) => {
-      if (req.method === "POST" && req.url?.includes("/dns")) {
-        sendJson(res, 201, { id: 1 });
-      } else if (req.method === "GET" && req.url?.includes("/dyndns")) {
-        res.writeHead(204);
-        res.end();
-      } else if (req.method === "GET" && req.url?.includes("/dns/")) {
-        sendJson(res, 200, { id: 1, host: "@", type: "A", data: "192.0.2.1" });
-      } else if (req.method === "POST") {
-        res.writeHead(201, { Location: "/domains/42/forwards/www" });
-        res.end();
-      } else if (req.method === "PUT") {
-        sendJson(res, 200, { host: "www", url: "http://example.com", frame: false });
-      } else {
-        sendJson(res, 200, []);
-      }
-    });
-    try {
-      const result = await harness.client.callTool({
-        name: tool,
-        arguments: { ...VALID[tool], ...extra },
-      });
+    await withHarness(
+      (req, res) => {
+        if (req.method === "POST" && req.url?.includes("/dns")) {
+          sendJson(res, 201, { id: 1 });
+        } else if (req.method === "GET" && req.url?.includes("/dyndns")) {
+          res.writeHead(204);
+          res.end();
+        } else if (req.method === "GET" && req.url?.includes("/dns/")) {
+          sendJson(res, 200, { id: 1, host: "@", type: "A", data: "192.0.2.1" });
+        } else if (req.method === "POST") {
+          res.writeHead(201, { Location: "/domains/42/forwards/www" });
+          res.end();
+        } else if (req.method === "PUT") {
+          sendJson(res, 200, { host: "www", url: "http://example.com", frame: false });
+        } else {
+          sendJson(res, 200, []);
+        }
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: tool,
+          arguments: { ...VALID[tool], ...extra },
+        });
 
-      expect(resultText(result)).not.toMatch(/validation|invalid/i);
-      expect(result.isError).not.toBe(true);
-      expect(harness.apiServer.requests.length).toBeGreaterThan(0);
-      expect(harness.apiServer.requests[0]?.url).not.toMatch(/[?&](type|status|myip)=(&|$)/);
-    } finally {
-      await harness.close();
-    }
+        expect(resultText(result)).not.toMatch(/validation|invalid/i);
+        expect(result.isError).not.toBe(true);
+        expect(harness.apiServer.requests.length).toBeGreaterThan(0);
+        expect(harness.apiServer.requests[0]?.url).not.toMatch(/[?&](type|status|myip)=(&|$)/);
+      },
+    );
   });
 
   it("sends dyndns hostnames as ASCII without a trailing dot", async () => {
-    const harness = await connect((_req, res) => {
-      res.writeHead(204);
-      res.end();
-    });
-    try {
-      const result = await harness.client.callTool({
-        name: "update_dyndns",
-        arguments: { hostname: "home.example.com., blåbær.no" },
-      });
+    await withHarness(
+      (_req, res) => {
+        res.writeHead(204);
+        res.end();
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: "update_dyndns",
+          arguments: { hostname: "home.example.com., blåbær.no" },
+        });
 
-      expect(result.isError).not.toBe(true);
-      const url = new URL(harness.apiServer.requests[0]?.url ?? "", "http://x");
-      expect(url.searchParams.get("hostname")).toBe("home.example.com,xn--blbr-roah.no");
-    } finally {
-      await harness.close();
-    }
+        expect(result.isError).not.toBe(true);
+        const url = new URL(harness.apiServer.requests[0]?.url ?? "", "http://x");
+        expect(url.searchParams.get("hostname")).toBe("home.example.com,xn--blbr-roah.no");
+      },
+    );
   });
 });

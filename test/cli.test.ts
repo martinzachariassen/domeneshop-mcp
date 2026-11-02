@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -30,6 +31,15 @@ describe("run", () => {
     const { io, stdout } = fakeIO();
     await expect(run([flag], {}, io)).resolves.toBe(0);
     expect(stdout).toEqual([USAGE]);
+  });
+
+  it("documents every environment variable the config reads in the usage text", () => {
+    const config = readFileSync(new URL("../src/config.ts", import.meta.url), "utf8");
+    const read = [...config.matchAll(/"(DOMENESHOP_[A-Z_]+)"/g)].map((m) => m[1] ?? "");
+    expect(read.length).toBeGreaterThan(5);
+    for (const name of new Set(read)) {
+      expect(USAGE).toContain(name);
+    }
   });
 
   it.each(["--version", "-v", "-version"])("prints the version for %s", async (flag) => {

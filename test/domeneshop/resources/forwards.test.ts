@@ -1,19 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { HttpTransport } from "#domeneshop/http.js";
 import { ForwardsResource } from "#domeneshop/resources/forwards.js";
-import { startTestServer, type TestServer } from "#testing/testServer.js";
+import { type Handler, type TestServer, withTestServer } from "#testing/testServer.js";
 
-async function withResource(
-  handler: Parameters<typeof startTestServer>[0],
+function withResource(
+  handler: Handler,
   run: (resource: ForwardsResource, server: TestServer) => Promise<void>,
 ): Promise<void> {
-  const server = await startTestServer(handler);
-  try {
-    const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
-    await run(new ForwardsResource(transport), server);
-  } finally {
-    await server.close();
-  }
+  return withTestServer(handler, (server) =>
+    run(
+      new ForwardsResource(new HttpTransport("token", "secret", { baseUrl: server.baseUrl })),
+      server,
+    ),
+  );
 }
 
 describe("ForwardsResource", () => {

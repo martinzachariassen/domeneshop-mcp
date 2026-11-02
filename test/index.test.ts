@@ -55,6 +55,7 @@ function runCli(args: string[], env: NodeJS.ProcessEnv): Promise<CliResult> {
   });
 }
 
+/** Only what needs a real process: exit codes, stdio and signals. The rest is in cli.test.ts. */
 describe("CLI entry point", () => {
   it("prints the version and exits successfully", async () => {
     const result = await runCli(["--version"], baseEnv);
@@ -64,63 +65,12 @@ describe("CLI entry point", () => {
     expect(result.stderr).toBe("");
   }, 10000);
 
-  it("accepts the single-dash -version alias", async () => {
-    const result = await runCli(["-version"], baseEnv);
-
-    expect(result.code).toBe(0);
-    expect(result.stdout.trim()).toBe(`domeneshop-mcp ${VERSION}`);
-  }, 10000);
-
   it("exits with an error when credentials are missing", async () => {
     const result = await runCli([], baseEnv);
 
     expect(result.code).toBe(1);
     expect(result.stdout).toBe("");
     expect(result.stderr).toContain("DOMENESHOP_API_TOKEN and DOMENESHOP_API_SECRET must be set");
-  }, 10000);
-
-  it("exits with an error when only one credential is set", async () => {
-    const result = await runCli([], { ...baseEnv, DOMENESHOP_API_TOKEN: "token" });
-
-    expect(result.code).toBe(1);
-    expect(result.stderr).toContain("DOMENESHOP_API_TOKEN and DOMENESHOP_API_SECRET must be set");
-  }, 10000);
-
-  it("prints usage, including every environment variable, for --help", async () => {
-    const result = await runCli(["--help"], baseEnv);
-
-    expect(result.code).toBe(0);
-    expect(result.stdout).toContain("Usage: domeneshop-mcp");
-    for (const name of [
-      "DOMENESHOP_API_TOKEN",
-      "DOMENESHOP_READ_ONLY",
-      "DOMENESHOP_TOOLS",
-      "DOMENESHOP_DISABLED_TOOLS",
-      "DOMENESHOP_TIMEOUT_MS",
-      "DOMENESHOP_DEBUG",
-    ]) {
-      expect(result.stdout).toContain(name);
-    }
-  }, 10000);
-
-  it("rejects an unknown argument with exit code 2", async () => {
-    const result = await runCli(["--frobnicate"], baseEnv);
-
-    expect(result.code).toBe(2);
-    expect(result.stdout).toBe("");
-    expect(result.stderr).toContain('unknown argument "--frobnicate"');
-  }, 10000);
-
-  it("reports invalid configuration before connecting", async () => {
-    const result = await runCli([], {
-      ...baseEnv,
-      DOMENESHOP_API_TOKEN: "token",
-      DOMENESHOP_API_SECRET: "secret",
-      DOMENESHOP_TOOLS: "list_domain",
-    });
-
-    expect(result.code).toBe(1);
-    expect(result.stderr).toContain("DOMENESHOP_TOOLS names unknown tool(s): list_domain");
   }, 10000);
 
   it("exposes only read-only tools over stdio when DOMENESHOP_READ_ONLY is set", async () => {

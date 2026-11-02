@@ -1,19 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { HttpTransport } from "#domeneshop/http.js";
 import { DomainsResource } from "#domeneshop/resources/domains.js";
-import { sendJson, startTestServer, type TestServer } from "#testing/testServer.js";
+import { type Handler, sendJson, type TestServer, withTestServer } from "#testing/testServer.js";
 
-async function withResource(
-  handler: Parameters<typeof startTestServer>[0],
+function withResource(
+  handler: Handler,
   run: (resource: DomainsResource, server: TestServer) => Promise<void>,
 ): Promise<void> {
-  const server = await startTestServer(handler);
-  try {
-    const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
-    await run(new DomainsResource(transport), server);
-  } finally {
-    await server.close();
-  }
+  return withTestServer(handler, (server) =>
+    run(
+      new DomainsResource(new HttpTransport("token", "secret", { baseUrl: server.baseUrl })),
+      server,
+    ),
+  );
 }
 
 describe("DomainsResource", () => {

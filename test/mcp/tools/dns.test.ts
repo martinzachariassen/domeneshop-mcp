@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, expect, it } from "vitest";
 import type { DNSRecord } from "#domeneshop/index.js";
-import { connect, resultText } from "#testing/mcpHarness.js";
+import { resultText, withHarness } from "#testing/mcpHarness.js";
 import { sendJson } from "#testing/testServer.js";
 
 /**
@@ -57,13 +57,128 @@ function fakeZone(initial: DNSRecord[]) {
   return { records, handler };
 }
 
+describe("dns record tools", () => {
+  it("lists DNS records for a domain", async () => {
+    await withHarness(
+      (_req, res) => {
+        sendJson(res, 200, [{ id: 1, host: "www", type: "A", data: "1.2.3.4" }]);
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: "list_dns_records",
+          arguments: { domain_id: 42 },
+        });
+
+        expect(result.isError).not.toBe(true);
+        expect(resultText(result)).toContain("1.2.3.4");
+        expect(harness.apiServer.requests[0]?.url).toBe("/domains/42/dns");
+      },
+    );
+  });
+
+  it("gets a single DNS record", async () => {
+    await withHarness(
+      (_req, res) => {
+        sendJson(res, 200, { id: 7, host: "www", type: "A", data: "1.2.3.4" });
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: "get_dns_record",
+          arguments: { domain_id: 42, record_id: 7 },
+        });
+
+        expect(result.isError).not.toBe(true);
+        expect(resultText(result)).toContain("1.2.3.4");
+        expect(harness.apiServer.requests[0]?.url).toBe("/domains/42/dns/7");
+      },
+    );
+  });
+
+  it("updates a DNS record, sending every field through to the API", async () => {
+    let received: Record<string, unknown> = {};
+    await withHarness(
+      (req, res, body) => {
+        if (req.method === "GET") {
+          sendJson(res, 200, { id: 7, ...received });
+          return;
+        }
+        received = JSON.parse(body) as Record<string, unknown>;
+        res.writeHead(204);
+        res.end();
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: "update_dns_record",
+          arguments: {
+            domain_id: 42,
+            record_id: 7,
+            host: "www",
+            type: "A",
+            data: "5.6.7.8",
+            ttl: 120,
+          },
+        });
+
+        expect(result.isError).not.toBe(true);
+        expect(harness.apiServer.requests[0]?.method).toBe("PUT");
+        expect(harness.apiServer.requests[0]?.url).toBe("/domains/42/dns/7");
+        expect(received["data"]).toBe("5.6.7.8");
+        expect(received["ttl"]).toBe(120);
+        expect(harness.apiServer.requests[1]?.method).toBe("GET");
+        expect(resultText(result)).toContain("5.6.7.8");
+      },
+    );
+  });
+
+  it("returns the record that was sent when the read-back after a write fails", async () => {
+    await withHarness(
+      (req, res) => {
+        if (req.method === "GET") {
+          res.writeHead(500);
+          res.end();
+          return;
+        }
+        res.writeHead(204);
+        res.end();
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: "update_dns_record",
+          arguments: { domain_id: 42, record_id: 7, host: "www", type: "A", data: "5.6.7.8" },
+        });
+
+        expect(result.isError).not.toBe(true);
+        expect(result.structuredContent).toMatchObject({ id: 7, data: "5.6.7.8" });
+      },
+    );
+  });
+
+  it("deletes a DNS record", async () => {
+    await withHarness(
+      (_req, res) => {
+        res.writeHead(204);
+        res.end();
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: "delete_dns_record",
+          arguments: { domain_id: 42, record_id: 7 },
+        });
+
+        expect(result.isError).not.toBe(true);
+        expect(harness.apiServer.requests[0]?.method).toBe("DELETE");
+        expect(harness.apiServer.requests[0]?.url).toBe("/domains/42/dns/7");
+      },
+    );
+  });
+});
+
 describe("patch_dns_record", () => {
   it("changes only the given field and keeps ttl and priority", async () => {
     const zone = fakeZone([
       { id: 7, host: "@", type: "MX", data: "mx1.example.com", ttl: 300, priority: 10 },
     ]);
-    const harness = await connect(zone.handler);
-    try {
+    await withHarness(zone.handler, async (harness) => {
       const result = await harness.client.callTool({
         name: "patch_dns_record",
         arguments: { domain_id: 42, record_id: 7, data: "mx2.example.com" },
@@ -79,15 +194,12 @@ describe("patch_dns_record", () => {
         priority: 10,
       });
       expect(result.structuredContent).toMatchObject({ id: 7, data: "mx2.example.com", ttl: 300 });
-    } finally {
-      await harness.close();
-    }
+    });
   });
 
   it("validates the merged record, e.g. switching to SRV without weight and port", async () => {
     const zone = fakeZone([{ id: 7, host: "_sip._tcp", type: "A", data: "1.2.3.4" }]);
-    const harness = await connect(zone.handler);
-    try {
+    await withHarness(zone.handler, async (harness) => {
       const result = await harness.client.callTool({
         name: "patch_dns_record",
         arguments: { domain_id: 42, record_id: 7, type: "SRV", priority: 10 },
@@ -96,14 +208,11 @@ describe("patch_dns_record", () => {
       expect(result.isError).toBe(true);
       expect(resultText(result)).toContain("missing: weight, port");
       expect(harness.apiServer.requests.some((r) => r.method === "PUT")).toBe(false);
-    } finally {
-      await harness.close();
-    }
+    });
   });
 
   it("reports a missing record as a tool error", async () => {
-    const harness = await connect(fakeZone([]).handler);
-    try {
+    await withHarness(fakeZone([]).handler, async (harness) => {
       const result = await harness.client.callTool({
         name: "patch_dns_record",
         arguments: { domain_id: 42, record_id: 7, data: "x" },
@@ -111,17 +220,14 @@ describe("patch_dns_record", () => {
 
       expect(result.isError).toBe(true);
       expect(resultText(result)).toContain("404");
-    } finally {
-      await harness.close();
-    }
+    });
   });
 });
 
 describe("upsert_dns_record", () => {
   it("creates the record when the host has none of that type", async () => {
     const zone = fakeZone([{ id: 1, host: "www", type: "AAAA", data: "2001:db8::1" }]);
-    const harness = await connect(zone.handler);
-    try {
+    await withHarness(zone.handler, async (harness) => {
       const result = await harness.client.callTool({
         name: "upsert_dns_record",
         arguments: { domain_id: 42, host: "www", type: "A", data: "203.0.113.10" },
@@ -133,15 +239,12 @@ describe("upsert_dns_record", () => {
         record: { id: 100, host: "www", type: "A", data: "203.0.113.10" },
       });
       expect(zone.records.size).toBe(2);
-    } finally {
-      await harness.close();
-    }
+    });
   });
 
   it("updates the single existing record for that host and type", async () => {
     const zone = fakeZone([{ id: 5, host: "www", type: "A", data: "198.51.100.1", ttl: 600 }]);
-    const harness = await connect(zone.handler);
-    try {
+    await withHarness(zone.handler, async (harness) => {
       const result = await harness.client.callTool({
         name: "upsert_dns_record",
         arguments: { domain_id: 42, host: "www", type: "A", data: "203.0.113.10", ttl: 600 },
@@ -154,17 +257,14 @@ describe("upsert_dns_record", () => {
       });
       expect(harness.apiServer.requests.some((r) => r.method === "POST")).toBe(false);
       expect(zone.records.size).toBe(1);
-    } finally {
-      await harness.close();
-    }
+    });
   });
 
   it("keeps the stored ttl and priority when the update leaves them out", async () => {
     const zone = fakeZone([
       { id: 5, host: "@", type: "MX", data: "mx1.example.com", ttl: 7200, priority: 10 },
     ]);
-    const harness = await connect(zone.handler);
-    try {
+    await withHarness(zone.handler, async (harness) => {
       const result = await harness.client.callTool({
         name: "upsert_dns_record",
         arguments: { domain_id: 42, host: "@", type: "MX", data: "mx2.example.com" },
@@ -179,14 +279,11 @@ describe("upsert_dns_record", () => {
         ttl: 7200,
         priority: 10,
       });
-    } finally {
-      await harness.close();
-    }
+    });
   });
 
   it("still requires priority when creating an MX record", async () => {
-    const harness = await connect(fakeZone([]).handler);
-    try {
+    await withHarness(fakeZone([]).handler, async (harness) => {
       const result = await harness.client.callTool({
         name: "upsert_dns_record",
         arguments: { domain_id: 42, host: "@", type: "MX", data: "mx1.example.com" },
@@ -195,9 +292,7 @@ describe("upsert_dns_record", () => {
       expect(result.isError).toBe(true);
       expect(resultText(result)).toContain("missing: priority");
       expect(harness.apiServer.requests.some((r) => r.method === "POST")).toBe(false);
-    } finally {
-      await harness.close();
-    }
+    });
   });
 
   it("refuses to guess when the host has several records of that type", async () => {
@@ -205,8 +300,7 @@ describe("upsert_dns_record", () => {
       { id: 1, host: "@", type: "TXT", data: "v=spf1 -all" },
       { id: 2, host: "@", type: "TXT", data: "google-site-verification=abc" },
     ]);
-    const harness = await connect(zone.handler);
-    try {
+    await withHarness(zone.handler, async (harness) => {
       const result = await harness.client.callTool({
         name: "upsert_dns_record",
         arguments: { domain_id: 42, host: "@", type: "TXT", data: "v=spf1 include:x -all" },
@@ -216,8 +310,6 @@ describe("upsert_dns_record", () => {
       expect(resultText(result)).toContain("IDs 1, 2");
       expect(resultText(result)).toContain("patch_dns_record");
       expect(harness.apiServer.requests.every((r) => r.method === "GET")).toBe(true);
-    } finally {
-      await harness.close();
-    }
+    });
   });
 });

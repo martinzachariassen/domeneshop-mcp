@@ -1,19 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { HttpTransport } from "#domeneshop/http.js";
 import { DnsResource, RECORD_TYPES } from "#domeneshop/resources/dns.js";
-import { sendJson, startTestServer, type TestServer } from "#testing/testServer.js";
+import { type Handler, sendJson, type TestServer, withTestServer } from "#testing/testServer.js";
 
-async function withResource(
-  handler: Parameters<typeof startTestServer>[0],
+function withResource(
+  handler: Handler,
   run: (resource: DnsResource, server: TestServer) => Promise<void>,
 ): Promise<void> {
-  const server = await startTestServer(handler);
-  try {
-    const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
-    await run(new DnsResource(transport), server);
-  } finally {
-    await server.close();
-  }
+  return withTestServer(handler, (server) =>
+    run(new DnsResource(new HttpTransport("token", "secret", { baseUrl: server.baseUrl })), server),
+  );
 }
 
 describe("RECORD_TYPES", () => {
@@ -78,8 +74,7 @@ describe("DnsResource", () => {
     await withResource(
       (_req, res, body) => {
         received = JSON.parse(body) as Record<string, unknown>;
-        res.writeHead(201, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ id: 7 }));
+        sendJson(res, 201, { id: 7 });
       },
       async (dns) => {
         const id = await dns.create(1, { host: "www", type: "A", data: "192.0.2.1" });

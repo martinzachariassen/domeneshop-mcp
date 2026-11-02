@@ -1,17 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { DomeneshopClient } from "#domeneshop/index.js";
-import { startTestServer } from "#testing/testServer.js";
+import { type Handler, withTestServer } from "#testing/testServer.js";
 
-async function withEmptyBodies(run: (client: DomeneshopClient) => Promise<void>): Promise<void> {
-  const server = await startTestServer((_req, res) => {
+function withEmptyBodies(run: (client: DomeneshopClient) => Promise<void>): Promise<void> {
+  const emptyOk: Handler = (_req, res) => {
     res.writeHead(200);
     res.end();
-  });
-  try {
-    await run(new DomeneshopClient("token", "secret", { baseUrl: server.baseUrl }));
-  } finally {
-    await server.close();
-  }
+  };
+  return withTestServer(emptyOk, (server) =>
+    run(new DomeneshopClient("token", "secret", { baseUrl: server.baseUrl })),
+  );
 }
 
 describe("responses with an empty body", () => {
