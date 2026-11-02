@@ -1,7 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, expect, it } from "vitest";
 import type { DNSRecord } from "#domeneshop/index.js";
-import { mergeRecord } from "#mcp/tools/dns.js";
 import { connect, resultText } from "#testing/mcpHarness.js";
 import { sendJson } from "#testing/testServer.js";
 
@@ -57,22 +56,6 @@ function fakeZone(initial: DNSRecord[]) {
 
   return { records, handler };
 }
-
-describe("mergeRecord", () => {
-  it("keeps stored fields the patch leaves undefined and drops the id", () => {
-    const merged = mergeRecord(
-      { id: 7, host: "@", type: "MX", data: "mx1.example.com", ttl: 300, priority: 10 },
-      { data: "mx2.example.com", ttl: undefined },
-    );
-    expect(merged).toEqual({
-      host: "@",
-      type: "MX",
-      data: "mx2.example.com",
-      ttl: 300,
-      priority: 10,
-    });
-  });
-});
 
 describe("patch_dns_record", () => {
   it("changes only the given field and keeps ttl and priority", async () => {

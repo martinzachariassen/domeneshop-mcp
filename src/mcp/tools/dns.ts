@@ -11,7 +11,7 @@ import {
   ttlField,
   uintField,
 } from "../fields.js";
-import { validateRecord } from "../records.js";
+import { mergeRecord, pickRecord, validateRecord } from "../records.js";
 import type { ToolRegistrar } from "../registry.js";
 import { jsonResult, listResult, textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
@@ -106,60 +106,6 @@ const deleteDNSRecordShape = {
 };
 type DeleteDNSRecordArgs = InferShape<typeof deleteDNSRecordShape>;
 
-const RECORD_FIELDS = [
-  "host",
-  "type",
-  "data",
-  "ttl",
-  "priority",
-  "weight",
-  "port",
-  "usage",
-  "selector",
-  "dtype",
-  "alg",
-  "digest",
-  "flags",
-  "tag",
-] as const satisfies readonly (keyof DNSRecord)[];
-
-function toDNSRecord(args: DNSRecordArgs): DNSRecord {
-  return {
-    host: args.host,
-    type: args.type,
-    data: args.data,
-    ttl: args.ttl,
-    priority: args.priority,
-    weight: args.weight,
-    port: args.port,
-    usage: args.usage,
-    selector: args.selector,
-    dtype: args.dtype,
-    alg: args.alg,
-    digest: args.digest,
-    flags: args.flags,
-    tag: args.tag,
-  };
-}
-
-/**
- * Overlays the fields set in `patch` onto `existing`. Fields the patch leaves
- * undefined keep their stored value; the read-only `id` is not sent back.
- */
-export function mergeRecord(
-  existing: DNSRecord,
-  patch: { [K in keyof DNSRecord]?: DNSRecord[K] | undefined },
-): DNSRecord {
-  const merged: DNSRecord = { host: existing.host, type: existing.type, data: existing.data };
-  for (const field of RECORD_FIELDS) {
-    const value = patch[field] !== undefined ? patch[field] : existing[field];
-    if (value !== undefined) {
-      Object.assign(merged, { [field]: value });
-    }
-  }
-  return merged;
-}
-
 function sameHost(a: string, b: string): boolean {
   return a.toLowerCase() === b.toLowerCase();
 }
@@ -221,7 +167,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
       ...additive("Create DNS record"),
     },
     toolHandler<DNSRecordArgs>(async (args, { signal }) => {
-      const record = toDNSRecord(args);
+      const record = pickRecord(args);
       validateRecord(record);
       const id = await client.dns.create(args.domain_id, record, { signal });
       return jsonResult(await readBack(client, args.domain_id, id, record, signal));
@@ -241,7 +187,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
       ...destructive("Replace DNS record"),
     },
     toolHandler<UpdateDNSRecordArgs>(async (args, { signal }) => {
-      const record = toDNSRecord(args);
+      const record = pickRecord(args);
       validateRecord(record);
       await client.dns.update(args.domain_id, args.record_id, record, { signal });
       return jsonResult(await readBack(client, args.domain_id, args.record_id, record, signal));
@@ -260,22 +206,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
     },
     toolHandler<PatchDNSRecordArgs>(async (args, { signal }) => {
       const existing = await client.dns.get(args.domain_id, args.record_id, { signal });
-      const record = mergeRecord(existing, {
-        host: args.host,
-        type: args.type,
-        data: args.data,
-        ttl: args.ttl,
-        priority: args.priority,
-        weight: args.weight,
-        port: args.port,
-        usage: args.usage,
-        selector: args.selector,
-        dtype: args.dtype,
-        alg: args.alg,
-        digest: args.digest,
-        flags: args.flags,
-        tag: args.tag,
-      });
+      const record = mergeRecord(existing, args);
       validateRecord(record);
       await client.dns.update(args.domain_id, args.record_id, record, { signal });
       return jsonResult(await readBack(client, args.domain_id, args.record_id, record, signal));
@@ -295,7 +226,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
       ...destructive("Create or update DNS record"),
     },
     toolHandler<DNSRecordArgs>(async (args, { signal }) => {
-      const record = toDNSRecord(args);
+      const record = pickRecord(args);
       // The API filter is a convenience; compare exactly in case it is looser.
       const matches = (
         await client.dns.list(args.domain_id, { host: args.host, type: args.type }, { signal })

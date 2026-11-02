@@ -1,6 +1,48 @@
 import { isIP } from "node:net";
 import type { DNSRecord } from "../domeneshop/index.js";
 
+/** Every writable DNS record field; `id` is read-only. */
+export const RECORD_FIELDS = [
+  "host",
+  "type",
+  "data",
+  "ttl",
+  "priority",
+  "weight",
+  "port",
+  "usage",
+  "selector",
+  "dtype",
+  "alg",
+  "digest",
+  "flags",
+  "tag",
+] as const satisfies readonly (keyof DNSRecord)[];
+
+type RecordFields = { [K in (typeof RECORD_FIELDS)[number]]?: DNSRecord[K] | undefined };
+
+/** Copies the writable record fields that are set, e.g. out of tool arguments. */
+export function pickRecord(
+  source: Pick<DNSRecord, "host" | "type" | "data"> & RecordFields,
+): DNSRecord {
+  return mergeRecord({ host: source.host, type: source.type, data: source.data }, source);
+}
+
+/**
+ * Overlays the fields set in `patch` onto `existing`. Fields the patch leaves
+ * undefined keep their stored value; the read-only `id` is not sent back.
+ */
+export function mergeRecord(existing: DNSRecord, patch: RecordFields): DNSRecord {
+  const merged: DNSRecord = { host: existing.host, type: existing.type, data: existing.data };
+  for (const field of RECORD_FIELDS) {
+    const value = patch[field] !== undefined ? patch[field] : existing[field];
+    if (value !== undefined) {
+      Object.assign(merged, { [field]: value });
+    }
+  }
+  return merged;
+}
+
 const REQUIRED_FIELDS: Partial<Record<string, readonly (keyof DNSRecord)[]>> = {
   MX: ["priority"],
   SRV: ["priority", "weight", "port"],
