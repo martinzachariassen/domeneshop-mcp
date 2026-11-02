@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 MCP server over the Domeneshop API (domains, DNS, HTTP forwards, dynamic DNS, invoices).
-TypeScript, ESM, Node >= 20.3, stdio transport.
+TypeScript, ESM, Node >= 22, stdio transport.
 
 ## Commands
 
@@ -17,7 +17,7 @@ npm run spec:check # compare Domeneshop's published OpenAPI spec with the fixtur
 npm run build      # tsc -> dist
 ```
 
-CI runs typecheck, lint, `format:check`, `test:coverage` and build on Node 20/22/24. A Husky
+CI runs typecheck, lint, `format:check`, `test:coverage` and build on Node 22/24/26. A Husky
 pre-commit hook runs `biome check` on staged files plus a full typecheck.
 
 ## Layout

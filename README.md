@@ -60,7 +60,7 @@ What you need:
   your account. Treat them like a password.
 - An **MCP client**, the app you chat with. Claude Code is used below; any
   other works too (see [Client setup](#client-setup)).
-- **Node.js 20.3+** ([download the LTS](https://nodejs.org)) or Homebrew. Not
+- **Node.js 22+** ([download the LTS](https://nodejs.org)) or Homebrew. Not
   needed for the Claude Desktop bundle.
 
 If you are unsure about letting an assistant change live DNS, start in
@@ -70,7 +70,7 @@ If you are unsure about letting an assistant change live DNS, start in
 
 ## Quick start
 
-You need a Domeneshop account, plus either Node.js 20.3 or newer (for `npx`) or
+You need a Domeneshop account, plus either Node.js 22 or newer (for `npx`) or
 [Homebrew](https://brew.sh).
 
 **1. Create an API token and secret** at
@@ -423,7 +423,7 @@ revoke access, delete the token in the Domeneshop control panel.
 
 - **The tools do not show up**: restart the client (most only load servers at
   startup) or, in Claude Code, check `/mcp`. Run `npx -y domeneshop-mcp --version`
-  to check that Node.js 20.3+ and npx work. If you edited a JSON config by hand,
+  to check that Node.js 22+ and npx work. If you edited a JSON config by hand,
   make sure it is still valid JSON. With `DOMENESHOP_DEBUG=true` the server logs
   every API request (method, path, status and duration, never credentials) to
   stderr, which most clients capture in their MCP logs.

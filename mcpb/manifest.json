@@ -128,7 +128,7 @@
   "compatibility": {
     "platforms": ["darwin", "win32", "linux"],
     "runtimes": {
-      "node": ">=20.3.0"
+      "node": ">=22.0.0"
     }
   }
 }
