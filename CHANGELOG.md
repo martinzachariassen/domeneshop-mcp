@@ -1,5 +1,13 @@
 # domeneshop-mcp
 
+## 2.0.1
+
+### Patch Changes
+
+- [#69](https://github.com/martinzachariassen/domeneshop-mcp/pull/69) [`0d077f9`](https://github.com/martinzachariassen/domeneshop-mcp/commit/0d077f92a3c0569d0f7cf8d3caa14c1008a1c0e5) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Fix `list_dns_records`, `get_dns_record` and the DNS write tools failing with an output validation error on domains with MX or SRV records. The Domeneshop API returns `priority`, `weight` and `port` as strings, although its OpenAPI spec documents integers; they are now converted to numbers.
+
+- [#68](https://github.com/martinzachariassen/domeneshop-mcp/pull/68) [`96738d2`](https://github.com/martinzachariassen/domeneshop-mcp/commit/96738d2402ac41b0e5e5659554770305c79fca20) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Move to the split MCP TypeScript SDK v2 (`@modelcontextprotocol/server`). The server no longer installs the HTTP, OAuth and Express dependencies of the v1 SDK, which it never used over stdio: a production install drops from 94 packages to 3. Tool schemas now declare JSON Schema draft 2020-12, the MCP default.
+
 ## 2.0.0
 
 ### Major Changes
