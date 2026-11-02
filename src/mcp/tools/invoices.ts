@@ -26,8 +26,8 @@ export function registerInvoiceTools(server: ToolRegistrar, client: DomeneshopCl
     {
       description:
         "List invoices from the past three years on the Domeneshop account, optionally filtered by status.",
-      inputSchema: listInvoicesShape,
-      outputSchema: { invoices: z.array(invoiceOutput) },
+      inputSchema: z.object(listInvoicesShape),
+      outputSchema: z.object({ invoices: z.array(invoiceOutput) }),
       ...readOnly("List invoices"),
     },
     toolHandler<ListInvoicesArgs>(async ({ status }, { signal }) => {
@@ -40,7 +40,7 @@ export function registerInvoiceTools(server: ToolRegistrar, client: DomeneshopCl
     "get_invoice",
     {
       description: "Get details for a single invoice, including a link to the PDF.",
-      inputSchema: getInvoiceShape,
+      inputSchema: z.object(getInvoiceShape),
       outputSchema: invoiceOutput,
       ...readOnly("Get invoice"),
     },

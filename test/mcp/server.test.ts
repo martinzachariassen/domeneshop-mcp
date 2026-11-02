@@ -1,4 +1,4 @@
-import type { Tool } from "@modelcontextprotocol/sdk/types.js";
+import type { Tool } from "@modelcontextprotocol/server";
 import { describe, expect, it } from "vitest";
 import { INVOICE_STATUSES, RECORD_TYPES } from "#domeneshop/index.js";
 import { listToolsByName, resultText, schemaProperties, withHarness } from "#testing/mcpHarness.js";

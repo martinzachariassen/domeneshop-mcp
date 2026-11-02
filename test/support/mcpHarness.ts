@@ -1,6 +1,5 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import type { Tool } from "@modelcontextprotocol/sdk/types.js";
+import { Client } from "@modelcontextprotocol/client";
+import { InMemoryTransport, type Tool } from "@modelcontextprotocol/server";
 import { DomeneshopClient } from "#domeneshop/index.js";
 import { type CreateServerOptions, createServer } from "#mcp/server.js";
 import { type Handler, startTestServer, type TestServer } from "./testServer.js";

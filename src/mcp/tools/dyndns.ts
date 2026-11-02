@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { destructive } from "../annotations.js";
 import { hostnameList, hostnameListField, ipListField, splitList } from "../fields.js";
@@ -19,7 +20,7 @@ export function registerDynDNSTools(server: ToolRegistrar, client: DomeneshopCli
       description:
         "Point one or more hostnames at the given (or the caller's apparent) IP address using Domeneshop's dynamic DNS protocol. " +
         "The record type (A or AAAA) follows from the address; a missing record is created, an existing one overwritten.",
-      inputSchema: updateDynDNSShape,
+      inputSchema: z.object(updateDynDNSShape),
       ...destructive("Update dynamic DNS"),
     },
     toolHandler<UpdateDynDNSArgs>(async (args, { signal }) => {

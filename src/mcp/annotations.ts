@@ -1,4 +1,4 @@
-import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+import type { ToolAnnotations } from "@modelcontextprotocol/server";
 
 /**
  * Clients use these hints to decide what may run without asking, so every

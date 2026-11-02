@@ -27,8 +27,8 @@ export function registerDomainTools(server: ToolRegistrar, client: DomeneshopCli
       description:
         "List all domains on the Domeneshop account, optionally filtered by domain name. " +
         "Use this first to find the domain_id the other tools need.",
-      inputSchema: listDomainsShape,
-      outputSchema: { domains: z.array(domainOutput) },
+      inputSchema: z.object(listDomainsShape),
+      outputSchema: z.object({ domains: z.array(domainOutput) }),
       ...readOnly("List domains"),
     },
     toolHandler<ListDomainsArgs>(async ({ filter }, { signal }) => {
@@ -42,7 +42,7 @@ export function registerDomainTools(server: ToolRegistrar, client: DomeneshopCli
     {
       description:
         "Get details for a single domain by its Domeneshop domain ID: expiry, renewal, nameservers and active services.",
-      inputSchema: getDomainShape,
+      inputSchema: z.object(getDomainShape),
       outputSchema: domainOutput,
       ...readOnly("Get domain"),
     },

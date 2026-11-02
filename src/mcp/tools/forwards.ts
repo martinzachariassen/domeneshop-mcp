@@ -43,8 +43,8 @@ export function registerForwardTools(server: ToolRegistrar, client: DomeneshopCl
     "list_forwards",
     {
       description: "List all HTTP forwards configured for a domain.",
-      inputSchema: listForwardsShape,
-      outputSchema: { forwards: z.array(forwardOutput) },
+      inputSchema: z.object(listForwardsShape),
+      outputSchema: z.object({ forwards: z.array(forwardOutput) }),
       ...readOnly("List HTTP forwards"),
     },
     toolHandler<ListForwardsArgs>(async ({ domain_id }, { signal }) => {
@@ -57,7 +57,7 @@ export function registerForwardTools(server: ToolRegistrar, client: DomeneshopCl
     "get_forward",
     {
       description: "Get the HTTP forward configured for a specific host.",
-      inputSchema: getForwardShape,
+      inputSchema: z.object(getForwardShape),
       outputSchema: forwardOutput,
       ...readOnly("Get HTTP forward"),
     },
@@ -72,7 +72,7 @@ export function registerForwardTools(server: ToolRegistrar, client: DomeneshopCl
     {
       description:
         "Create a new HTTP forward for a domain. Fails if the host already has a forward or a conflicting A, AAAA, ANAME or CNAME record.",
-      inputSchema: forwardShape,
+      inputSchema: z.object(forwardShape),
       outputSchema: forwardOutput,
       ...additive("Create HTTP forward"),
     },
@@ -93,7 +93,7 @@ export function registerForwardTools(server: ToolRegistrar, client: DomeneshopCl
         "Update an existing HTTP forward for a domain. Returns the stored forward. " +
         "frame keeps its stored value unless given. The host itself cannot be changed: " +
         "to move a forward, delete it and create it again for the new host.",
-      inputSchema: forwardShape,
+      inputSchema: z.object(forwardShape),
       outputSchema: forwardOutput,
       ...destructive("Update HTTP forward"),
     },
@@ -115,7 +115,7 @@ export function registerForwardTools(server: ToolRegistrar, client: DomeneshopCl
     "delete_forward",
     {
       description: "Delete an HTTP forward. This cannot be undone.",
-      inputSchema: deleteForwardShape,
+      inputSchema: z.object(deleteForwardShape),
       ...destructive("Delete HTTP forward"),
     },
     toolHandler<DeleteForwardArgs>(async ({ domain_id, host }, { signal }) => {

@@ -1,4 +1,4 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import { ConfigError, ENV_HELP, isTruthy, loadConfig } from "./config.js";
 import { DomeneshopClient, type RequestEvent } from "./domeneshop/index.js";
 import { createServer } from "./mcp/index.js";

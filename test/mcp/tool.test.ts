@@ -13,7 +13,6 @@ describe("cancellation", () => {
         const controller = new AbortController();
         const pending = harness.client.callTool(
           { name: "list_domains", arguments: {} },
-          undefined,
           {
             signal: controller.signal,
           },

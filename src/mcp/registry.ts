@@ -1,4 +1,4 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 
 export type ToolRegistrar = Pick<McpServer, "registerTool">;
 
@@ -18,10 +18,12 @@ export function filteredRegistrar(
 ): { registrar: ToolRegistrar; names: Map<string, boolean>; exposed: Set<string> } {
   const names = new Map<string, boolean>();
   const exposed = new Set<string>();
-  const registerTool: McpServer["registerTool"] = (name, config, callback) => {
+  // registerTool is overloaded, so its parameters can't be inferred from the annotation.
+  const registerTool = ((...args: Parameters<McpServer["registerTool"]>) => {
+    const [name, config] = args;
     const readOnly = config.annotations?.readOnlyHint === true;
     names.set(name, readOnly);
-    const tool = server.registerTool(name, config, callback);
+    const tool = server.registerTool(...args);
     if (isAllowed(name, readOnly, filter)) {
       exposed.add(name);
     } else {
@@ -29,7 +31,7 @@ export function filteredRegistrar(
       tool.remove();
     }
     return tool;
-  };
+  }) as McpServer["registerTool"];
   return { registrar: { registerTool }, names, exposed };
 }
 

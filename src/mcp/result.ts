@@ -1,4 +1,4 @@
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { CallToolResult } from "@modelcontextprotocol/server";
 
 /** Plain objects are also returned as `structuredContent`. */
 export function jsonResult(value: unknown): CallToolResult {
