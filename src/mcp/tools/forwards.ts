@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { additive, destructive, readOnly } from "../annotations.js";
-import { domainIdField, forwardOutput, httpUrlField } from "../fields.js";
+import { domainIdField, forwardOutput, forwardUrlField, hostField } from "../fields.js";
 import type { ToolRegistrar } from "../registry.js";
 import { jsonResult, listResult, textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
@@ -14,16 +14,14 @@ type ListForwardsArgs = InferShape<typeof listForwardsShape>;
 
 const getForwardShape = {
   domain_id: domainIdField,
-  host: z
-    .string()
-    .describe("the host/subdomain the forward applies to, e.g. 'www' or '@' for the root"),
+  host: hostField("the host/subdomain the forward applies to, e.g. 'www' or '@' for the root"),
 };
 type GetForwardArgs = InferShape<typeof getForwardShape>;
 
 const forwardShape = {
   domain_id: domainIdField,
-  host: z.string().describe("the host/subdomain to forward, e.g. 'www' or '@' for the root"),
-  url: httpUrlField,
+  host: hostField("the host/subdomain to forward, e.g. 'www' or '@' for the root"),
+  url: forwardUrlField,
   frame: z
     .boolean()
     .optional()
@@ -33,7 +31,7 @@ type ForwardArgs = InferShape<typeof forwardShape>;
 
 const deleteForwardShape = {
   domain_id: domainIdField,
-  host: z.string().describe("the host/subdomain whose forward should be deleted"),
+  host: hostField("the host/subdomain whose forward should be deleted"),
 };
 type DeleteForwardArgs = InferShape<typeof deleteForwardShape>;
 

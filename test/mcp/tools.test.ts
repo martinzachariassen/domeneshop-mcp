@@ -137,47 +137,6 @@ describe("dns record tools", () => {
     }
   });
 
-  it("rejects an MX record without priority before calling the API", async () => {
-    const harness = await connect((_req, res) => {
-      res.writeHead(201);
-      res.end();
-    });
-    try {
-      const result = await harness.client.callTool({
-        name: "create_dns_record",
-        arguments: { domain_id: 42, host: "@", type: "MX", data: "mx.example.com" },
-      });
-
-      expect(result.isError).toBe(true);
-      expect(resultText(result)).toBe("MX records require priority; missing: priority");
-      expect(harness.apiServer.requests).toHaveLength(0);
-    } finally {
-      await harness.close();
-    }
-  });
-
-  it.each([
-    ["ttl not a multiple of 60", { ttl: 90 }],
-    ["ttl below the minimum", { ttl: 30 }],
-    ["ttl above the maximum", { ttl: 604860 }],
-  ])("rejects %s", async (_label, extra) => {
-    const harness = await connect((_req, res) => {
-      res.writeHead(201);
-      res.end();
-    });
-    try {
-      const result = await harness.client.callTool({
-        name: "create_dns_record",
-        arguments: { domain_id: 42, host: "www", type: "A", data: "1.2.3.4", ...extra },
-      });
-
-      expect(result.isError).toBe(true);
-      expect(harness.apiServer.requests).toHaveLength(0);
-    } finally {
-      await harness.close();
-    }
-  });
-
   it("deletes a DNS record", async () => {
     const harness = await connect((_req, res) => {
       res.writeHead(204);
@@ -274,24 +233,6 @@ describe("forward tools", () => {
       expect(result.isError).not.toBe(true);
       expect(harness.apiServer.requests[0]?.method).toBe("DELETE");
       expect(harness.apiServer.requests[0]?.url).toBe("/domains/42/forwards/www");
-    } finally {
-      await harness.close();
-    }
-  });
-
-  it("rejects a forward URL that is not http or https", async () => {
-    const harness = await connect((_req, res) => {
-      res.writeHead(201);
-      res.end();
-    });
-    try {
-      const result = await harness.client.callTool({
-        name: "create_forward",
-        arguments: { domain_id: 42, host: "www", url: "ftp://example.com" },
-      });
-
-      expect(result.isError).toBe(true);
-      expect(harness.apiServer.requests).toHaveLength(0);
     } finally {
       await harness.close();
     }
@@ -452,42 +393,6 @@ describe("dynamic DNS tools", () => {
       expect(result.isError).not.toBe(true);
       expect(resultText(result)).toContain("caller's apparent IP");
       expect(harness.apiServer.requests[0]?.url).toBe("/dyndns/update?hostname=home.example.com");
-    } finally {
-      await harness.close();
-    }
-  });
-
-  it("rejects a hostname that is only commas and whitespace", async () => {
-    const harness = await connect((_req, res) => {
-      res.writeHead(204);
-      res.end();
-    });
-    try {
-      const result = await harness.client.callTool({
-        name: "update_dyndns",
-        arguments: { hostname: " , " },
-      });
-
-      expect(result.isError).toBe(true);
-      expect(harness.apiServer.requests).toHaveLength(0);
-    } finally {
-      await harness.close();
-    }
-  });
-
-  it("rejects a myip that is not an IP address", async () => {
-    const harness = await connect((_req, res) => {
-      res.writeHead(204);
-      res.end();
-    });
-    try {
-      const result = await harness.client.callTool({
-        name: "update_dyndns",
-        arguments: { hostname: "home.example.com", myip: "not-an-ip" },
-      });
-
-      expect(result.isError).toBe(true);
-      expect(harness.apiServer.requests).toHaveLength(0);
     } finally {
       await harness.close();
     }

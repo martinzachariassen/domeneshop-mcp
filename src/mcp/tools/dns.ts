@@ -2,23 +2,26 @@ import { z } from "zod";
 import type { DNSRecord, DomeneshopClient } from "../../domeneshop/index.js";
 import { RECORD_TYPES } from "../../domeneshop/index.js";
 import { additive, destructive, readOnly } from "../annotations.js";
-import { dnsRecordOutput, domainIdField, optionalFilter, ttlField } from "../fields.js";
+import {
+  dnsRecordOutput,
+  domainIdField,
+  hostField,
+  optionalFilter,
+  recordIdField,
+  ttlField,
+  uintField,
+} from "../fields.js";
 import { validateRecord } from "../records.js";
 import type { ToolRegistrar } from "../registry.js";
 import { jsonResult, listResult, textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
 
-const recordIdField = z
-  .number()
-  .int()
-  .positive()
-  .describe("the DNS record ID, from list_dns_records");
-
 const listDNSRecordsShape = {
   domain_id: domainIdField,
   host: z
     .string()
+    .trim()
     .optional()
     .describe("only return records for this host/subdomain, e.g. 'www' or '@'"),
   type: optionalFilter(RECORD_TYPES).describe("only return records of this type"),
@@ -33,68 +36,51 @@ type GetDNSRecordArgs = InferShape<typeof getDNSRecordShape>;
 
 const dnsRecordShape = {
   domain_id: domainIdField,
-  host: z
-    .string()
-    .describe("the host/subdomain the record applies to, e.g. 'www' or '@' for the root"),
+  host: hostField("the host/subdomain the record applies to, e.g. 'www' or '@' for the root"),
   type: z.enum(RECORD_TYPES).describe("the record type"),
   data: z
     .string()
+    .min(1)
     .describe(
-      "the record's main value: an IP address for A/AAAA, a hostname for ANAME/CNAME/MX/NS/SRV, free text for TXT, the CAA property value, or the hex hash for DS/TLSA",
+      "the record's main value: an IPv4 address for A, an IPv6 address for AAAA, a hostname for ANAME/CNAME/MX/NS/SRV, free text for TXT, the CAA property value, or the hex hash for DS/TLSA",
     ),
   ttl: ttlField.optional(),
-  priority: z
-    .number()
-    .int()
+  priority: uintField(65535)
     .optional()
-    .describe("required for MX and SRV: preference value, lower is tried first"),
-  weight: z
-    .number()
-    .int()
+    .describe("required for MX and SRV: preference value 0-65535, lower is tried first"),
+  weight: uintField(65535)
     .optional()
-    .describe("required for SRV: relative weight among records with the same priority"),
-  port: z
-    .number()
-    .int()
-    .min(0)
-    .max(65535)
+    .describe("required for SRV: relative weight 0-65535 among records with the same priority"),
+  port: uintField(65535)
     .optional()
-    .describe("required for SRV: the port the service is found on"),
-  usage: z
-    .number()
-    .int()
+    .describe("required for SRV: the port 0-65535 the service is found on"),
+  usage: uintField(3)
     .optional()
     .describe("required for TLSA: certificate usage (0 PKIX-TA, 1 PKIX-EE, 2 DANE-TA, 3 DANE-EE)"),
-  selector: z
-    .number()
-    .int()
+  selector: uintField(1)
     .optional()
     .describe(
       "required for TLSA: what the hash is taken from (0 full certificate, 1 subject public key)",
     ),
-  dtype: z
-    .number()
-    .int()
+  dtype: uintField(2)
     .optional()
     .describe(
       "required for TLSA: matching type of the hash in data (0 exact match, 1 SHA-256, 2 SHA-512)",
     ),
-  alg: z.number().int().optional().describe("required for DS: the DNSSEC signing algorithm number"),
-  digest: z
-    .number()
-    .int()
+  alg: uintField(255)
+    .optional()
+    .describe("required for DS: the DNSSEC signing algorithm number, 0-255"),
+  digest: uintField(255)
     .optional()
     .describe("required for DS: digest type of the hash in data (1 SHA-1, 2 SHA-256, 4 SHA-384)"),
-  flags: z
-    .number()
-    .int()
+  flags: uintField(255)
     .optional()
     .describe("required for CAA: 128 to mark the property critical, otherwise 0"),
   tag: z
-    .union([z.number(), z.string()])
+    .union([uintField(65535), z.string().trim().min(1)])
     .optional()
     .describe(
-      "required for DS (the key tag of the referenced DNSKEY) and for CAA (the property tag, e.g. issue, issuewild or iodef)",
+      "required for DS as a number (the key tag 0-65535 of the referenced DNSKEY) and for CAA as a string (the property tag, e.g. issue, issuewild or iodef)",
     ),
 };
 type DNSRecordArgs = InferShape<typeof dnsRecordShape>;
@@ -120,7 +106,6 @@ const deleteDNSRecordShape = {
 };
 type DeleteDNSRecordArgs = InferShape<typeof deleteDNSRecordShape>;
 
-/** Every writable DNS record field, in the order the API documents them. */
 const RECORD_FIELDS = [
   "host",
   "type",

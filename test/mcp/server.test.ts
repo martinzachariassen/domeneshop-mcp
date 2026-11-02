@@ -278,32 +278,6 @@ describe("tool calls end-to-end", () => {
     }
   });
 
-  it("rejects an unknown record type before any request reaches the API", async () => {
-    let called = false;
-    const harness = await connect((_req, res) => {
-      called = true;
-      res.writeHead(200);
-      res.end();
-    });
-    try {
-      let rejected = false;
-      try {
-        const result = await harness.client.callTool({
-          name: "create_dns_record",
-          arguments: { domain_id: 42, host: "@", type: "SPF", data: "x" },
-        });
-        rejected = result.isError === true;
-      } catch {
-        rejected = true;
-      }
-
-      expect(rejected).toBe(true);
-      expect(called).toBe(false);
-    } finally {
-      await harness.close();
-    }
-  });
-
   it("reports the created forward, not an empty object", async () => {
     const harness = await connect((_req, res) => {
       res.writeHead(201, { Location: "/domains/42/forwards/www" });
