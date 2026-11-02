@@ -4,6 +4,17 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      # vitest and @vitest/coverage-v8 must be on the same version.
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+      dev-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
     directory: /
