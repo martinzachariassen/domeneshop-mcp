@@ -1,5 +1,5 @@
 ---
-"domeneshop-mcp": patch
+"domeneshop-mcp": minor
 ---
 
 Align tool input with Domeneshop's OpenAPI spec:
