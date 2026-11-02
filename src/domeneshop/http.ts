@@ -3,6 +3,7 @@ import { VERSION } from "../version.js";
 const DEFAULT_BASE_URL = "https://api.domeneshop.no/v0";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_RETRIES = 2;
+const DEFAULT_RETRY_BASE_DELAY_MS = 500;
 const DEFAULT_USER_AGENT = `domeneshop-mcp/${VERSION} (+https://github.com/martinzachariassen/domeneshop-mcp)`;
 const MAX_ERROR_DETAIL_LENGTH = 500;
 /** Upper bound on any single wait, so a hostile Retry-After cannot stall a tool call. */
@@ -21,16 +22,16 @@ const STATUS_HINTS: Record<number, string> = {
   412: "Precondition failed; a forward's host cannot be changed, so delete the forward and create it again for the new host.",
   429: "Rate limited by the Domeneshop API; wait a moment and try again.",
 };
+const SERVER_ERROR_HINT = "The Domeneshop API had an internal error; try again later.";
 
 export class DomeneshopApiError extends Error {
   readonly statusCode: number;
   readonly body: string;
-  /** Human-readable advice for the status code, when there is any. */
   readonly hint: string | undefined;
 
   constructor(statusCode: number, body: string) {
     const detail = errorDetail(body);
-    const hint = STATUS_HINTS[statusCode] ?? (statusCode >= 500 ? serverErrorHint : undefined);
+    const hint = STATUS_HINTS[statusCode] ?? (statusCode >= 500 ? SERVER_ERROR_HINT : undefined);
     const parts = [`domeneshop: API returned status ${String(statusCode)}`];
     if (detail) {
       parts[0] += `: ${detail}`;
@@ -45,8 +46,6 @@ export class DomeneshopApiError extends Error {
     this.hint = hint;
   }
 }
-
-const serverErrorHint = "The Domeneshop API had an internal error; try again later.";
 
 /** The request never produced an HTTP response: timeout, DNS failure, refused connection… */
 export class DomeneshopNetworkError extends Error {
@@ -63,7 +62,6 @@ export interface HttpTransportOptions {
   /** Retries for 429/502/503/504 and network errors on idempotent methods. Defaults to 2. */
   maxRetries?: number | undefined;
   userAgent?: string | undefined;
-  /** Base delay for exponential backoff when the server sends no Retry-After. */
   retryBaseDelayMs?: number | undefined;
   /** Called after every attempt, e.g. for debug logging. Never receives credentials. */
   onResponse?: ((event: RequestEvent) => void) | undefined;
@@ -83,11 +81,10 @@ export interface RequestOptions {
   body?: unknown;
   /** Set false for endpoints with a non-JSON body, e.g. the dynamic DNS update protocol. */
   decodeJson?: boolean;
-  /** Aborts the request, including any pending retry wait. */
+  /** Also aborts a pending retry wait. */
   signal?: AbortSignal | undefined;
 }
 
-/** Passed through every resource method so a caller can cancel in-flight requests. */
 export interface CallOptions {
   signal?: AbortSignal | undefined;
 }
@@ -107,15 +104,13 @@ export class HttpTransport {
   private readonly retryBaseDelayMs: number;
   private readonly onResponse: ((event: RequestEvent) => void) | undefined;
 
-  /** The third argument may be a bare base URL for backwards compatibility. */
-  constructor(token: string, secret: string, options: HttpTransportOptions | string = {}) {
-    const opts = typeof options === "string" ? { baseUrl: options } : options;
+  constructor(token: string, secret: string, opts: HttpTransportOptions = {}) {
     this.baseUrl = (opts.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
     this.authorization = `Basic ${Buffer.from(`${token}:${secret}`).toString("base64")}`;
     this.timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxRetries = opts.maxRetries ?? DEFAULT_MAX_RETRIES;
     this.userAgent = opts.userAgent ?? DEFAULT_USER_AGENT;
-    this.retryBaseDelayMs = opts.retryBaseDelayMs ?? 500;
+    this.retryBaseDelayMs = opts.retryBaseDelayMs ?? DEFAULT_RETRY_BASE_DELAY_MS;
     this.onResponse = opts.onResponse;
   }
 
@@ -144,7 +139,6 @@ export class HttpTransport {
 
     const upperMethod = method.toUpperCase();
     const canRetry = IDEMPOTENT_METHODS.has(upperMethod);
-    /** Whether the previous attempt died without a response, so it may have reached the server. */
     let previousAttemptLost = false;
     for (let attempt = 1; ; attempt++) {
       const retriesLeft = canRetry && attempt <= this.maxRetries;
@@ -294,11 +288,7 @@ function toNetworkError(
   );
 }
 
-/**
- * Pulls a readable message out of an error body. The API usually answers with
- * JSON, but proxies in front of it can return HTML, which is stripped so the
- * model is not handed a page of markup.
- */
+/** Proxies in front of the API can answer with HTML, which is stripped to its text. */
 function errorDetail(body: string): string {
   const trimmed = body.trim();
   if (trimmed === "") {
@@ -315,9 +305,7 @@ function errorDetail(body: string): string {
         return truncate(message);
       }
     }
-  } catch {
-    // not JSON; fall through
-  }
+  } catch {}
   if (/^<(!doctype|html)/i.test(trimmed)) {
     return truncate(
       trimmed

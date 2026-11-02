@@ -1,23 +1,16 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-/** What the register*Tools functions need from the server: just registerTool. */
 export type ToolRegistrar = Pick<McpServer, "registerTool">;
 
 export interface ToolFilter {
-  /** Skip every tool not annotated `readOnlyHint: true`. */
   readOnly?: boolean | undefined;
-  /** When set, register only these tools. */
   tools?: ReadonlySet<string> | undefined;
-  /** Never register these tools. */
   disabledTools?: ReadonlySet<string> | undefined;
 }
 
 /**
- * Wraps a server so tools excluded by the filter are never registered, which
- * hides them from tools/list and makes calls to them fail as unknown tools.
- * `names` maps every tool offered, registered or not, to whether it is
- * read-only, so callers can reject filter entries that match nothing.
- * `exposed` holds the tools that survived the filter.
+ * Hides tools excluded by the filter, so calls to them fail as unknown tools.
+ * `names` maps every tool offered, hidden or not, to whether it is read-only.
  */
 export function filteredRegistrar(
   server: McpServer,
@@ -50,7 +43,7 @@ function isAllowed(name: string, readOnly: boolean, filter: ToolFilter): boolean
   return !filter.disabledTools?.has(name);
 }
 
-/** Throws when a filter names a tool that does not exist, which is almost always a typo. */
+/** Throws when a filter names an unknown tool, which is almost always a typo. */
 export function assertKnownTools(names: ReadonlyMap<string, boolean>, filter: ToolFilter): void {
   for (const [variable, list] of [
     ["DOMENESHOP_TOOLS", filter.tools],
@@ -65,10 +58,7 @@ export function assertKnownTools(names: ReadonlyMap<string, boolean>, filter: To
   }
 }
 
-/**
- * Explains filter combinations that quietly hide tools, e.g. an allowlisted
- * write tool in read-only mode, so a confused user finds the cause in the logs.
- */
+/** Explains filter combinations that quietly hide tools, e.g. an allowlisted write tool in read-only mode. */
 export function filterWarnings(
   names: ReadonlyMap<string, boolean>,
   exposed: ReadonlySet<string>,

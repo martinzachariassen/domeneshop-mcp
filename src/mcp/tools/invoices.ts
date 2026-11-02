@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { INVOICE_STATUSES } from "../../domeneshop/index.js";
 import { readOnly } from "../annotations.js";
-import { invoiceOutput, optionalFilter } from "../fields.js";
+import { invoiceIdField, invoiceOutput, optionalFilter } from "../fields.js";
 import type { ToolRegistrar } from "../registry.js";
 import { jsonResult, listResult } from "../result.js";
 import type { InferShape } from "../schema.js";
@@ -16,7 +16,7 @@ const listInvoicesShape = {
 type ListInvoicesArgs = InferShape<typeof listInvoicesShape>;
 
 const getInvoiceShape = {
-  invoice_id: z.number().int().positive().describe("the invoice ID, from list_invoices"),
+  invoice_id: invoiceIdField,
 };
 type GetInvoiceArgs = InferShape<typeof getInvoiceShape>;
 

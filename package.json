@@ -7,8 +7,7 @@
   "bin": {
     "domeneshop-mcp": "dist/index.js"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {},
   "files": [
     "dist",
     "README.md",
@@ -16,7 +15,7 @@
     "CHANGELOG.md"
   ],
   "engines": {
-    "node": ">=20.3"
+    "node": ">=22"
   },
   "imports": {
     "#domeneshop/*": "./src/domeneshop/*",
@@ -24,17 +23,20 @@
     "#testing/*": "./test/support/*"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && chmod +x dist/index.js",
     "dev": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/index.js",
+    "typecheck": "tsc --noEmit && tsc -p scripts",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "check": "biome check --write .",
-    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "spec:check": "node scripts/openapi.mjs --check",
+    "spec:update": "node scripts/openapi.mjs --update && biome format --write test/contract/domeneshop-openapi.json",
     "changeset": "changeset",
     "version": "changeset version && node scripts/sync-version.mjs && biome format --write server.json mcpb/manifest.json",
     "mcpb:build": "node scripts/build-mcpb.mjs",
@@ -71,16 +73,18 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.12",
+    "@biomejs/biome": "^2.6.4",
     "@changesets/changelog-github": "^1.0.1",
     "@changesets/cli": "^3.0.2",
-    "@types/node": "^26.5.0",
-    "@vitest/coverage-v8": "^5.0.0",
+    "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "^5.1.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "fast-check": "^4.10.2",
     "husky": "^9.1.7",
     "lint-staged": "^17.5.0",
     "tsx": "^4.23.13",
-    "typescript": "^6.0.3",
-    "vitest": "^5.0.0"
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
   }
 }

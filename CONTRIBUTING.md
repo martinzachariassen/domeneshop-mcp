@@ -19,12 +19,36 @@ npm run typecheck    # type-check without emitting
 npm run lint         # lint with Biome
 npm run format       # format with Biome
 npm test             # run the test suite (vitest)
+npm run test:coverage # with the 90 % coverage thresholds CI enforces
 npm run build        # compile to ./dist
 ```
 
 Please keep `npm run typecheck`, `npm run lint` and `npm test` clean on
 anything you touch — CI checks all three, plus formatting and a build, on
 every push and pull request.
+
+## Testing against the Domeneshop API
+
+`test/contract/` validates every request and response against Domeneshop's
+OpenAPI spec, stored in `test/contract/domeneshop-openapi.json`. To check
+whether the published spec has changed, or to refresh the stored copy:
+
+```sh
+npm run spec:check
+npm run spec:update
+```
+
+To test against the live API, use credentials for an account with a domain you
+can experiment on. The suite reads the account and creates, changes and
+deletes a temporary `_mcp-e2e-*` TXT record and `mcp-e2e-*` forward on that
+domain:
+
+```sh
+DOMENESHOP_E2E_TOKEN=... DOMENESHOP_E2E_SECRET=... DOMENESHOP_E2E_DOMAIN_ID=123 \
+  npm run test:e2e
+```
+
+Without those variables the suite is skipped.
 
 ## Changelog entries
 

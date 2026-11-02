@@ -5,10 +5,8 @@ import { DynDnsResource } from "./resources/dyndns.js";
 import { ForwardsResource } from "./resources/forwards.js";
 import { InvoicesResource } from "./resources/invoices.js";
 
-/** See HttpTransportOptions for timeout, retry and logging defaults. */
 export type DomeneshopClientOptions = HttpTransportOptions;
 
-/** Authenticate with a token/secret pair from https://www.domeneshop.no/admin?view=api. */
 export class DomeneshopClient {
   readonly domains: DomainsResource;
   readonly dns: DnsResource;

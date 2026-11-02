@@ -15,7 +15,13 @@ export async function connect(
   handler: Handler,
   options: CreateServerOptions = {},
 ): Promise<Harness> {
-  const apiServer = await startTestServer(handler);
+  return connectTo(await startTestServer(handler), options);
+}
+
+export async function connectTo(
+  apiServer: TestServer,
+  options: CreateServerOptions = {},
+): Promise<Harness> {
   const domeneshopClient = new DomeneshopClient("token", "secret", { baseUrl: apiServer.baseUrl });
   const server = createServer(domeneshopClient, options);
 
@@ -33,6 +39,20 @@ export async function connect(
       await apiServer.close();
     },
   };
+}
+
+/** Connects a harness for the duration of `run` and always closes it. */
+export async function withHarness<T>(
+  handler: Handler,
+  run: (harness: Harness) => Promise<T>,
+  options: CreateServerOptions = {},
+): Promise<T> {
+  const harness = await connect(handler, options);
+  try {
+    return await run(harness);
+  } finally {
+    await harness.close();
+  }
 }
 
 export async function listToolsByName(client: Client): Promise<Map<string, Tool>> {

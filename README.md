@@ -60,7 +60,7 @@ What you need:
   your account. Treat them like a password.
 - An **MCP client**, the app you chat with. Claude Code is used below; any
   other works too (see [Client setup](#client-setup)).
-- **Node.js 20.3+** ([download the LTS](https://nodejs.org)) or Homebrew. Not
+- **Node.js 22+** ([download the LTS](https://nodejs.org)) or Homebrew. Not
   needed for the Claude Desktop bundle.
 
 If you are unsure about letting an assistant change live DNS, start in
@@ -70,7 +70,7 @@ If you are unsure about letting an assistant change live DNS, start in
 
 ## Quick start
 
-You need a Domeneshop account, plus either Node.js 20.3 or newer (for `npx`) or
+You need a Domeneshop account, plus either Node.js 22 or newer (for `npx`) or
 [Homebrew](https://brew.sh).
 
 **1. Create an API token and secret** at
@@ -378,8 +378,8 @@ read-only tools also return structured output for clients that support it.
 | --- | --- | --- |
 | `list_forwards` | Read-only | List a domain's HTTP forwards |
 | `get_forward` | Read-only | Get the forward for one host |
-| `create_forward` | Adds | Create a forward |
-| `update_forward` | Overwrites | Update a forward |
+| `create_forward` | Adds | Create a forward to an `http://`, `https://` or `ftp://` URL |
+| `update_forward` | Overwrites | Update a forward's destination or frame setting; an omitted `frame` keeps its stored value |
 | `delete_forward` | Deletes | Delete a forward |
 
 ### Dynamic DNS
@@ -423,7 +423,7 @@ revoke access, delete the token in the Domeneshop control panel.
 
 - **The tools do not show up**: restart the client (most only load servers at
   startup) or, in Claude Code, check `/mcp`. Run `npx -y domeneshop-mcp --version`
-  to check that Node.js 20.3+ and npx work. If you edited a JSON config by hand,
+  to check that Node.js 22+ and npx work. If you edited a JSON config by hand,
   make sure it is still valid JSON. With `DOMENESHOP_DEBUG=true` the server logs
   every API request (method, path, status and duration, never credentials) to
   stderr, which most clients capture in their MCP logs.
@@ -458,8 +458,11 @@ type-specific fields:
 | `DS` | `tag`, `alg`, `digest` |
 | `CAA` | `flags`, `tag` |
 
-The `tag` field is deliberately untyped: it is a numeric key tag for `DS` and a
-property tag such as `issue` for `CAA`, and Domeneshop documents neither.
+`tag` is a number for `DS` (the key tag, 0-65535) and a string for `CAA` (the
+property tag, such as `issue`). Every write is validated before it is sent: `A`
+and `AAAA` data must be an address of the matching family, and the numeric
+fields are range-checked, so a mistake comes back as an explanation rather than
+a bare API error.
 
 </details>
 
@@ -478,6 +481,10 @@ spec, but are supported and used by their own client libraries:
   only in the `Location` header.
 - `GET /dyndns/update` answers `204` with no body rather than JSON, so the
   client does not try to decode it.
+
+The client is tested against a stored copy of the published spec, with the
+behaviour above added as an explicit overlay (see `test/contract/`). A weekly
+workflow flags any change to the published spec.
 
 </details>
 
@@ -501,11 +508,16 @@ npm run typecheck    # type-check without emitting
 npm run lint         # lint with Biome
 npm run format       # format with Biome
 npm test             # run the test suite (vitest)
+npm run test:coverage # with the 90 % coverage thresholds CI enforces
+npm run spec:check   # compare Domeneshop's published OpenAPI spec with the stored copy
+npm run test:e2e     # opt-in tests against the live API, see CONTRIBUTING.md
 ```
 
 The tests stub the Domeneshop API with a local `node:http` server and drive the
 MCP server over an in-memory transport, so they need no credentials and make no
-network calls.
+network calls. The contract tests in `test/contract/` check every request the
+client sends, and every response the tools accept, against Domeneshop's OpenAPI
+spec.
 
 <details>
 <summary><strong>Project layout</strong></summary>
@@ -513,11 +525,16 @@ network calls.
 ```
 src/
   domeneshop/       Domeneshop API client (HTTP transport + one resource per endpoint group)
-  mcp/              MCP server: tool registration, schemas, result/error helpers
-  index.ts          CLI entry point
+  mcp/              MCP server: tool registration, input fields, record validation, results
+  cli.ts            Flag parsing, configuration and startup, with injectable process I/O
+  index.ts          bin entry point, wiring cli.ts to stdio
 test/
   domeneshop/       Client tests, against a local HTTP server
-  mcp/              End-to-end tool tests, against an in-memory MCP transport
+  mcp/              Tool tests over an in-memory MCP transport, mirroring src/mcp
+  contract/         Client and tools checked against Domeneshop's OpenAPI spec
+  e2e/              Opt-in tests against the live API
+  support/          Test server and MCP harness helpers
+scripts/            Release, bundle and spec-sync scripts
 ```
 
 </details>

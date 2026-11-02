@@ -1,19 +1,13 @@
-import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { destructive } from "../annotations.js";
-import { ipListField, splitList } from "../fields.js";
+import { hostnameList, hostnameListField, ipListField, splitList } from "../fields.js";
 import type { ToolRegistrar } from "../registry.js";
 import { textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
 
 const updateDynDNSShape = {
-  hostname: z
-    .string()
-    .refine((value) => splitList(value).length > 0, { message: "must name at least one hostname" })
-    .describe(
-      "the fully qualified hostname to update, e.g. 'home.example.com'; several hostnames can be updated at once by separating them with commas",
-    ),
+  hostname: hostnameListField,
   myip: ipListField.optional(),
 };
 type UpdateDynDNSArgs = InferShape<typeof updateDynDNSShape>;
@@ -30,7 +24,7 @@ export function registerDynDNSTools(server: ToolRegistrar, client: DomeneshopCli
     },
     toolHandler<UpdateDynDNSArgs>(async (args, { signal }) => {
       // The API takes bare comma-separated lists; spaces after commas would be sent verbatim.
-      const hostname = splitList(args.hostname).join(",");
+      const hostname = hostnameList(args.hostname).join(",");
       const myip =
         args.myip === undefined ? undefined : splitList(args.myip).join(",") || undefined;
       await client.dynDns.update(hostname, myip, { signal });

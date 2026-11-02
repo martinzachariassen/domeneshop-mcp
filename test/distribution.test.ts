@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { ENV_HELP } from "../src/config.js";
-import { connect, listToolsByName } from "./support/mcpHarness.js";
+import { listToolsByName, withHarness } from "./support/mcpHarness.js";
 
 const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const readJson = (file: string): unknown =>
@@ -42,14 +42,23 @@ describe("distribution metadata", () => {
     expect(documented.sort()).toEqual(read.sort());
   });
 
+  it("documents every environment variable the CLI reads in the README", () => {
+    const readme = readFileSync(path.join(repoRoot, "README.md"), "utf8");
+    const section = readme.slice(readme.indexOf("## Configuration"), readme.indexOf("## Tools"));
+    const documented = [...section.matchAll(/^\| `(DOMENESHOP_\w+)` \|/gm)].map((m) => m[1]);
+    const read = [...ENV_HELP.matchAll(/^\s+(DOMENESHOP_\w+)/gm)].map((match) => match[1]);
+    expect(documented.length).toBeGreaterThan(0);
+    expect(documented.sort()).toEqual(read.sort());
+  });
+
   it("lists exactly the tools the server registers in the bundle manifest", async () => {
-    const harness = await connect((_req, res) => res.end());
-    try {
-      const tools = await listToolsByName(harness.client);
-      expect(manifest.tools.map((tool) => tool.name).sort()).toEqual([...tools.keys()].sort());
-    } finally {
-      await harness.close();
-    }
+    await withHarness(
+      (_req, res) => res.end(),
+      async (harness) => {
+        const tools = await listToolsByName(harness.client);
+        expect(manifest.tools.map((tool) => tool.name).sort()).toEqual([...tools.keys()].sort());
+      },
+    );
   });
 });
 

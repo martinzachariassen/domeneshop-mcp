@@ -7,28 +7,16 @@ import {
   parseRetryAfter,
   type RequestEvent,
 } from "#domeneshop/http.js";
-import { sendJson, startTestServer, type TestServer } from "#testing/testServer.js";
-
-async function withServer(
-  handler: Parameters<typeof startTestServer>[0],
-  run: (server: TestServer) => Promise<void>,
-): Promise<void> {
-  const server = await startTestServer(handler);
-  try {
-    await run(server);
-  } finally {
-    await server.close();
-  }
-}
+import { sendJson, startTestServer, withTestServer } from "#testing/testServer.js";
 
 describe("HttpTransport", () => {
   it("sends HTTP Basic Auth credentials", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         sendJson(res, 200, { ok: true });
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await transport.request("GET", "/ping");
 
         const expected = `Basic ${Buffer.from("token:secret").toString("base64")}`;
@@ -38,12 +26,12 @@ describe("HttpTransport", () => {
   });
 
   it("omits undefined and empty-string query parameters", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         sendJson(res, 200, {});
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await transport.request("GET", "/things", {
           query: { present: "value", missing: undefined, empty: "" },
         });
@@ -54,12 +42,12 @@ describe("HttpTransport", () => {
   });
 
   it("marshals the request body as JSON and sets Content-Type", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         sendJson(res, 200, {});
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await transport.request("POST", "/things", { body: { name: "example" } });
 
         expect(server.requests[0]?.body).toBe(JSON.stringify({ name: "example" }));
@@ -68,13 +56,13 @@ describe("HttpTransport", () => {
   });
 
   it("returns parsed JSON data and response headers", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         res.writeHead(201, { "Content-Type": "application/json", Location: "/things/42" });
         res.end(JSON.stringify({ id: 42 }));
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         const { data, headers } = await transport.request<{ id: number }>("POST", "/things");
 
         expect(data).toEqual({ id: 42 });
@@ -84,13 +72,13 @@ describe("HttpTransport", () => {
   });
 
   it("returns undefined data for an empty response body", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         res.writeHead(204);
         res.end();
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         const { data } = await transport.request("DELETE", "/things/1");
 
         expect(data).toBeUndefined();
@@ -99,13 +87,12 @@ describe("HttpTransport", () => {
   });
 
   it("throws DomeneshopApiError for non-2xx responses", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
-        res.writeHead(404, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ message: "not found" }));
+        sendJson(res, 404, { message: "not found" });
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
 
         await expect(transport.request("GET", "/missing")).rejects.toMatchObject({
           statusCode: 404,
@@ -162,12 +149,12 @@ describe("HttpTransport", () => {
   });
 
   it("sends a User-Agent identifying the server", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         sendJson(res, 200, {});
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await transport.request("GET", "/ping");
         expect(server.requests[0]?.userAgent).toMatch(/^domeneshop-mcp\/\d+\.\d+\.\d+/);
       },
@@ -175,13 +162,13 @@ describe("HttpTransport", () => {
   });
 
   it("reports invalid JSON in a successful response clearly", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end("{not json");
       },
       async (server) => {
-        const transport = new HttpTransport("token", "secret", server.baseUrl);
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
         await expect(transport.request("GET", "/broken")).rejects.toThrow(
           "GET /broken returned status 200 with a body that is not valid JSON: {not json",
         );
@@ -191,7 +178,7 @@ describe("HttpTransport", () => {
 
   it("retries 429 responses on GET, honouring Retry-After", async () => {
     let calls = 0;
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         calls++;
         if (calls === 1) {
@@ -211,7 +198,7 @@ describe("HttpTransport", () => {
   });
 
   it("retries 503 responses with backoff and gives up after maxRetries", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         res.writeHead(503);
         res.end("unavailable");
@@ -229,7 +216,7 @@ describe("HttpTransport", () => {
   });
 
   it("never retries POST, since a create may already have happened", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         res.writeHead(503);
         res.end();
@@ -248,7 +235,7 @@ describe("HttpTransport", () => {
   });
 
   it("does not retry other client errors", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         res.writeHead(400);
         res.end();
@@ -262,7 +249,7 @@ describe("HttpTransport", () => {
   });
 
   it("times out a request that never answers", async () => {
-    await withServer(
+    await withTestServer(
       () => {
         // never respond
       },
@@ -291,7 +278,7 @@ describe("HttpTransport", () => {
   });
 
   it("warns that a timed-out POST may still have been applied", async () => {
-    await withServer(
+    await withTestServer(
       () => {
         // never respond
       },
@@ -311,7 +298,7 @@ describe("HttpTransport", () => {
 
   it("treats a 404 on a retried DELETE as success when the first attempt was lost", async () => {
     let calls = 0;
-    await withServer(
+    await withTestServer(
       (req, res) => {
         calls++;
         if (calls === 1) {
@@ -336,7 +323,7 @@ describe("HttpTransport", () => {
   });
 
   it("still reports a 404 on a DELETE whose first attempt got a response", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         res.writeHead(404);
         res.end();
@@ -351,7 +338,7 @@ describe("HttpTransport", () => {
   });
 
   it("aborts an in-flight request when the caller's signal fires", async () => {
-    await withServer(
+    await withTestServer(
       () => {
         // never respond
       },
@@ -366,7 +353,7 @@ describe("HttpTransport", () => {
   });
 
   it("aborts a pending retry wait when the caller's signal fires", async () => {
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         res.writeHead(429, { "Retry-After": "10" });
         res.end();
@@ -384,7 +371,7 @@ describe("HttpTransport", () => {
 
   it("reports each attempt to onResponse without credentials", async () => {
     const events: RequestEvent[] = [];
-    await withServer(
+    await withTestServer(
       (_req, res) => {
         sendJson(res, 200, {});
       },
@@ -409,6 +396,9 @@ describe("parseRetryAfter", () => {
     expect(parseRetryAfter("soon")).toBeUndefined();
     const inFuture = new Date(Date.now() + 5000).toUTCString();
     expect(parseRetryAfter(inFuture)).toBeGreaterThan(3000);
+    expect(parseRetryAfter(new Date(Date.now() - 60_000).toUTCString())).toBe(0);
+    expect(parseRetryAfter("-5")).toBe(0);
+    expect(parseRetryAfter("   ")).toBeUndefined();
   });
 
   it("never returns a negative or non-finite delay for any header value", () => {

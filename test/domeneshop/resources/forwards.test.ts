@@ -1,19 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { HttpTransport } from "#domeneshop/http.js";
 import { ForwardsResource } from "#domeneshop/resources/forwards.js";
-import { startTestServer, type TestServer } from "#testing/testServer.js";
+import { type Handler, type TestServer, withTestServer } from "#testing/testServer.js";
 
-async function withResource(
-  handler: Parameters<typeof startTestServer>[0],
+function withResource(
+  handler: Handler,
   run: (resource: ForwardsResource, server: TestServer) => Promise<void>,
 ): Promise<void> {
-  const server = await startTestServer(handler);
-  try {
-    const transport = new HttpTransport("token", "secret", server.baseUrl);
-    await run(new ForwardsResource(transport), server);
-  } finally {
-    await server.close();
-  }
+  return withTestServer(handler, (server) =>
+    run(
+      new ForwardsResource(new HttpTransport("token", "secret", { baseUrl: server.baseUrl })),
+      server,
+    ),
+  );
 }
 
 describe("ForwardsResource", () => {
@@ -63,6 +62,28 @@ describe("ForwardsResource", () => {
 
         await forwards.delete(42, "a b");
         expect(server.requests[1]?.url).toBe("/domains/42/forwards/a%20b");
+      },
+    );
+  });
+
+  it.each([
+    ["no Location header", {}, "www"],
+    ["an undecodable Location", { Location: "/domains/42/forwards/%E0%A4%A" }, "%E0%A4%A"],
+    ["an encoded Location", { Location: "/domains/42/forwards/%40" }, "@"],
+    ["a Location ending in a slash", { Location: "/domains/42/forwards/" }, "www"],
+  ])("handles %s on create", async (_label, headers, host) => {
+    await withResource(
+      (_req, res) => {
+        res.writeHead(201, headers);
+        res.end();
+      },
+      async (forwards) => {
+        const forward = await forwards.create(42, {
+          host: "www",
+          url: "https://example.com",
+          frame: false,
+        });
+        expect(forward.host).toBe(host);
       },
     );
   });

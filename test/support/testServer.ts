@@ -62,6 +62,19 @@ export async function startTestServer(handler: Handler): Promise<TestServer> {
   };
 }
 
+/** Starts a test server for the duration of `run` and always closes it. */
+export async function withTestServer<T>(
+  handler: Handler,
+  run: (server: TestServer) => Promise<T>,
+): Promise<T> {
+  const server = await startTestServer(handler);
+  try {
+    return await run(server);
+  } finally {
+    await server.close();
+  }
+}
+
 export function sendJson(res: ServerResponse, status: number, body: unknown): void {
   const text = JSON.stringify(body);
   res.writeHead(status, { "Content-Type": "application/json" });

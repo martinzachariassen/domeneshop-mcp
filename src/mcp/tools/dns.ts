@@ -2,23 +2,26 @@ import { z } from "zod";
 import type { DNSRecord, DomeneshopClient } from "../../domeneshop/index.js";
 import { RECORD_TYPES } from "../../domeneshop/index.js";
 import { additive, destructive, readOnly } from "../annotations.js";
-import { dnsRecordOutput, domainIdField, optionalFilter, ttlField } from "../fields.js";
-import { validateRecord } from "../records.js";
+import {
+  dnsRecordOutput,
+  domainIdField,
+  hostField,
+  optionalFilter,
+  recordIdField,
+  ttlField,
+  uintField,
+} from "../fields.js";
+import { mergeRecord, pickRecord, validateRecord } from "../records.js";
 import type { ToolRegistrar } from "../registry.js";
 import { jsonResult, listResult, textResult } from "../result.js";
 import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
 
-const recordIdField = z
-  .number()
-  .int()
-  .positive()
-  .describe("the DNS record ID, from list_dns_records");
-
 const listDNSRecordsShape = {
   domain_id: domainIdField,
   host: z
     .string()
+    .trim()
     .optional()
     .describe("only return records for this host/subdomain, e.g. 'www' or '@'"),
   type: optionalFilter(RECORD_TYPES).describe("only return records of this type"),
@@ -33,68 +36,51 @@ type GetDNSRecordArgs = InferShape<typeof getDNSRecordShape>;
 
 const dnsRecordShape = {
   domain_id: domainIdField,
-  host: z
-    .string()
-    .describe("the host/subdomain the record applies to, e.g. 'www' or '@' for the root"),
+  host: hostField("the host/subdomain the record applies to, e.g. 'www' or '@' for the root"),
   type: z.enum(RECORD_TYPES).describe("the record type"),
   data: z
     .string()
+    .min(1)
     .describe(
-      "the record's main value: an IP address for A/AAAA, a hostname for ANAME/CNAME/MX/NS/SRV, free text for TXT, the CAA property value, or the hex hash for DS/TLSA",
+      "the record's main value: an IPv4 address for A, an IPv6 address for AAAA, a hostname for ANAME/CNAME/MX/NS/SRV, free text for TXT, the CAA property value, or the hex hash for DS/TLSA",
     ),
   ttl: ttlField.optional(),
-  priority: z
-    .number()
-    .int()
+  priority: uintField(65535)
     .optional()
-    .describe("required for MX and SRV: preference value, lower is tried first"),
-  weight: z
-    .number()
-    .int()
+    .describe("required for MX and SRV: preference value 0-65535, lower is tried first"),
+  weight: uintField(65535)
     .optional()
-    .describe("required for SRV: relative weight among records with the same priority"),
-  port: z
-    .number()
-    .int()
-    .min(0)
-    .max(65535)
+    .describe("required for SRV: relative weight 0-65535 among records with the same priority"),
+  port: uintField(65535)
     .optional()
-    .describe("required for SRV: the port the service is found on"),
-  usage: z
-    .number()
-    .int()
+    .describe("required for SRV: the port 0-65535 the service is found on"),
+  usage: uintField(3)
     .optional()
     .describe("required for TLSA: certificate usage (0 PKIX-TA, 1 PKIX-EE, 2 DANE-TA, 3 DANE-EE)"),
-  selector: z
-    .number()
-    .int()
+  selector: uintField(1)
     .optional()
     .describe(
       "required for TLSA: what the hash is taken from (0 full certificate, 1 subject public key)",
     ),
-  dtype: z
-    .number()
-    .int()
+  dtype: uintField(2)
     .optional()
     .describe(
       "required for TLSA: matching type of the hash in data (0 exact match, 1 SHA-256, 2 SHA-512)",
     ),
-  alg: z.number().int().optional().describe("required for DS: the DNSSEC signing algorithm number"),
-  digest: z
-    .number()
-    .int()
+  alg: uintField(255)
+    .optional()
+    .describe("required for DS: the DNSSEC signing algorithm number, 0-255"),
+  digest: uintField(255)
     .optional()
     .describe("required for DS: digest type of the hash in data (1 SHA-1, 2 SHA-256, 4 SHA-384)"),
-  flags: z
-    .number()
-    .int()
+  flags: uintField(255)
     .optional()
     .describe("required for CAA: 128 to mark the property critical, otherwise 0"),
   tag: z
-    .union([z.number(), z.string()])
+    .union([uintField(65535), z.string().trim().min(1)])
     .optional()
     .describe(
-      "required for DS (the key tag of the referenced DNSKEY) and for CAA (the property tag, e.g. issue, issuewild or iodef)",
+      "required for DS as a number (the key tag 0-65535 of the referenced DNSKEY) and for CAA as a string (the property tag, e.g. issue, issuewild or iodef)",
     ),
 };
 type DNSRecordArgs = InferShape<typeof dnsRecordShape>;
@@ -119,61 +105,6 @@ const deleteDNSRecordShape = {
   record_id: recordIdField.describe("the DNS record ID to delete, from list_dns_records"),
 };
 type DeleteDNSRecordArgs = InferShape<typeof deleteDNSRecordShape>;
-
-/** Every writable DNS record field, in the order the API documents them. */
-const RECORD_FIELDS = [
-  "host",
-  "type",
-  "data",
-  "ttl",
-  "priority",
-  "weight",
-  "port",
-  "usage",
-  "selector",
-  "dtype",
-  "alg",
-  "digest",
-  "flags",
-  "tag",
-] as const satisfies readonly (keyof DNSRecord)[];
-
-function toDNSRecord(args: DNSRecordArgs): DNSRecord {
-  return {
-    host: args.host,
-    type: args.type,
-    data: args.data,
-    ttl: args.ttl,
-    priority: args.priority,
-    weight: args.weight,
-    port: args.port,
-    usage: args.usage,
-    selector: args.selector,
-    dtype: args.dtype,
-    alg: args.alg,
-    digest: args.digest,
-    flags: args.flags,
-    tag: args.tag,
-  };
-}
-
-/**
- * Overlays the fields set in `patch` onto `existing`. Fields the patch leaves
- * undefined keep their stored value; the read-only `id` is not sent back.
- */
-export function mergeRecord(
-  existing: DNSRecord,
-  patch: { [K in keyof DNSRecord]?: DNSRecord[K] | undefined },
-): DNSRecord {
-  const merged: DNSRecord = { host: existing.host, type: existing.type, data: existing.data };
-  for (const field of RECORD_FIELDS) {
-    const value = patch[field] !== undefined ? patch[field] : existing[field];
-    if (value !== undefined) {
-      Object.assign(merged, { [field]: value });
-    }
-  }
-  return merged;
-}
 
 function sameHost(a: string, b: string): boolean {
   return a.toLowerCase() === b.toLowerCase();
@@ -233,10 +164,11 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
       description:
         "Create a new DNS record for a domain. Returns the stored record, including its new ID.",
       inputSchema: dnsRecordShape,
+      outputSchema: dnsRecordOutput,
       ...additive("Create DNS record"),
     },
     toolHandler<DNSRecordArgs>(async (args, { signal }) => {
-      const record = toDNSRecord(args);
+      const record = pickRecord(args);
       validateRecord(record);
       const id = await client.dns.create(args.domain_id, record, { signal });
       return jsonResult(await readBack(client, args.domain_id, id, record, signal));
@@ -253,10 +185,11 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         "To change only some fields, use patch_dns_record instead. " +
         "Returns the stored record.",
       inputSchema: updateDNSRecordShape,
+      outputSchema: dnsRecordOutput,
       ...destructive("Replace DNS record"),
     },
     toolHandler<UpdateDNSRecordArgs>(async (args, { signal }) => {
-      const record = toDNSRecord(args);
+      const record = pickRecord(args);
       validateRecord(record);
       await client.dns.update(args.domain_id, args.record_id, record, { signal });
       return jsonResult(await readBack(client, args.domain_id, args.record_id, record, signal));
@@ -271,26 +204,12 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         "The current record is read first and every field you leave out keeps its stored value. " +
         "Prefer this over update_dns_record. Returns the stored record.",
       inputSchema: patchDNSRecordShape,
+      outputSchema: dnsRecordOutput,
       ...destructive("Patch DNS record"),
     },
     toolHandler<PatchDNSRecordArgs>(async (args, { signal }) => {
       const existing = await client.dns.get(args.domain_id, args.record_id, { signal });
-      const record = mergeRecord(existing, {
-        host: args.host,
-        type: args.type,
-        data: args.data,
-        ttl: args.ttl,
-        priority: args.priority,
-        weight: args.weight,
-        port: args.port,
-        usage: args.usage,
-        selector: args.selector,
-        dtype: args.dtype,
-        alg: args.alg,
-        digest: args.digest,
-        flags: args.flags,
-        tag: args.tag,
-      });
+      const record = mergeRecord(existing, args);
       validateRecord(record);
       await client.dns.update(args.domain_id, args.record_id, record, { signal });
       return jsonResult(await readBack(client, args.domain_id, args.record_id, record, signal));
@@ -307,10 +226,11 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         "then use patch_dns_record with a record_id, or create_dns_record to add another. " +
         'Returns { action: "created" | "updated", record }.',
       inputSchema: dnsRecordShape,
+      outputSchema: { action: z.enum(["created", "updated"]), record: dnsRecordOutput },
       ...destructive("Create or update DNS record"),
     },
     toolHandler<DNSRecordArgs>(async (args, { signal }) => {
-      const record = toDNSRecord(args);
+      const record = pickRecord(args);
       // The API filter is a convenience; compare exactly in case it is looser.
       const matches = (
         await client.dns.list(args.domain_id, { host: args.host, type: args.type }, { signal })

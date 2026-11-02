@@ -1,14 +1,9 @@
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 
 /**
- * The MCP spec treats these as hints clients use to decide what may run
- * without asking the user, so every tool declares them explicitly instead of
- * relying on defaults.
- *
- * Each helper returns `{ title, annotations }` to spread into a tool config:
- * the title is set both at the top level (current spec) and inside the
- * annotations (older clients read it there). Every tool talks to the external
- * Domeneshop API, hence `openWorldHint: true` throughout.
+ * Clients use these hints to decide what may run without asking, so every
+ * hint is set explicitly. The title is duplicated into the annotations
+ * because older clients read it there.
  */
 export interface ToolMeta {
   title: string;
@@ -36,11 +31,7 @@ export function additive(title: string): ToolMeta {
   };
 }
 
-/**
- * Overwrites or removes existing state. Most such calls are idempotent —
- * repeating them leaves the same end state — but pass `idempotent: false`
- * for ones that are not.
- */
+/** Overwrites or removes existing state; pass `idempotent: false` if repeating it changes the outcome. */
 export function destructive(title: string, options: { idempotent?: boolean } = {}): ToolMeta {
   return {
     title,
