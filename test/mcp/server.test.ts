@@ -208,7 +208,7 @@ describe("createServer", () => {
     );
   });
 
-  it("declares an output schema on every read-only tool", async () => {
+  it("declares an output schema on every read-only tool (write tools are checked in the contract tests)", async () => {
     await withHarness(
       (_req, res) => {
         res.writeHead(200);

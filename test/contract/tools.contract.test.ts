@@ -98,12 +98,15 @@ describe("MCP tools against the Domeneshop spec", () => {
   });
 
   it.each(CALLS)("%s sends only requests the spec accepts", async (name, args, expected) => {
-    const { result, violations, hits } = await callAgainstSpec(name, args);
+    const { result, violations, hits, tools } = await callAgainstSpec(name, args);
 
     expect(resultText(result)).not.toMatch(/^domeneshop:|error/i);
     expect(result.isError).not.toBe(true);
     expect(violations).toEqual([]);
     expect(hits.sort()).toEqual([...new Set(expected)].sort());
+    if (result.structuredContent !== undefined) {
+      expect(tools.get(name)?.outputSchema, "structured result without outputSchema").toBeDefined();
+    }
   });
 
   it.each(Object.entries(RECORDS))(
@@ -156,6 +159,11 @@ describe("output schemas accept every response the spec allows", () => {
     ["get_dns_record", { domain_id: 1, record_id: 1 }, "data", RECORDS.A.data],
     ["list_forwards", { domain_id: 1 }, "forwards", expect.arrayContaining([FORWARD_FULL])],
     ["get_forward", { domain_id: 1, host: "www" }, "url", FORWARD_FULL.url],
+    ["create_dns_record", recordArgs(RECORDS.A), "data", RECORDS.A.data],
+    ["patch_dns_record", { domain_id: 1, record_id: 1, ttl: 600 }, "data", RECORDS.A.data],
+    ["upsert_dns_record", recordArgs(RECORDS.A), "action", "updated"],
+    ["create_forward", { domain_id: 1, ...FORWARD_FULL }, "host", FORWARD_FULL.host],
+    ["update_forward", { domain_id: 1, ...FORWARD_FULL }, "url", FORWARD_FULL.url],
     ["list_invoices", {}, "invoices", expect.arrayContaining([INVOICE_FULL, CREDIT_NOTE])],
     ["get_invoice", { invoice_id: 1 }, "status", INVOICE_FULL.status],
   ])("%s", async (name, args, field, expected) => {

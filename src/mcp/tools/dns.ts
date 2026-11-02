@@ -164,6 +164,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
       description:
         "Create a new DNS record for a domain. Returns the stored record, including its new ID.",
       inputSchema: dnsRecordShape,
+      outputSchema: dnsRecordOutput,
       ...additive("Create DNS record"),
     },
     toolHandler<DNSRecordArgs>(async (args, { signal }) => {
@@ -184,6 +185,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         "To change only some fields, use patch_dns_record instead. " +
         "Returns the stored record.",
       inputSchema: updateDNSRecordShape,
+      outputSchema: dnsRecordOutput,
       ...destructive("Replace DNS record"),
     },
     toolHandler<UpdateDNSRecordArgs>(async (args, { signal }) => {
@@ -202,6 +204,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         "The current record is read first and every field you leave out keeps its stored value. " +
         "Prefer this over update_dns_record. Returns the stored record.",
       inputSchema: patchDNSRecordShape,
+      outputSchema: dnsRecordOutput,
       ...destructive("Patch DNS record"),
     },
     toolHandler<PatchDNSRecordArgs>(async (args, { signal }) => {
@@ -223,6 +226,7 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
         "then use patch_dns_record with a record_id, or create_dns_record to add another. " +
         'Returns { action: "created" | "updated", record }.',
       inputSchema: dnsRecordShape,
+      outputSchema: { action: z.enum(["created", "updated"]), record: dnsRecordOutput },
       ...destructive("Create or update DNS record"),
     },
     toolHandler<DNSRecordArgs>(async (args, { signal }) => {

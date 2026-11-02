@@ -73,6 +73,7 @@ export function registerForwardTools(server: ToolRegistrar, client: DomeneshopCl
       description:
         "Create a new HTTP forward for a domain. Fails if the host already has a forward or a conflicting A, AAAA, ANAME or CNAME record.",
       inputSchema: forwardShape,
+      outputSchema: forwardOutput,
       ...additive("Create HTTP forward"),
     },
     toolHandler<ForwardArgs>(async ({ domain_id, host, url, frame }, { signal }) => {
@@ -93,6 +94,7 @@ export function registerForwardTools(server: ToolRegistrar, client: DomeneshopCl
         "frame keeps its stored value unless given. The host itself cannot be changed: " +
         "to move a forward, delete it and create it again for the new host.",
       inputSchema: forwardShape,
+      outputSchema: forwardOutput,
       ...destructive("Update HTTP forward"),
     },
     toolHandler<ForwardArgs>(async ({ domain_id, host, url, frame }, { signal }) => {

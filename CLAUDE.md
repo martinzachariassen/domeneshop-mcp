@@ -50,8 +50,9 @@ Imports use subpath aliases in tests only (`#domeneshop/*`, `#mcp/*`, `#testing/
   `isError` results rather than rejections. Handlers receive `{ signal }` and
   must pass it to every client call so MCP cancellation aborts the request.
 - Return values go through `jsonResult` / `listResult` / `textResult` from
-  `mcp/result.ts`. Read-only tools declare an `outputSchema` (loose objects from
-  `mcp/fields.ts`); lists are wrapped as `{ <plural>: [...] }`.
+  `mcp/result.ts`. Every tool that returns JSON declares an `outputSchema` (loose
+  objects from `mcp/fields.ts`); lists are wrapped as `{ <plural>: [...] }`. The
+  contract tests fail for a structured result without one.
 - Every tool spreads `...readOnly(title)`, `...additive(title)` or
   `...destructive(title)` from `mcp/annotations.ts` into its config, which sets
   the title and all annotation hints. Do not omit them.
