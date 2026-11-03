@@ -183,7 +183,8 @@ export function registerDNSTools(server: ToolRegistrar, client: DomeneshopClient
     {
       description:
         "Change only some fields of an existing DNS record, e.g. just data or ttl. " +
-        "The current record is read first and every field you leave out keeps its stored value. " +
+        "The current record is read first and every field you leave out keeps its stored value; " +
+        "when you change the type, give the new type's required fields too. " +
         "Prefer this over update_dns_record. Returns the stored record.",
       inputSchema: z.object({
         domain_id: domainIdField,
