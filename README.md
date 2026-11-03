@@ -9,75 +9,27 @@
   <a href="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/ci.yml"><img src="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://www.npmjs.com/package/domeneshop-mcp"><img src="https://img.shields.io/npm/v/domeneshop-mcp" alt="npm version"></a>
   <a href="https://www.npmjs.com/package/domeneshop-mcp"><img src="https://img.shields.io/npm/dm/domeneshop-mcp" alt="npm downloads"></a>
-  <a href="package.json"><img src="https://img.shields.io/node/v/domeneshop-mcp" alt="Node.js version"></a>
-  <a href="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/codeql.yml"><img src="https://github.com/martinzachariassen/domeneshop-mcp/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
-  <a href="https://scorecard.dev/viewer/?uri=github.com/martinzachariassen/domeneshop-mcp"><img src="https://api.scorecard.dev/projects/github.com/martinzachariassen/domeneshop-mcp/badge" alt="OpenSSF Scorecard"></a>
   <a href="LICENSE"><img src="https://img.shields.io/npm/l/domeneshop-mcp" alt="License"></a>
 </p>
 
-<p align="center">
-  <a href="#quick-start"><b>Quick start</b></a>
-  &nbsp;·&nbsp;
-  <a href="#client-setup"><b>Client setup</b></a>
-  &nbsp;·&nbsp;
-  <a href="#tools"><b>Tools</b></a>
-  &nbsp;·&nbsp;
-  <a href="#access-control"><b>Access control</b></a>
-  &nbsp;·&nbsp;
-  <a href="#troubleshooting"><b>Troubleshooting</b></a>
-  &nbsp;·&nbsp;
-  <a href="https://www.domeneshop.no/admin?view=api"><b>Get API credentials</b></a>
-</p>
+**Manage your [Domeneshop](https://www.domeneshop.no) domains by asking your AI
+assistant.** DNS records, HTTP forwards, dynamic DNS and invoices, all in plain
+language. Works with Claude, Cursor, VS Code, Codex and any other
+[MCP](https://modelcontextprotocol.io) client.
 
-<p align="center">
-  <a href="https://cursor.com/en/install-mcp?name=domeneshop&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImRvbWVuZXNob3AtbWNwIl0sImVudiI6eyJET01FTkVTSE9QX0FQSV9UT0tFTiI6Ijx5b3VyLWFwaS10b2tlbj4iLCJET01FTkVTSE9QX0FQSV9TRUNSRVQiOiI8eW91ci1hcGktc2VjcmV0PiJ9fQ%3D%3D"><img src="https://img.shields.io/badge/Cursor-Install_Server-000000?style=flat-square&logo=cursor&logoColor=white" alt="Install in Cursor"></a>
-  <a href="https://insiders.vscode.dev/redirect/mcp/install?name=domeneshop&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_token%22%2C%22description%22%3A%22Domeneshop%20API%20token%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_secret%22%2C%22description%22%3A%22Domeneshop%20API%20secret%22%2C%22password%22%3Atrue%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22domeneshop-mcp%22%5D%2C%22env%22%3A%7B%22DOMENESHOP_API_TOKEN%22%3A%22%24%7Binput%3Adomeneshop_api_token%7D%22%2C%22DOMENESHOP_API_SECRET%22%3A%22%24%7Binput%3Adomeneshop_api_secret%7D%22%7D%7D"><img src="https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code"></a>
-  <a href="https://insiders.vscode.dev/redirect/mcp/install?name=domeneshop&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_token%22%2C%22description%22%3A%22Domeneshop%20API%20token%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_secret%22%2C%22description%22%3A%22Domeneshop%20API%20secret%22%2C%22password%22%3Atrue%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22domeneshop-mcp%22%5D%2C%22env%22%3A%7B%22DOMENESHOP_API_TOKEN%22%3A%22%24%7Binput%3Adomeneshop_api_token%7D%22%2C%22DOMENESHOP_API_SECRET%22%3A%22%24%7Binput%3Adomeneshop_api_secret%7D%22%7D%7D&quality=insiders"><img src="https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24BFA5?style=flat-square&logo=visualstudiocode&logoColor=white" alt="Install in VS Code Insiders"></a>
-</p>
+> "Point blog.example.no at 203.0.113.10"<br>
+> "Set up Fastmail's MX records on example.no"<br>
+> "Which of my domains renew this year?"
 
-An [MCP](https://modelcontextprotocol.io) server that turns the
-[Domeneshop API](https://api.domeneshop.no/docs/) into tools an assistant can call.
-Every operation the API offers is covered — 17 tools across domains, DNS, HTTP
-forwarding, dynamic DNS and invoices.
+The assistant picks the right tool, shows you what it is about to change and
+asks before it does.
 
-It talks MCP over stdio, so it works with **any MCP-compatible client**: Claude
-Code, Claude Desktop, Cursor, VS Code, Codex, Windsurf, Cline and others.
+## Getting started
 
-<details>
-<summary><strong>New to MCP? Start here</strong></summary>
-
-[MCP](https://modelcontextprotocol.io) (Model Context Protocol) is an open
-standard that lets AI apps call outside tools. This package is an *MCP server*:
-a small program your AI app starts in the background and talks to. Once it is
-registered, you just ask in plain language — "point blog.example.no at
-203.0.113.10" — and the assistant picks the right tool, shows you what it is
-about to do and asks before changing anything.
-
-You never run the server yourself, and you do not need to know the tool names.
-What you need:
-
-- A **Domeneshop API token and secret**, a key pair that lets a program act on
-  your account. Treat them like a password.
-- An **MCP client**, the app you chat with. Claude Code is used below; any
-  other works too (see [Client setup](#client-setup)).
-- **Node.js 22+** ([download the LTS](https://nodejs.org)) or Homebrew. Not
-  needed for the Claude Desktop bundle.
-
-If you are unsure about letting an assistant change live DNS, start in
-[read-only mode](#access-control): it can look at everything but change nothing.
-
-</details>
-
-## Quick start
-
-You need a Domeneshop account, plus either Node.js 22 or newer (for `npx`) or
-[Homebrew](https://brew.sh).
-
-**1. Create an API token and secret** at
+**1. Get an API token and secret** from
 [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api).
 
-**2. Register the server** in [Claude Code](https://claude.com/claude-code),
-replacing the placeholders with your token and secret:
+**2. Add the server.** With [Claude Code](https://claude.com/claude-code):
 
 ```sh
 claude mcp add domeneshop \
@@ -86,25 +38,31 @@ claude mcp add domeneshop \
   -- npx -y domeneshop-mcp
 ```
 
-Add `--env DOMENESHOP_READ_ONLY=true` to start with read-only tools only, and
-`--scope user` to make it available in every project (the default is the
-current project only).
+Using Claude Desktop, Cursor, VS Code or something else?
+**[Pick your client below](#client-setup).** Most have a one-click install.
 
-**3. Ask for something.** Start a new `claude` session and try "List my
-Domeneshop domains". Running `/mcp` inside Claude Code shows whether the server
-connected.
+**3. Try it.** Start a new session and ask *"List my Domeneshop domains"*.
 
-**Using Homebrew instead of npx?** Install once, then register the binary in
-step 2 with `-- domeneshop-mcp` in place of `-- npx -y domeneshop-mcp`:
+> [!TIP]
+> Not ready to let an assistant touch live DNS? Add
+> `--env DOMENESHOP_READ_ONLY=true` and it can look at everything but change
+> nothing.
 
-```sh
-brew install martinzachariassen/tap/domeneshop-mcp
-```
+Requires Node.js 22 or newer ([download](https://nodejs.org)), except for the
+Claude Desktop bundle.
 
-**Using a different client?** Claude Desktop has a one-click bundle that needs
-no Node.js, and Cursor and VS Code have one-click install buttons at the top of
-this page. Codex and others take a short config block. See
-[Client setup](#client-setup).
+<details>
+<summary><strong>New to MCP?</strong></summary>
+
+MCP (Model Context Protocol) is an open standard that lets AI apps call outside
+tools. This package is an *MCP server*: a small program your AI app starts in
+the background. You never run it yourself and you do not need to know the tool
+names. You just ask.
+
+The API token and secret let a program act on your Domeneshop account, so
+treat them like a password.
+
+</details>
 
 ## What you can ask for
 
@@ -112,23 +70,18 @@ this page. Codex and others take a short config block. See
 | --- | --- |
 | Domains | "Which domains are on my account, and when do they renew?" |
 | DNS | "Show every DNS record for example.no" |
-| DNS | "Point blog.example.no at 203.0.113.10" |
 | DNS | "Lower the TTL on the www record for example.no to 5 minutes" |
 | DNS | "Add the TXT record Google gave me for domain verification" |
-| DNS | "Set up Fastmail's MX records on example.no" |
 | Forwarding | "Forward old.example.no to https://example.no" |
 | Dynamic DNS | "Update home.example.no to my current IP" |
 | Invoices | "List my unpaid Domeneshop invoices" |
 
 ## Client setup
 
-The server is launched by your client rather than run by hand. It needs two
-environment variables, `DOMENESHOP_API_TOKEN` and `DOMENESHOP_API_SECRET`; the
-optional ones are listed under [Configuration](#configuration).
-
-Most clients take the same **standard config**. Replace the placeholders with
-your token and secret, and if the file already lists other servers, add the
-`"domeneshop"` entry inside the existing `"mcpServers"` object:
+Every client needs the same two environment variables, `DOMENESHOP_API_TOKEN`
+and `DOMENESHOP_API_SECRET`. Most take this **standard config**. If the file
+already lists other servers, add the `"domeneshop"` entry inside the existing
+`"mcpServers"` object:
 
 ```json
 {
@@ -145,17 +98,13 @@ your token and secret, and if the file already lists other servers, add the
 }
 ```
 
-Most clients can also scope a server to the current project or make it
-available everywhere, usually by choosing which config file you write to. The
-blocks below note this where it applies.
-
 <details>
 <summary><strong>Claude Code</strong></summary>
 
-Use the CLI command from [Quick start](#quick-start). It defaults to
-`--scope local`, private to you and this project. Use `--scope project` to
-write `<your-project>/.mcp.json` instead, shared via version control, or
-`--scope user` for every project on your account.
+Use the command from [Getting started](#getting-started). It registers the
+server for you in this project only (`--scope local`). Add `--scope user` to
+make it available in every project, or `--scope project` to write
+`<your-project>/.mcp.json` and share it through version control.
 
 You can also pass the standard config as raw JSON:
 
@@ -163,15 +112,12 @@ You can also pass the standard config as raw JSON:
 claude mcp add-json domeneshop '{"command":"npx","args":["-y","domeneshop-mcp"],"env":{"DOMENESHOP_API_TOKEN":"<your-api-token>","DOMENESHOP_API_SECRET":"<your-api-secret>"}}'
 ```
 
-Or write the standard config straight into `<your-project>/.mcp.json`.
-`claude mcp list` shows registered servers and whether they connect.
+Run `/mcp` in a session, or `claude mcp list`, to check that it connects.
 
 </details>
 
 <details>
-<summary><strong>Claude Desktop</strong></summary>
-
-The easiest route is the one-click bundle, which needs no Node.js:
+<summary><strong>Claude Desktop</strong>: one-click bundle, no Node.js needed</summary>
 
 1. Download `domeneshop-mcp-<version>.mcpb` from the
    [latest release](https://github.com/martinzachariassen/domeneshop-mcp/releases/latest).
@@ -181,8 +127,8 @@ The easiest route is the one-click bundle, which needs no Node.js:
 Claude Desktop stores the credentials securely.
 
 To configure it by hand instead, add the standard config to
-`claude_desktop_config.json`, reachable from Settings → Developer → Edit Config,
-then restart Claude Desktop:
+`claude_desktop_config.json` (Settings → Developer → Edit Config), then restart
+Claude Desktop:
 
 | Platform | Full path |
 | --- | --- |
@@ -193,13 +139,13 @@ then restart Claude Desktop:
 </details>
 
 <details>
-<summary><strong>Cursor</strong></summary>
+<summary><strong>Cursor</strong>: one-click install</summary>
 
 [![Install in Cursor](https://img.shields.io/badge/Cursor-Install_Server-000000?style=flat-square&logo=cursor&logoColor=white)](https://cursor.com/en/install-mcp?name=domeneshop&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImRvbWVuZXNob3AtbWNwIl0sImVudiI6eyJET01FTkVTSE9QX0FQSV9UT0tFTiI6Ijx5b3VyLWFwaS10b2tlbj4iLCJET01FTkVTSE9QX0FQSV9TRUNSRVQiOiI8eW91ci1hcGktc2VjcmV0PiJ9fQ%3D%3D)
 
-The button installs the server with placeholder credentials. Cursor cannot
-prompt for them, so afterwards open **Settings → MCP**, edit the `domeneshop`
-entry and replace `<your-api-token>` and `<your-api-secret>` with your own.
+The button installs the server with placeholder credentials. Afterwards, open
+**Settings → MCP**, edit the `domeneshop` entry and replace `<your-api-token>`
+and `<your-api-secret>` with your own.
 
 To set it up by hand instead, add the standard config to an `mcp.json` file:
 
@@ -212,7 +158,7 @@ To set it up by hand instead, add the standard config to an `mcp.json` file:
 </details>
 
 <details>
-<summary><strong>VS Code (GitHub Copilot)</strong></summary>
+<summary><strong>VS Code (GitHub Copilot)</strong>: one-click install</summary>
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=domeneshop&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_token%22%2C%22description%22%3A%22Domeneshop%20API%20token%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_secret%22%2C%22description%22%3A%22Domeneshop%20API%20secret%22%2C%22password%22%3Atrue%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22domeneshop-mcp%22%5D%2C%22env%22%3A%7B%22DOMENESHOP_API_TOKEN%22%3A%22%24%7Binput%3Adomeneshop_api_token%7D%22%2C%22DOMENESHOP_API_SECRET%22%3A%22%24%7Binput%3Adomeneshop_api_secret%7D%22%7D%7D)
 [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24BFA5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=domeneshop&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_token%22%2C%22description%22%3A%22Domeneshop%20API%20token%22%2C%22password%22%3Atrue%7D%2C%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22domeneshop_api_secret%22%2C%22description%22%3A%22Domeneshop%20API%20secret%22%2C%22password%22%3Atrue%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22domeneshop-mcp%22%5D%2C%22env%22%3A%7B%22DOMENESHOP_API_TOKEN%22%3A%22%24%7Binput%3Adomeneshop_api_token%7D%22%2C%22DOMENESHOP_API_SECRET%22%3A%22%24%7Binput%3Adomeneshop_api_secret%7D%22%7D%7D&quality=insiders)
@@ -221,8 +167,9 @@ The buttons install the server in your user configuration. VS Code then asks
 for your token and secret and stores them securely, so nothing is written to a
 config file in plain text.
 
-To set it up by hand instead, note that VS Code uses a `servers` key instead of `mcpServers`, and wants an explicit
-`type`. For this project only, add it to `<your-project>/.vscode/mcp.json`:
+To set it up by hand instead, note that VS Code uses a `servers` key instead of
+`mcpServers` and wants an explicit `type`. For this project only, add it to
+`<your-project>/.vscode/mcp.json`:
 
 ```json
 {
@@ -240,8 +187,8 @@ To set it up by hand instead, note that VS Code uses a `servers` key instead of 
 }
 ```
 
-For every project, run the command palette action **MCP: Open User
-Configuration** and add the same block there, or register it in one line:
+For every project, run **MCP: Open User Configuration** from the command
+palette and add the same block, or register it in one line:
 
 ```sh
 code --add-mcp '{"name":"domeneshop","command":"npx","args":["-y","domeneshop-mcp"],"env":{"DOMENESHOP_API_TOKEN":"<your-api-token>","DOMENESHOP_API_SECRET":"<your-api-secret>"}}'
@@ -252,12 +199,8 @@ code --add-mcp '{"name":"domeneshop","command":"npx","args":["-y","domeneshop-mc
 <details>
 <summary><strong>Codex</strong></summary>
 
-Codex CLI reads MCP servers from `mcp_servers` in its config file:
-
-| Platform | Full path |
-| --- | --- |
-| macOS/Linux | `~/.codex/config.toml` |
-| Windows | `%USERPROFILE%\.codex\config.toml` |
+Add this to `~/.codex/config.toml` (`%USERPROFILE%\.codex\config.toml` on
+Windows):
 
 ```toml
 [mcp_servers.domeneshop]
@@ -266,19 +209,17 @@ args = ["-y", "domeneshop-mcp"]
 env = { DOMENESHOP_API_TOKEN = "<your-api-token>", DOMENESHOP_API_SECRET = "<your-api-secret>" }
 ```
 
-`codex mcp add domeneshop -- npx -y domeneshop-mcp` registers it from the
-command line, but takes no env flags, so set the two variables in the
-`[mcp_servers.domeneshop]` block it creates.
+`codex mcp add domeneshop -- npx -y domeneshop-mcp` also works, but takes no
+env flags, so set the two variables in the block it creates.
 
 </details>
 
 <details>
-<summary><strong>Any other MCP client</strong></summary>
+<summary><strong>Windsurf, Cline, Continue, LM Studio and others</strong></summary>
 
-Windsurf, Cline, Continue, LM Studio and anything else that runs MCP servers
-over stdio will work. Most use the same shape as the standard config above;
-check your client's documentation for the config file and key name, then point
-it at:
+Anything that runs MCP servers over stdio works. Most use the standard config
+above. Check your client's documentation for the config file and key name, then
+point it at:
 
 - **command**: `npx`
 - **args**: `["-y", "domeneshop-mcp"]`
@@ -287,26 +228,22 @@ it at:
 </details>
 
 <details>
-<summary><strong>Skipping npx (npm or Homebrew)</strong></summary>
+<summary><strong>Install with Homebrew or npm instead of npx</strong></summary>
 
 To avoid resolving the package on every launch, install it once and use
-`domeneshop-mcp` as the command with no args. With npm:
+`domeneshop-mcp` as the command with no args:
 
 ```sh
-npm install -g domeneshop-mcp
+brew install martinzachariassen/tap/domeneshop-mcp   # macOS/Linux, installs Node.js if missing
+npm install -g domeneshop-mcp                        # or with npm
 ```
 
-Or with [Homebrew](https://brew.sh) on macOS or Linux, which also installs
-Node.js for you if it is missing:
+In Claude Code, that means `-- domeneshop-mcp` in place of
+`-- npx -y domeneshop-mcp`. `brew upgrade domeneshop-mcp` picks up new releases.
 
-```sh
-brew install martinzachariassen/tap/domeneshop-mcp
-```
-
-`brew upgrade domeneshop-mcp` picks up new releases. GUI apps such as Claude
-Desktop usually do not see Homebrew's `PATH`, so give them the full path
-(`brew --prefix` prints the prefix: `/opt/homebrew` on Apple silicon,
-`/usr/local` on Intel Macs, `/home/linuxbrew/.linuxbrew` on Linux):
+GUI apps such as Claude Desktop usually do not see Homebrew's `PATH`, so give
+them the full path. `brew --prefix` prints it: `/opt/homebrew` on Apple
+silicon, `/usr/local` on Intel Macs, `/home/linuxbrew/.linuxbrew` on Linux.
 
 ```json
 {
@@ -327,7 +264,7 @@ Desktop usually do not see Homebrew's `PATH`, so give them the full path
 ## Configuration
 
 All settings are environment variables, passed with `--env` in Claude Code or
-in the `env` block of the config above. Only the first two are required.
+in the `env` block of your client config. Only the first two are required.
 
 | Variable | Required | Description |
 | --- | --- | --- |
@@ -341,113 +278,51 @@ in the `env` block of the config above. Only the first two are required.
 
 ## Tools
 
-Every tool declares MCP annotations and a title, so clients know which ones are
-safe to run without asking you first. The Access column below mirrors those
-annotations. Arguments are validated before anything is sent to Domeneshop (TTL
-range, URL scheme, IP addresses, and the fields each record type requires), and
-read-only tools also return structured output for clients that support it.
+17 tools cover every operation the Domeneshop API offers. You don't need to know
+their names, because the assistant picks them for you. Arguments are validated
+before anything is sent (TTL range, URL scheme, IP addresses, the fields each
+record type requires), so a mistake comes back as an explanation, not a bare API
+error.
 
-### Domains
+> [!WARNING]
+> `update_dns_record` replaces the **whole** record: omitted fields are dropped
+> and an omitted `ttl` resets to 3600 seconds. Use `patch_dns_record` to change
+> only some fields. `upsert_dns_record` refuses to act when a host has several
+> records of the same type (typical for `MX` and `TXT`) and lists their IDs
+> instead.
 
-| Tool | Access | Description |
-| --- | --- | --- |
-| `list_domains` | Read-only | List all domains on the account, optionally filtered by name |
-| `get_domain` | Read-only | Get a single domain by its Domeneshop domain ID |
+<details>
+<summary><strong>All tools</strong></summary>
 
-### DNS
+**Access** mirrors the MCP annotations each tool declares, which clients use to
+decide what to run without asking.
 
-| Tool | Access | Description |
-| --- | --- | --- |
-| `list_dns_records` | Read-only | List a domain's records, optionally filtered by host and type |
-| `get_dns_record` | Read-only | Get a single record by ID |
-| `create_dns_record` | Adds | Create a record and return it as stored |
-| `update_dns_record` | Overwrites | Replace a record and return it as stored — see the warning below |
-| `patch_dns_record` | Overwrites | Change only the given fields of a record; the rest keep their stored values |
-| `upsert_dns_record` | Overwrites | Update the single record for a host and type, or create it if there is none |
-| `delete_dns_record` | Deletes | Delete a record |
+| Area | Tool | Access | Description |
+| --- | --- | --- | --- |
+| Domains | `list_domains` | Read-only | List all domains on the account, optionally filtered by name |
+| | `get_domain` | Read-only | Get a single domain by its Domeneshop domain ID |
+| DNS | `list_dns_records` | Read-only | List a domain's records, optionally filtered by host and type |
+| | `get_dns_record` | Read-only | Get a single record by ID |
+| | `create_dns_record` | Adds | Create a record and return it as stored |
+| | `update_dns_record` | Overwrites | Replace a whole record (see the warning above) |
+| | `patch_dns_record` | Overwrites | Change only the given fields of a record |
+| | `upsert_dns_record` | Overwrites | Update the single record for a host and type, or create it if there is none |
+| | `delete_dns_record` | Deletes | Delete a record |
+| Forwarding | `list_forwards` | Read-only | List a domain's HTTP forwards |
+| | `get_forward` | Read-only | Get the forward for one host |
+| | `create_forward` | Adds | Create a forward to an `http://`, `https://` or `ftp://` URL |
+| | `update_forward` | Overwrites | Update a forward's destination or frame setting; an omitted `frame` keeps its stored value |
+| | `delete_forward` | Deletes | Delete a forward |
+| Dynamic DNS | `update_dyndns` | Overwrites | Point one or more comma-separated hostnames at up to nine IPv4/IPv6 addresses, or at the caller's apparent IP; creates the record if missing |
+| Invoices | `list_invoices` | Read-only | List invoices from the past three years, optionally filtered by status |
+| | `get_invoice` | Read-only | Get a single invoice |
 
-> **Heads up:** `update_dns_record` replaces the whole record rather than
-> patching it. Any field left out is dropped, and omitting `ttl` resets it to
-> the default 3600 seconds. Use `patch_dns_record` to change only some fields.
-> `upsert_dns_record` refuses to act when a host has several records of the
-> same type (typical for `MX` and `TXT`) and lists their IDs instead.
-
-### HTTP forwarding
-
-| Tool | Access | Description |
-| --- | --- | --- |
-| `list_forwards` | Read-only | List a domain's HTTP forwards |
-| `get_forward` | Read-only | Get the forward for one host |
-| `create_forward` | Adds | Create a forward to an `http://`, `https://` or `ftp://` URL |
-| `update_forward` | Overwrites | Update a forward's destination or frame setting; an omitted `frame` keeps its stored value |
-| `delete_forward` | Deletes | Delete a forward |
-
-### Dynamic DNS
-
-| Tool | Access | Description |
-| --- | --- | --- |
-| `update_dyndns` | Overwrites | Point one or more comma-separated hostnames at up to nine IPv4/IPv6 addresses, or at the caller's apparent IP; creates the record if missing |
-
-### Invoices
-
-| Tool | Access | Description |
-| --- | --- | --- |
-| `list_invoices` | Read-only | List invoices from the past three years, optionally filtered by status |
-| `get_invoice` | Read-only | Get a single invoice |
-
-## Access control
-
-The Domeneshop API has no scoped tokens: a token can do everything the account
-can. To limit what the assistant can do, limit which tools the server exposes.
-Hidden tools are not registered at all, so the model never sees them.
-
-- **Read-only mode.** Set `DOMENESHOP_READ_ONLY=true` to expose only the eight
-  read-only tools. This is a good default if you mainly ask questions about your
-  domains, DNS and invoices, or are trying the server out for the first time.
-- **Allowlist.** Set `DOMENESHOP_TOOLS=list_domains,list_dns_records,patch_dns_record`
-  to expose exactly those tools.
-- **Denylist.** Set `DOMENESHOP_DISABLED_TOOLS=delete_dns_record,delete_forward`
-  to hide specific tools.
-
-The settings combine, and a misspelled tool name stops the server at startup
-instead of being silently ignored.
-
-Most clients ask before running a tool not annotated read-only. Keep that
-confirmation on for this server: write tools change live DNS, and a wrong
-record can take a site or mailbox offline.
-
-Credentials are only ever sent to `api.domeneshop.no` and are never logged. To
-revoke access, delete the token in the Domeneshop control panel.
-
-## Troubleshooting
-
-- **The tools do not show up**: restart the client (most only load servers at
-  startup) or, in Claude Code, check `/mcp`. Run `npx -y domeneshop-mcp --version`
-  to check that Node.js 22+ and npx work. If you edited a JSON config by hand,
-  make sure it is still valid JSON. With `DOMENESHOP_DEBUG=true` the server logs
-  every API request (method, path, status and duration, never credentials) to
-  stderr, which most clients capture in their MCP logs.
-- **`API returned status 401`**: the token or secret is wrong. Copy both again
-  from [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api).
-  Surrounding whitespace is trimmed automatically.
-- **`API returned status 404`**: the domain or record ID does not exist on this
-  account. Ask the assistant to list domains or records first.
-- **Timeouts**: requests give up after 30 seconds. Idempotent requests are
-  retried on rate limiting and temporary errors. Raise the limit with
-  `DOMENESHOP_TIMEOUT_MS` if needed.
-- **A DNS change does not show up**: DNS is cached for the record's TTL (3600
-  seconds by default), so other resolvers may serve the old value for up to an
-  hour. Ask the assistant to show the record to confirm Domeneshop stored it.
-
-Still stuck? [Open an issue](https://github.com/martinzachariassen/domeneshop-mcp/issues/new/choose).
-
-## Reference
+</details>
 
 <details>
 <summary><strong>Supported DNS record types</strong></summary>
 
-All eleven record types Domeneshop accepts are supported, with their
-type-specific fields:
+All eleven record types Domeneshop accepts are supported:
 
 | Type | Fields beyond `host`, `data` and `ttl` |
 | --- | --- |
@@ -459,105 +334,61 @@ type-specific fields:
 | `CAA` | `flags`, `tag` |
 
 `tag` is a number for `DS` (the key tag, 0-65535) and a string for `CAA` (the
-property tag, such as `issue`). Every write is validated before it is sent: `A`
-and `AAAA` data must be an address of the matching family, and the numeric
-fields are range-checked, so a mistake comes back as an explanation rather than
-a bare API error.
+property tag, such as `issue`). `A` and `AAAA` data must be an address of the
+matching family, and the numeric fields are range-checked.
 
 </details>
 
-<details>
-<summary><strong>Undocumented Domeneshop API behaviour</strong></summary>
+## Safety
 
-A few things this server relies on are not in Domeneshop's published OpenAPI
-spec, but are supported and used by their own client libraries:
+> [!IMPORTANT]
+> Domeneshop has no scoped tokens: a token can do everything your account can.
+> Limit what the assistant can do by limiting which tools the server exposes.
 
-- The spec documents seven record types; `ANAME`, `CAA`, `DS` and `NS` work too,
-  as the record validation in
-  [domeneshop.js](https://github.com/domeneshop/domeneshop.js) and
-  [python-domeneshop](https://github.com/domeneshop/python-domeneshop) shows.
-- `GET /invoices` accepts a `status` filter, which domeneshop.js uses.
-- `POST /forwards/` answers `201` with an empty body and names the new forward
-  only in the `Location` header.
-- `GET /dyndns/update` answers `204` with no body rather than JSON, so the
-  client does not try to decode it.
-- `PUT /forwards/{host}` answers `204` with no body, not `200` with the forward.
-- `GET`, `PUT` and `DELETE /forwards/{host}` answer `404` when the host contains
-  a hyphen (e.g. `my-app`), although such forwards can be created and are
-  listed. `get_forward` falls back to the list; `update_forward` and
-  `delete_forward` cannot, and say so: change or delete those forwards in the
-  Domeneshop control panel.
-- MX and SRV records return `priority`, `weight` and `port` as strings; the
-  client converts them to numbers.
-- Credit notes have `type: "credit_note"`; the spec spells it `credit_node`.
+- **Read-only mode**: `DOMENESHOP_READ_ONLY=true` exposes only the eight
+  read-only tools. This is a good default for trying the server out.
+- **Allowlist**: `DOMENESHOP_TOOLS=list_domains,list_dns_records,patch_dns_record`
+  exposes exactly those tools.
+- **Denylist**: `DOMENESHOP_DISABLED_TOOLS=delete_dns_record,delete_forward`
+  hides specific tools.
 
-The client is tested against a stored copy of the published spec, with the
-behaviour above added as an explicit overlay (see `test/contract/`). A weekly
-workflow flags any change to the published spec.
+Hidden tools are not registered at all, so the model never sees them. The
+settings combine, and a misspelled tool name stops the server at startup
+instead of being silently ignored.
 
-</details>
+Keep your client's confirmation prompt on for write tools. They change live
+DNS, and a wrong record can take a site or mailbox offline.
 
-<details>
-<summary><strong>Distribution</strong></summary>
+Credentials are only sent to `api.domeneshop.no` and are never logged. To revoke
+access, delete the token in the Domeneshop control panel.
 
-- [npm package](https://www.npmjs.com/package/domeneshop-mcp)
-- [Homebrew tap](https://github.com/martinzachariassen/homebrew-tap)
-- [MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.martinzachariassen/domeneshop-mcp)
-- [Claude Desktop bundle](https://github.com/martinzachariassen/domeneshop-mcp/releases/latest) (`.mcpb` on each release)
+## Troubleshooting
 
-</details>
+| Problem | Fix |
+| --- | --- |
+| The tools don't show up | Restart the client (most load servers only at startup), or check `/mcp` in Claude Code. Run `npx -y domeneshop-mcp --version` to confirm Node.js 22+ and npx work. If you edited a JSON config by hand, check that it is still valid. |
+| `API returned status 401` | The token or secret is wrong. Copy both again from [domeneshop.no/admin?view=api](https://www.domeneshop.no/admin?view=api). Surrounding whitespace is trimmed automatically. |
+| `API returned status 404` | The domain or record ID doesn't exist on this account. Ask the assistant to list domains or records first. |
+| Timeouts | Requests give up after 30 seconds. Idempotent requests are retried on rate limiting and temporary errors. Raise the limit with `DOMENESHOP_TIMEOUT_MS`. |
+| A DNS change doesn't show up | DNS is cached for the record's TTL (3600 seconds by default), so resolvers may serve the old value for up to an hour. Ask the assistant to show the record to confirm Domeneshop stored it. |
 
-## Development
+For more detail, set `DOMENESHOP_DEBUG=true`. The server then logs every API
+request (method, path, status and duration, never credentials) to stderr, which
+most clients show in their MCP logs.
 
-```sh
-npm install          # install dependencies
-npm run dev          # run the server from source with tsx
-npm run build        # compile to ./dist
-npm run typecheck    # type-check without emitting
-npm run lint         # lint with Biome
-npm run format       # format with Biome
-npm test             # run the test suite (vitest)
-npm run test:coverage # with the 90 % coverage thresholds CI enforces
-npm run spec:check   # compare Domeneshop's published OpenAPI spec with the stored copy
-npm run test:e2e     # opt-in tests against the live API, see CONTRIBUTING.md
-```
-
-The tests stub the Domeneshop API with a local `node:http` server and drive the
-MCP server over an in-memory transport, so they need no credentials and make no
-network calls. The contract tests in `test/contract/` check every request the
-client sends, and every response the tools accept, against Domeneshop's OpenAPI
-spec.
-
-<details>
-<summary><strong>Project layout</strong></summary>
-
-```
-src/
-  domeneshop/       Domeneshop API client (HTTP transport + one resource per endpoint group)
-  mcp/              MCP server: tool registration, input fields, record validation, results
-  cli.ts            Flag parsing, configuration and startup, with injectable process I/O
-  index.ts          bin entry point, wiring cli.ts to stdio
-test/
-  domeneshop/       Client tests, against a local HTTP server
-  mcp/              Tool tests over an in-memory MCP transport, mirroring src/mcp
-  contract/         Client and tools checked against Domeneshop's OpenAPI spec
-  e2e/              Opt-in tests against the live API
-  support/          Test server and MCP harness helpers
-scripts/            Release, bundle and spec-sync scripts
-```
-
-</details>
+Still stuck? [Open an issue](https://github.com/martinzachariassen/domeneshop-mcp/issues/new/choose).
 
 ## Contributing
 
-Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md)
-for the development workflow and changelog conventions. Everyone taking part is
-expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for
+the development workflow, and the
+[API notes](https://github.com/martinzachariassen/domeneshop-mcp/blob/main/docs/api-notes.md)
+for undocumented Domeneshop behaviour the client relies on. Everyone taking part
+is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Security
-
-See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
-
-## License
-
-[MIT](LICENSE)
+Available on [npm](https://www.npmjs.com/package/domeneshop-mcp),
+[Homebrew](https://github.com/martinzachariassen/homebrew-tap), the
+[MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.martinzachariassen/domeneshop-mcp)
+and as a [Claude Desktop bundle](https://github.com/martinzachariassen/domeneshop-mcp/releases/latest).
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
+Licensed under [MIT](LICENSE).
