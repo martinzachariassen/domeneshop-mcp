@@ -9,14 +9,26 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import subsetFont from "subset-font";
 
-const CYCLE_SECONDS = 23.5;
-const CARD_WIDTH = 492;
-const CARD_HEIGHT = 384;
-const CHAR_WIDTH = 9;
-const SCROLL_DISTANCE = 52;
-const ACT_ONE_END = 14;
-const ACT_TWO_END = 22;
+const CARD_X = 680;
+const CARD_WIDTH = 528;
+const CARD_HEIGHT = 392;
+const CARD_INNER_RIGHT = CARD_WIDTH - 22;
+const CARD_BOX_WIDTH = CARD_WIDTH - 44;
+const FEED_FONT_SIZE = 17;
+const CHAR_WIDTH = FEED_FONT_SIZE * 0.6;
+const CURSOR_HEIGHT = 20;
+
+const PROMPT_ONE_Y = 84;
+const PROMPT_TWO_Y = 484;
+const SCROLL_A = 56;
+const SCROLL_B = PROMPT_TWO_Y - PROMPT_ONE_Y;
+
+const CHAR_SECONDS = 0.05;
+const WORD_PAUSE_SECONDS = 0.1;
 const FADE_SECONDS = 0.5;
+const THINKING_SECONDS = 0.4;
+const RESULT_SECONDS = 0.5;
+const NEXT_CALL_SECONDS = 0.6;
 
 const THEMES = {
   dark: {
@@ -50,6 +62,63 @@ const THEMES = {
 };
 
 /** @typedef {typeof THEMES.dark} Theme */
+/** @typedef {{ time: number, chars: number }} Waypoint */
+/** @typedef {{ waypoints: Waypoint[], finish: number, length: number }} Typing */
+
+const ACT_ONE_PROMPT = "Set up email for example.no";
+const ACT_TWO_PROMPT = "Delete the old A record for www";
+
+/**
+ * Splits a prompt into words typed at a steady pace with short, slightly
+ * varying pauses between them, so the typing looks like a person's.
+ * @param {string} prompt
+ * @param {number} start
+ * @returns {Typing}
+ */
+const typingFor = (prompt, start) => {
+  const words = prompt.split(" ");
+  /** @type {Waypoint[]} */
+  const waypoints = [{ time: start, chars: 0 }];
+  let time = start;
+  let chars = 0;
+  words.forEach((word, index) => {
+    const text = index === 0 ? word : ` ${word}`;
+    chars += text.length;
+    time += text.length * CHAR_SECONDS;
+    waypoints.push({ time, chars });
+    if (index < words.length - 1) {
+      time += WORD_PAUSE_SECONDS + (index % 3) * 0.06;
+      waypoints.push({ time, chars });
+    }
+  });
+  return { waypoints, finish: time, length: prompt.length };
+};
+
+const typingOne = typingFor(ACT_ONE_PROMPT, 0.4);
+
+const listCallAt = typingOne.finish + THINKING_SECONDS;
+const listResultAt = listCallAt + RESULT_SECONDS;
+const mxCallAt = listResultAt + NEXT_CALL_SECONDS;
+const mxResultAt = mxCallAt + RESULT_SECONDS;
+const spfCallAt = mxResultAt + NEXT_CALL_SECONDS;
+const spfResultAt = spfCallAt + RESULT_SECONDS;
+const scrollAStart = spfResultAt + 0.5;
+const scrollAEnd = scrollAStart + 0.4;
+const dkimCallAt = scrollAEnd + 0.2;
+const dkimResultAt = dkimCallAt + RESULT_SECONDS;
+const doneAt = dkimResultAt + 0.6;
+const ACT_ONE_END = doneAt + 2.4;
+const scrollBEnd = ACT_ONE_END + 0.9;
+
+const typingTwo = typingFor(ACT_TWO_PROMPT, scrollBEnd);
+
+const listCallTwoAt = typingTwo.finish + THINKING_SECONDS;
+const listResultTwoAt = listCallTwoAt + RESULT_SECONDS;
+const blockedAt = listResultTwoAt + 0.7;
+const replyAt = blockedAt + 1;
+const ACT_TWO_END = replyAt + 2;
+const RESET_AT = ACT_TWO_END + FADE_SECONDS + 0.1;
+const CYCLE_SECONDS = RESET_AT + 0.5;
 
 /** @param {number} seconds */
 const percent = (seconds) => Number(((seconds / CYCLE_SECONDS) * 100).toFixed(3));
@@ -64,45 +133,60 @@ const register = (name, body) => {
 };
 
 /** @param {string} name @param {number} at @param {number} until */
-const appear = (name, at, until) => {
-  const settled = at + 0.35;
-  const gone = until + FADE_SECONDS;
-  return register(
+const appear = (name, at, until) =>
+  register(
     name,
     `@keyframes ${name} {
         0%, ${percent(at)}% { opacity: 0; transform: translateY(4px); }
-        ${percent(settled)}%, ${percent(until)}% { opacity: 1; transform: translateY(0); }
-        ${percent(gone)}%, 100% { opacity: 0; transform: translateY(0); }
+        ${percent(at + 0.35)}%, ${percent(until)}% { opacity: 1; transform: translateY(0); }
+        ${percent(until + FADE_SECONDS)}%, 100% { opacity: 0; transform: translateY(0); }
       }
       .${name} { animation: ${name} ${CYCLE_SECONDS}s ease-out infinite; }`,
   );
-};
 
-/** @param {string} name @param {number} start @param {number} finish @param {number} until @param {number} characters */
-const typed = (name, start, finish, until, characters) => {
-  const gone = until + FADE_SECONDS;
+/**
+ * One keyframe per waypoint; each word is revealed in per-character steps and
+ * the pauses between words hold still.
+ * @param {Typing} typing
+ * @param {(chars: number) => string} valueAt
+ */
+const typingKeyframes = ({ waypoints }, valueAt) =>
+  waypoints
+    .map((waypoint, index) => {
+      const next = waypoints[index + 1];
+      const steps = next ? next.chars - waypoint.chars : 0;
+      const timing = steps > 0 ? `steps(${steps}, end)` : "linear";
+      return `${percent(waypoint.time)}% { ${valueAt(waypoint.chars)} animation-timing-function: ${timing}; }`;
+    })
+    .join("\n        ");
+
+/** @param {string} name @param {Typing} typing @param {number} until */
+const typed = (name, typing, until) => {
+  const hidden = "clip-path: inset(0 100% 0 0); opacity: 1;";
+  const shown = "clip-path: inset(0 0 0 0); opacity: 1;";
   return register(
     name,
     `@keyframes ${name} {
-        0%, ${percent(start)}% { clip-path: inset(0 100% 0 0); opacity: 1; animation-timing-function: steps(${characters}, end); }
-        ${percent(finish)}%, ${percent(until)}% { clip-path: inset(0 0 0 0); opacity: 1; animation-timing-function: ease-out; }
-        ${percent(gone)}%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
+        0% { ${hidden} }
+        ${typingKeyframes(typing, (chars) => `clip-path: inset(0 ${((1 - chars / typing.length) * 100).toFixed(2)}% 0 0); opacity: 1;`)}
+        ${percent(until)}% { ${shown} }
+        ${percent(until + FADE_SECONDS)}%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
       }
       .${name} { animation: ${name} ${CYCLE_SECONDS}s infinite; }`,
   );
 };
 
-/** @param {string} name @param {number} appearsAt @param {number} start @param {number} finish @param {number} until @param {number} characters */
-const cursor = (name, appearsAt, start, finish, until, characters) => {
-  const gone = until + FADE_SECONDS;
-  const travelled = characters * CHAR_WIDTH;
+/** @param {string} name @param {number} appearsAt @param {Typing} typing @param {number} until */
+const cursor = (name, appearsAt, typing, until) => {
+  const travelled = typing.length * CHAR_WIDTH;
+  const initialOpacity = appearsAt > 0 ? 0 : 1;
   return register(
     name,
     `@keyframes ${name} {
-        0%, ${percent(appearsAt)}% { transform: translateX(0); opacity: ${appearsAt > 0 ? 0 : 1}; }
-        ${percent(appearsAt + 0.01)}%, ${percent(start)}% { transform: translateX(0); opacity: 1; animation-timing-function: steps(${characters}, end); }
-        ${percent(finish)}%, ${percent(until)}% { transform: translateX(${travelled}px); opacity: 1; animation-timing-function: ease-out; }
-        ${percent(gone)}%, 100% { transform: translateX(${travelled}px); opacity: 0; }
+        0%, ${percent(appearsAt)}% { transform: translateX(0); opacity: ${initialOpacity}; }
+        ${typingKeyframes(typing, (chars) => `transform: translateX(${chars * CHAR_WIDTH}px); opacity: 1;`)}
+        ${percent(until)}% { transform: translateX(${travelled}px); opacity: 1; }
+        ${percent(until + FADE_SECONDS)}%, 100% { transform: translateX(${travelled}px); opacity: 0; }
       }
       .${name} { animation: ${name} ${CYCLE_SECONDS}s infinite; }`,
   );
@@ -111,52 +195,58 @@ const cursor = (name, appearsAt, start, finish, until, characters) => {
 const scroll = register(
   "scroll",
   `@keyframes scroll {
-        0%, ${percent(8.6)}% { transform: translateY(0); }
-        ${percent(9.1)}%, ${percent(ACT_ONE_END + FADE_SECONDS)}% { transform: translateY(-${SCROLL_DISTANCE}px); }
-        ${percent(ACT_ONE_END + FADE_SECONDS + 0.1)}%, 100% { transform: translateY(0); }
+        0%, ${percent(scrollAStart)}% { transform: translateY(0); }
+        ${percent(scrollAEnd)}%, ${percent(ACT_ONE_END)}% { transform: translateY(-${SCROLL_A}px); }
+        ${percent(scrollBEnd)}%, ${percent(RESET_AT - 0.01)}% { transform: translateY(-${SCROLL_B}px); }
+        ${percent(RESET_AT)}%, 100% { transform: translateY(0); }
       }
       .scroll { animation: scroll ${CYCLE_SECONDS}s ease-in-out infinite; }`,
 );
 
-/** @param {string} name @param {number} visibleFrom @param {number} visibleUntil */
-const swap = (name, visibleFrom, visibleUntil) =>
-  register(
-    name,
-    `@keyframes ${name} {
-        0%, ${percent(visibleFrom)}% { opacity: ${visibleFrom === 0 ? 1 : 0}; }
-        ${percent(visibleFrom + 0.3)}%, ${percent(visibleUntil)}% { opacity: 1; }
-        ${percent(visibleUntil + 0.3)}%, 100% { opacity: ${visibleUntil >= CYCLE_SECONDS ? 1 : 0}; }
+const statusSwapAt = ACT_ONE_END + 0.3;
+
+const statusConnected = register(
+  "statusConnected",
+  `@keyframes statusConnected {
+        0%, ${percent(statusSwapAt)}% { opacity: 1; }
+        ${percent(statusSwapAt + 0.2)}%, ${percent(RESET_AT)}% { opacity: 0; }
+        100% { opacity: 1; }
       }
-      .${name} { animation: ${name} ${CYCLE_SECONDS}s linear infinite; }`,
-  );
+      .statusConnected { animation: statusConnected ${CYCLE_SECONDS}s linear infinite; }`,
+);
 
-const statusConnected = swap("statusConnected", 0, ACT_ONE_END);
-const statusReadOnly = swap("statusReadOnly", ACT_ONE_END + 0.5, ACT_TWO_END);
-
-const ACT_ONE_PROMPT = "Set up email for example.no";
-const ACT_TWO_PROMPT = "Delete the old A record for www";
+const statusReadOnly = register(
+  "statusReadOnly",
+  `@keyframes statusReadOnly {
+        0%, ${percent(statusSwapAt + 0.2)}% { opacity: 0; }
+        ${percent(statusSwapAt + 0.5)}%, ${percent(ACT_TWO_END)}% { opacity: 1; }
+        ${percent(ACT_TWO_END + FADE_SECONDS)}%, 100% { opacity: 0; }
+      }
+      .statusReadOnly { animation: statusReadOnly ${CYCLE_SECONDS}s linear infinite; }`,
+);
 
 const sequence = [
   scroll,
   statusConnected,
   statusReadOnly,
-  typed("typeOne", 0.6, 2.4, ACT_ONE_END, ACT_ONE_PROMPT.length),
-  cursor("cursorOne", 0, 0.6, 2.4, ACT_ONE_END, ACT_ONE_PROMPT.length),
-  appear("listCall", 2.9, ACT_ONE_END),
-  appear("listResult", 3.5, ACT_ONE_END),
-  appear("mxCall", 4.7, ACT_ONE_END),
-  appear("mxResult", 5.3, ACT_ONE_END),
-  appear("spfCall", 6.5, ACT_ONE_END),
-  appear("spfResult", 7.1, ACT_ONE_END),
-  appear("dkimCall", 9.4, ACT_ONE_END),
-  appear("dkimResult", 10, ACT_ONE_END),
-  appear("done", 11.2, ACT_ONE_END),
-  typed("typeTwo", 15.2, 17, ACT_TWO_END, ACT_TWO_PROMPT.length),
-  cursor("cursorTwo", 14.9, 15.2, 17, ACT_TWO_END, ACT_TWO_PROMPT.length),
-  appear("listCallTwo", 17.5, ACT_TWO_END),
-  appear("listResultTwo", 18.1, ACT_TWO_END),
-  appear("blocked", 19, ACT_TWO_END),
-  appear("reply", 20.2, ACT_TWO_END),
+  typed("typeOne", typingOne, ACT_ONE_END),
+  cursor("cursorOne", 0, typingOne, ACT_ONE_END),
+  appear("listCall", listCallAt, ACT_ONE_END),
+  appear("listResult", listResultAt, ACT_ONE_END),
+  appear("mxCall", mxCallAt, ACT_ONE_END),
+  appear("mxResult", mxResultAt, ACT_ONE_END),
+  appear("spfCall", spfCallAt, ACT_ONE_END),
+  appear("spfResult", spfResultAt, ACT_ONE_END),
+  appear("dkimCall", dkimCallAt, ACT_ONE_END),
+  appear("dkimResult", dkimResultAt, ACT_ONE_END),
+  appear("done", doneAt, ACT_ONE_END),
+  appear("promptTwo", typingTwo.waypoints[0]?.time ?? scrollBEnd, ACT_TWO_END),
+  typed("typeTwo", typingTwo, ACT_TWO_END),
+  cursor("cursorTwo", scrollBEnd - 0.1, typingTwo, ACT_TWO_END),
+  appear("listCallTwo", listCallTwoAt, ACT_TWO_END),
+  appear("listResultTwo", listResultTwoAt, ACT_TWO_END),
+  appear("blocked", blockedAt, ACT_TWO_END),
+  appear("reply", replyAt, ACT_TWO_END),
 ].join("\n      ");
 
 const ASSET_DIR = fileURLToPath(new URL("../.github/assets/", import.meta.url));
@@ -177,10 +267,11 @@ const CHIPS = [
   { label: "VALIDATED INPUT", highlighted: false },
   { label: "17 TOOLS · STDIO", highlighted: false },
 ];
-const CHIP_FONT_SIZE = 12;
-const CHIP_SPACING = 2;
+const CHIP_FONT_SIZE = 13;
+const CHIP_SPACING = 1.6;
 const CHIP_PADDING = 14;
 const CHIP_GAP = 10;
+const CHIP_HEIGHT = 30;
 
 /** @param {string} label */
 const chipWidth = (label) =>
@@ -198,9 +289,9 @@ const renderChips = (t) => {
       right -= CHIP_GAP;
       const stroke = highlighted ? t.accent : t.line;
       const fill = highlighted ? t.accent : t.soft;
-      return `<g transform="translate(${x.toFixed(1)} 568)">
-    <rect width="${width.toFixed(1)}" height="28" rx="4" fill="none" stroke="${stroke}" stroke-width="1.5"/>
-    <text x="${(width / 2 + 1).toFixed(1)}" y="19" text-anchor="middle" class="mono" font-size="${CHIP_FONT_SIZE}" letter-spacing="${CHIP_SPACING}" fill="${fill}">${label}</text>
+      return `<g transform="translate(${x.toFixed(1)} 566)">
+    <rect width="${width.toFixed(1)}" height="${CHIP_HEIGHT}" rx="4" fill="none" stroke="${stroke}" stroke-width="1.5"/>
+    <text x="${(width / 2 + CHIP_SPACING / 2).toFixed(1)}" y="20" text-anchor="middle" class="mono" font-size="${CHIP_FONT_SIZE}" letter-spacing="${CHIP_SPACING}" fill="${fill}">${label}</text>
   </g>`;
     })
     .reverse()
@@ -209,12 +300,16 @@ const renderChips = (t) => {
 
 /** @param {Theme} t @param {{ name: string, args: string, y: number }} call */
 const toolCall = (t, { name, args, y }) =>
-  `<rect x="22" y="${y - 9}" width="8" height="8" fill="${t.accent}"/>
+  `<rect x="22" y="${y - 10}" width="9" height="9" fill="${t.accent}"/>
         <text x="42" y="${y}"><tspan fill="${t.accent}" font-weight="700">${name}</tspan><tspan fill="${t.muted}">${args}</tspan></text>`;
 
 /** @param {Theme} t @param {number} y @param {string} seconds */
 const timing = (t, y, seconds) =>
-  `<text x="470" y="${y}" text-anchor="end" fill="${t.muted}">${seconds}s <tspan fill="${t.accent}">✓</tspan></text>`;
+  `<text x="${CARD_INNER_RIGHT}" y="${y}" text-anchor="end" fill="${t.muted}">${seconds}s <tspan fill="${t.accent}">✓</tspan></text>`;
+
+/** @param {Theme} t @param {number} y */
+const cursorBlock = (t, y) =>
+  `<rect class="blink" x="42" y="${y - 15}" width="${CHAR_WIDTH}" height="${CURSOR_HEIGHT}" fill="${t.accent}"/>`;
 
 /** @param {Theme} t @param {string} fontFaces */
 const render = (
@@ -248,7 +343,7 @@ const render = (
       ${sequence}
       @media (prefers-reduced-motion: reduce) {
         .live, .blink, ${animatedClasses.map((name) => `.${name}`).join(", ")} { animation: none; }
-        .scroll { transform: translateY(-${SCROLL_DISTANCE}px); }
+        .scroll { transform: translateY(-${SCROLL_A}px); }
         .actTwo, .statusReadOnly, .cursorOne { display: none; }
       }
     </style>
@@ -257,7 +352,7 @@ const render = (
   <rect width="1280" height="640" fill="${t.background}"/>
   <rect width="1280" height="640" fill="url(#grid)"/>
   <rect width="1280" height="640" fill="url(#grid-major)"/>
-  <ellipse cx="962" cy="332" rx="440" ry="310" fill="url(#glow)"/>
+  <ellipse cx="${CARD_X + CARD_WIDTH / 2}" cy="336" rx="450" ry="320" fill="url(#glow)"/>
 
   <g fill="none" stroke="${t.corner}" stroke-width="2">
     <path d="M24 48 V24 H48"/><path d="M1232 24 H1256 V48"/>
@@ -272,71 +367,72 @@ const render = (
   </g>
   <g transform="translate(1004 62)">
     <rect width="204" height="32" rx="4" fill="${t.background}" stroke="${t.line}" stroke-width="1.5"/>
-    <text x="103" y="21" text-anchor="middle" class="mono" font-size="12" letter-spacing="2.6" fill="${t.soft}">OPEN SOURCE · MIT</text>
+    <text x="103" y="21" text-anchor="middle" class="mono" font-size="13" letter-spacing="2.6" fill="${t.soft}">OPEN SOURCE · MIT</text>
   </g>
 
-  <text x="72" y="196" class="mono" font-size="15" letter-spacing="4.5" fill="${t.soft}">MCP SERVER<tspan fill="${t.accent}" dx="10">/</tspan><tspan dx="10">DOMENESHOP API</tspan></text>
+  <text x="72" y="196" class="mono" font-size="16" letter-spacing="4.5" fill="${t.soft}">MCP SERVER<tspan fill="${t.accent}" dx="10">/</tspan><tspan dx="10">DOMENESHOP API</tspan></text>
   <text x="66" y="306" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="${t.ink}">Domeneshop</text>
   <text x="66" y="406" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="${t.ink}">MCP</text>
-  <text class="mono" font-size="19" fill="${t.soft}">
+  <text class="mono" font-size="21" fill="${t.soft}">
     <tspan x="72" y="468">Domains, DNS, HTTP forwards, dynamic DNS</tspan>
-    <tspan x="72" dy="30">and invoices — from any AI assistant.</tspan>
+    <tspan x="72" dy="32">and invoices — from any AI assistant.</tspan>
   </text>
 
-  <g transform="translate(716 140)" class="mono" font-size="15">
+  <g transform="translate(${CARD_X} 140)" class="mono" font-size="${FEED_FONT_SIZE}">
     <rect width="${CARD_WIDTH}" height="${CARD_HEIGHT}" rx="4" fill="${t.card}" stroke="${t.ink}" stroke-width="1.5" filter="url(#shadow)"/>
-    <text x="22" y="30" font-size="12" letter-spacing="2.4" fill="${t.muted}">ASSISTANT SESSION</text>
-    <text x="470" y="30" text-anchor="end" font-size="12" letter-spacing="2.4" fill="${t.accent}" class="statusConnected"><tspan class="live">●</tspan> CONNECTED</text>
-    <text x="470" y="30" text-anchor="end" font-size="12" letter-spacing="2.4" fill="${t.string}" class="statusReadOnly" opacity="0"><tspan class="live">●</tspan> READ-ONLY · 8 TOOLS</text>
+    <text x="22" y="30" font-size="13" letter-spacing="2.4" fill="${t.muted}">ASSISTANT SESSION</text>
+    <text x="${CARD_INNER_RIGHT}" y="30" text-anchor="end" font-size="13" letter-spacing="2.4" fill="${t.accent}" class="statusConnected"><tspan class="live">●</tspan> CONNECTED</text>
+    <text x="${CARD_INNER_RIGHT}" y="30" text-anchor="end" font-size="13" letter-spacing="2.4" fill="${t.string}" class="statusReadOnly" opacity="0"><tspan class="live">●</tspan> READ-ONLY · 8 TOOLS</text>
     <line x1="0" y1="46" x2="${CARD_WIDTH}" y2="46" stroke="${t.ink}" stroke-width="1.5"/>
 
     <g clip-path="url(#feed-clip)">
       <g class="scroll">
-        <text x="22" y="84" fill="${t.muted}">&gt;</text>
-        <text x="42" y="84" fill="${t.ink}" class="typeOne">${ACT_ONE_PROMPT}</text>
-        <g class="cursorOne"><rect class="blink" x="42" y="71" width="${CHAR_WIDTH}" height="17" fill="${t.accent}"/></g>
+        <text x="22" y="${PROMPT_ONE_Y}" fill="${t.muted}">&gt;</text>
+        <text x="42" y="${PROMPT_ONE_Y}" fill="${t.ink}" class="typeOne">${ACT_ONE_PROMPT}</text>
+        <g class="cursorOne">${cursorBlock(t, PROMPT_ONE_Y)}</g>
 
-        <g class="listCall">${toolCall(t, { name: "list_dns_records", args: " domain_id=1337", y: 124 })}</g>
-        <g class="listResult"><text x="42" y="148" fill="${t.muted}">└ 6 records · no MX, no SPF</text>${timing(t, 124, "0.3")}</g>
+        <g class="listCall">${toolCall(t, { name: "list_dns_records", args: " domain_id=1337", y: 130 })}</g>
+        <g class="listResult"><text x="42" y="156" fill="${t.muted}">└ 6 records · no MX, no SPF</text>${timing(t, 130, "0.3")}</g>
 
-        <g class="mxCall">${toolCall(t, { name: "upsert_dns_record", args: "", y: 188 })}</g>
-        <g class="mxResult"><text x="42" y="212" xml:space="preserve"><tspan fill="${t.muted}">MX  </tspan><tspan fill="${t.string}">@ → mail.example.no</tspan><tspan fill="${t.muted}"> prio </tspan><tspan fill="${t.string}">10</tspan></text>${timing(t, 188, "0.4")}</g>
+        <g class="mxCall">${toolCall(t, { name: "upsert_dns_record", args: "", y: 200 })}</g>
+        <g class="mxResult"><text x="42" y="226" xml:space="preserve"><tspan fill="${t.muted}">MX  </tspan><tspan fill="${t.string}">@ → mail.example.no</tspan><tspan fill="${t.muted}"> prio </tspan><tspan fill="${t.string}">10</tspan></text>${timing(t, 200, "0.4")}</g>
 
-        <g class="spfCall">${toolCall(t, { name: "upsert_dns_record", args: "", y: 252 })}</g>
-        <g class="spfResult"><text x="42" y="276" xml:space="preserve"><tspan fill="${t.muted}">TXT </tspan><tspan fill="${t.string}">@ "v=spf1 mx ~all"</tspan></text>${timing(t, 252, "0.4")}</g>
+        <g class="spfCall">${toolCall(t, { name: "upsert_dns_record", args: "", y: 270 })}</g>
+        <g class="spfResult"><text x="42" y="296" xml:space="preserve"><tspan fill="${t.muted}">TXT </tspan><tspan fill="${t.string}">@ "v=spf1 mx ~all"</tspan></text>${timing(t, 270, "0.4")}</g>
 
-        <g class="dkimCall">${toolCall(t, { name: "upsert_dns_record", args: "", y: 316 })}</g>
-        <g class="dkimResult"><text x="42" y="340" xml:space="preserve"><tspan fill="${t.muted}">TXT </tspan><tspan fill="${t.string}">mail._domainkey "v=DKIM1; p=MIIB…"</tspan></text>${timing(t, 316, "0.5")}</g>
+        <g class="dkimCall">${toolCall(t, { name: "upsert_dns_record", args: "", y: 340 })}</g>
+        <g class="dkimResult"><text x="42" y="366" xml:space="preserve"><tspan fill="${t.muted}">TXT </tspan><tspan fill="${t.string}">mail._domainkey "v=DKIM1; p=MIIB…"</tspan></text>${timing(t, 340, "0.5")}</g>
 
         <g class="done">
-          <rect x="22" y="362" width="448" height="36" rx="4" fill="none" stroke="${t.accent}" stroke-width="1.5"/>
-          <text x="36" y="385" fill="${t.accent}">✓ example.no can receive mail · 3 records</text>
-        </g>
-      </g>
-
-      <g class="actTwo">
-        <text x="42" y="84" fill="${t.ink}" class="typeTwo">${ACT_TWO_PROMPT}</text>
-        <g class="cursorTwo"><rect class="blink" x="42" y="71" width="${CHAR_WIDTH}" height="17" fill="${t.accent}"/></g>
-
-        <g class="listCallTwo">${toolCall(t, { name: "list_dns_records", args: " domain_id=1337 host=www", y: 124 })}</g>
-        <g class="listResultTwo"><text x="42" y="148" fill="${t.muted}">└ 1 record · www A 198.51.100.4</text>${timing(t, 124, "0.3")}</g>
-
-        <g class="blocked">
-          <rect x="22" y="180" width="448" height="62" rx="4" fill="none" stroke="${t.string}" stroke-width="1.5"/>
-          <text x="36" y="205" fill="${t.string}" font-weight="700">✕ delete_dns_record is not available</text>
-          <text x="36" y="227" fill="${t.muted}">read-only mode hides every write tool</text>
+          <rect x="22" y="392" width="${CARD_BOX_WIDTH}" height="38" rx="4" fill="none" stroke="${t.accent}" stroke-width="1.5"/>
+          <text x="38" y="417" fill="${t.accent}">✓ example.no can receive mail · 3 records</text>
         </g>
 
-        <g class="reply">
-          <text x="22" y="276" fill="${t.ink}">I can look, but not change anything here.</text>
-          <text x="22" y="298" fill="${t.muted}">Unset DOMENESHOP_READ_ONLY to allow edits.</text>
+        <g class="actTwo">
+          <text x="22" y="${PROMPT_TWO_Y}" fill="${t.muted}" class="promptTwo">&gt;</text>
+          <text x="42" y="${PROMPT_TWO_Y}" fill="${t.ink}" class="typeTwo">${ACT_TWO_PROMPT}</text>
+          <g class="cursorTwo">${cursorBlock(t, PROMPT_TWO_Y)}</g>
+
+          <g class="listCallTwo">${toolCall(t, { name: "list_dns_records", args: " domain_id=1337", y: 530 })}</g>
+          <g class="listResultTwo"><text x="42" y="556" fill="${t.muted}">└ 1 record · www A 198.51.100.4</text>${timing(t, 530, "0.3")}</g>
+
+          <g class="blocked">
+            <rect x="22" y="584" width="${CARD_BOX_WIDTH}" height="66" rx="4" fill="none" stroke="${t.string}" stroke-width="1.5"/>
+            <text x="38" y="610" fill="${t.string}" font-weight="700">✕ delete_dns_record is not available</text>
+            <text x="38" y="634" fill="${t.muted}">read-only mode hides every write tool</text>
+          </g>
+
+          <g class="reply">
+            <text x="22" y="684" fill="${t.ink}">I can look, but not change anything here.</text>
+            <text x="22" y="708" fill="${t.muted}">Unset DOMENESHOP_READ_ONLY to allow edits.</text>
+          </g>
         </g>
       </g>
     </g>
   </g>
 
   <line x1="72" y1="556" x2="1208" y2="556" stroke="${t.line}" stroke-width="1.5"/>
-  <text x="72" y="587" class="mono" font-size="14" letter-spacing="3" fill="${t.ink}">NPX DOMENESHOP-MCP</text>
+  <text x="72" y="587" class="mono" font-size="15" letter-spacing="3" fill="${t.ink}">NPX DOMENESHOP-MCP</text>
   ${renderChips(t)}
 </svg>
 `;

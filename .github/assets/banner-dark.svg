@@ -14,7 +14,7 @@
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
       <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#a29aff" flood-opacity="0.35"/>
     </filter>
-    <clipPath id="feed-clip"><rect x="0" y="47" width="492" height="337"/></clipPath>
+    <clipPath id="feed-clip"><rect x="0" y="47" width="528" height="345"/></clipPath>
     <style>
       @font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-style: normal; src: url(data:font/woff2;base64,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) format("woff2"); }
       @font-face { font-family: "IBM Plex Mono"; font-weight: 700; font-style: normal; src: url(data:font/woff2;base64,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) format("woff2"); }
@@ -26,130 +26,183 @@
       .live { animation: pulse 2s ease-in-out infinite; }
       .blink { animation: blink 1.1s steps(1, end) infinite; }
       @keyframes scroll {
-        0%, 36.596% { transform: translateY(0); }
-        38.723%, 61.702% { transform: translateY(-52px); }
-        62.128%, 100% { transform: translateY(0); }
+        0%, 30.982% { transform: translateY(0); }
+        33.072%, 52.403% { transform: translateY(-56px); }
+        57.106%, 97.335% { transform: translateY(-400px); }
+        97.388%, 100% { transform: translateY(0); }
       }
-      .scroll { animation: scroll 23.5s ease-in-out infinite; }
+      .scroll { animation: scroll 19.14s ease-in-out infinite; }
       @keyframes statusConnected {
-        0%, 0% { opacity: 1; }
-        1.277%, 59.574% { opacity: 1; }
-        60.851%, 100% { opacity: 0; }
+        0%, 53.971% { opacity: 1; }
+        55.016%, 97.388% { opacity: 0; }
+        100% { opacity: 1; }
       }
-      .statusConnected { animation: statusConnected 23.5s linear infinite; }
+      .statusConnected { animation: statusConnected 19.14s linear infinite; }
       @keyframes statusReadOnly {
-        0%, 61.702% { opacity: 0; }
-        62.979%, 93.617% { opacity: 1; }
-        94.894%, 100% { opacity: 0; }
+        0%, 55.016% { opacity: 0; }
+        56.583%, 94.253% { opacity: 1; }
+        96.865%, 100% { opacity: 0; }
       }
-      .statusReadOnly { animation: statusReadOnly 23.5s linear infinite; }
+      .statusReadOnly { animation: statusReadOnly 19.14s linear infinite; }
       @keyframes typeOne {
-        0%, 2.553% { clip-path: inset(0 100% 0 0); opacity: 1; animation-timing-function: steps(27, end); }
-        10.213%, 59.574% { clip-path: inset(0 0 0 0); opacity: 1; animation-timing-function: ease-out; }
-        61.702%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
+        0% { clip-path: inset(0 100% 0 0); opacity: 1; }
+        2.09% { clip-path: inset(0 100.00% 0 0); opacity: 1; animation-timing-function: steps(3, end); }
+        2.874% { clip-path: inset(0 88.89% 0 0); opacity: 1; animation-timing-function: linear; }
+        3.396% { clip-path: inset(0 88.89% 0 0); opacity: 1; animation-timing-function: steps(3, end); }
+        4.18% { clip-path: inset(0 77.78% 0 0); opacity: 1; animation-timing-function: linear; }
+        5.016% { clip-path: inset(0 77.78% 0 0); opacity: 1; animation-timing-function: steps(6, end); }
+        6.583% { clip-path: inset(0 55.56% 0 0); opacity: 1; animation-timing-function: linear; }
+        7.732% { clip-path: inset(0 55.56% 0 0); opacity: 1; animation-timing-function: steps(4, end); }
+        8.777% { clip-path: inset(0 40.74% 0 0); opacity: 1; animation-timing-function: linear; }
+        9.3% { clip-path: inset(0 40.74% 0 0); opacity: 1; animation-timing-function: steps(11, end); }
+        12.173% { clip-path: inset(0 0.00% 0 0); opacity: 1; animation-timing-function: linear; }
+        52.403% { clip-path: inset(0 0 0 0); opacity: 1; }
+        55.016%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
       }
-      .typeOne { animation: typeOne 23.5s infinite; }
+      .typeOne { animation: typeOne 19.14s infinite; }
       @keyframes cursorOne {
         0%, 0% { transform: translateX(0); opacity: 1; }
-        0.043%, 2.553% { transform: translateX(0); opacity: 1; animation-timing-function: steps(27, end); }
-        10.213%, 59.574% { transform: translateX(243px); opacity: 1; animation-timing-function: ease-out; }
-        61.702%, 100% { transform: translateX(243px); opacity: 0; }
+        2.09% { transform: translateX(0px); opacity: 1; animation-timing-function: steps(3, end); }
+        2.874% { transform: translateX(30.599999999999998px); opacity: 1; animation-timing-function: linear; }
+        3.396% { transform: translateX(30.599999999999998px); opacity: 1; animation-timing-function: steps(3, end); }
+        4.18% { transform: translateX(61.199999999999996px); opacity: 1; animation-timing-function: linear; }
+        5.016% { transform: translateX(61.199999999999996px); opacity: 1; animation-timing-function: steps(6, end); }
+        6.583% { transform: translateX(122.39999999999999px); opacity: 1; animation-timing-function: linear; }
+        7.732% { transform: translateX(122.39999999999999px); opacity: 1; animation-timing-function: steps(4, end); }
+        8.777% { transform: translateX(163.2px); opacity: 1; animation-timing-function: linear; }
+        9.3% { transform: translateX(163.2px); opacity: 1; animation-timing-function: steps(11, end); }
+        12.173% { transform: translateX(275.4px); opacity: 1; animation-timing-function: linear; }
+        52.403% { transform: translateX(275.4px); opacity: 1; }
+        55.016%, 100% { transform: translateX(275.4px); opacity: 0; }
       }
-      .cursorOne { animation: cursorOne 23.5s infinite; }
+      .cursorOne { animation: cursorOne 19.14s infinite; }
       @keyframes listCall {
-        0%, 12.34% { opacity: 0; transform: translateY(4px); }
-        13.83%, 59.574% { opacity: 1; transform: translateY(0); }
-        61.702%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 14.263% { opacity: 0; transform: translateY(4px); }
+        16.092%, 52.403% { opacity: 1; transform: translateY(0); }
+        55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .listCall { animation: listCall 23.5s ease-out infinite; }
+      .listCall { animation: listCall 19.14s ease-out infinite; }
       @keyframes listResult {
-        0%, 14.894% { opacity: 0; transform: translateY(4px); }
-        16.383%, 59.574% { opacity: 1; transform: translateY(0); }
-        61.702%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 16.876% { opacity: 0; transform: translateY(4px); }
+        18.704%, 52.403% { opacity: 1; transform: translateY(0); }
+        55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .listResult { animation: listResult 23.5s ease-out infinite; }
+      .listResult { animation: listResult 19.14s ease-out infinite; }
       @keyframes mxCall {
-        0%, 20% { opacity: 0; transform: translateY(4px); }
-        21.489%, 59.574% { opacity: 1; transform: translateY(0); }
-        61.702%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 20.01% { opacity: 0; transform: translateY(4px); }
+        21.839%, 52.403% { opacity: 1; transform: translateY(0); }
+        55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .mxCall { animation: mxCall 23.5s ease-out infinite; }
+      .mxCall { animation: mxCall 19.14s ease-out infinite; }
       @keyframes mxResult {
-        0%, 22.553% { opacity: 0; transform: translateY(4px); }
-        24.043%, 59.574% { opacity: 1; transform: translateY(0); }
-        61.702%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 22.623% { opacity: 0; transform: translateY(4px); }
+        24.451%, 52.403% { opacity: 1; transform: translateY(0); }
+        55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .mxResult { animation: mxResult 23.5s ease-out infinite; }
+      .mxResult { animation: mxResult 19.14s ease-out infinite; }
       @keyframes spfCall {
-        0%, 27.66% { opacity: 0; transform: translateY(4px); }
-        29.149%, 59.574% { opacity: 1; transform: translateY(0); }
-        61.702%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 25.758% { opacity: 0; transform: translateY(4px); }
+        27.586%, 52.403% { opacity: 1; transform: translateY(0); }
+        55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .spfCall { animation: spfCall 23.5s ease-out infinite; }
+      .spfCall { animation: spfCall 19.14s ease-out infinite; }
       @keyframes spfResult {
-        0%, 30.213% { opacity: 0; transform: translateY(4px); }
-        31.702%, 59.574% { opacity: 1; transform: translateY(0); }
-        61.702%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 28.37% { opacity: 0; transform: translateY(4px); }
+        30.199%, 52.403% { opacity: 1; transform: translateY(0); }
+        55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .spfResult { animation: spfResult 23.5s ease-out infinite; }
+      .spfResult { animation: spfResult 19.14s ease-out infinite; }
       @keyframes dkimCall {
-        0%, 40% { opacity: 0; transform: translateY(4px); }
-        41.489%, 59.574% { opacity: 1; transform: translateY(0); }
-        61.702%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 34.117% { opacity: 0; transform: translateY(4px); }
+        35.946%, 52.403% { opacity: 1; transform: translateY(0); }
+        55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .dkimCall { animation: dkimCall 23.5s ease-out infinite; }
+      .dkimCall { animation: dkimCall 19.14s ease-out infinite; }
       @keyframes dkimResult {
-        0%, 42.553% { opacity: 0; transform: translateY(4px); }
-        44.043%, 59.574% { opacity: 1; transform: translateY(0); }
-        61.702%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 36.729% { opacity: 0; transform: translateY(4px); }
+        38.558%, 52.403% { opacity: 1; transform: translateY(0); }
+        55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .dkimResult { animation: dkimResult 23.5s ease-out infinite; }
+      .dkimResult { animation: dkimResult 19.14s ease-out infinite; }
       @keyframes done {
-        0%, 47.66% { opacity: 0; transform: translateY(4px); }
-        49.149%, 59.574% { opacity: 1; transform: translateY(0); }
-        61.702%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 39.864% { opacity: 0; transform: translateY(4px); }
+        41.693%, 52.403% { opacity: 1; transform: translateY(0); }
+        55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .done { animation: done 23.5s ease-out infinite; }
+      .done { animation: done 19.14s ease-out infinite; }
+      @keyframes promptTwo {
+        0%, 57.106% { opacity: 0; transform: translateY(4px); }
+        58.934%, 94.253% { opacity: 1; transform: translateY(0); }
+        96.865%, 100% { opacity: 0; transform: translateY(0); }
+      }
+      .promptTwo { animation: promptTwo 19.14s ease-out infinite; }
       @keyframes typeTwo {
-        0%, 64.681% { clip-path: inset(0 100% 0 0); opacity: 1; animation-timing-function: steps(31, end); }
-        72.34%, 93.617% { clip-path: inset(0 0 0 0); opacity: 1; animation-timing-function: ease-out; }
-        95.745%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
+        0% { clip-path: inset(0 100% 0 0); opacity: 1; }
+        57.106% { clip-path: inset(0 100.00% 0 0); opacity: 1; animation-timing-function: steps(6, end); }
+        58.673% { clip-path: inset(0 80.65% 0 0); opacity: 1; animation-timing-function: linear; }
+        59.195% { clip-path: inset(0 80.65% 0 0); opacity: 1; animation-timing-function: steps(4, end); }
+        60.24% { clip-path: inset(0 67.74% 0 0); opacity: 1; animation-timing-function: linear; }
+        61.076% { clip-path: inset(0 67.74% 0 0); opacity: 1; animation-timing-function: steps(4, end); }
+        62.121% { clip-path: inset(0 54.84% 0 0); opacity: 1; animation-timing-function: linear; }
+        63.271% { clip-path: inset(0 54.84% 0 0); opacity: 1; animation-timing-function: steps(2, end); }
+        63.793% { clip-path: inset(0 48.39% 0 0); opacity: 1; animation-timing-function: linear; }
+        64.316% { clip-path: inset(0 48.39% 0 0); opacity: 1; animation-timing-function: steps(7, end); }
+        66.144% { clip-path: inset(0 25.81% 0 0); opacity: 1; animation-timing-function: linear; }
+        66.98% { clip-path: inset(0 25.81% 0 0); opacity: 1; animation-timing-function: steps(4, end); }
+        68.025% { clip-path: inset(0 12.90% 0 0); opacity: 1; animation-timing-function: linear; }
+        69.175% { clip-path: inset(0 12.90% 0 0); opacity: 1; animation-timing-function: steps(4, end); }
+        70.219% { clip-path: inset(0 0.00% 0 0); opacity: 1; animation-timing-function: linear; }
+        94.253% { clip-path: inset(0 0 0 0); opacity: 1; }
+        96.865%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
       }
-      .typeTwo { animation: typeTwo 23.5s infinite; }
+      .typeTwo { animation: typeTwo 19.14s infinite; }
       @keyframes cursorTwo {
-        0%, 63.404% { transform: translateX(0); opacity: 0; }
-        63.447%, 64.681% { transform: translateX(0); opacity: 1; animation-timing-function: steps(31, end); }
-        72.34%, 93.617% { transform: translateX(279px); opacity: 1; animation-timing-function: ease-out; }
-        95.745%, 100% { transform: translateX(279px); opacity: 0; }
+        0%, 56.583% { transform: translateX(0); opacity: 0; }
+        57.106% { transform: translateX(0px); opacity: 1; animation-timing-function: steps(6, end); }
+        58.673% { transform: translateX(61.199999999999996px); opacity: 1; animation-timing-function: linear; }
+        59.195% { transform: translateX(61.199999999999996px); opacity: 1; animation-timing-function: steps(4, end); }
+        60.24% { transform: translateX(102px); opacity: 1; animation-timing-function: linear; }
+        61.076% { transform: translateX(102px); opacity: 1; animation-timing-function: steps(4, end); }
+        62.121% { transform: translateX(142.79999999999998px); opacity: 1; animation-timing-function: linear; }
+        63.271% { transform: translateX(142.79999999999998px); opacity: 1; animation-timing-function: steps(2, end); }
+        63.793% { transform: translateX(163.2px); opacity: 1; animation-timing-function: linear; }
+        64.316% { transform: translateX(163.2px); opacity: 1; animation-timing-function: steps(7, end); }
+        66.144% { transform: translateX(234.6px); opacity: 1; animation-timing-function: linear; }
+        66.98% { transform: translateX(234.6px); opacity: 1; animation-timing-function: steps(4, end); }
+        68.025% { transform: translateX(275.4px); opacity: 1; animation-timing-function: linear; }
+        69.175% { transform: translateX(275.4px); opacity: 1; animation-timing-function: steps(4, end); }
+        70.219% { transform: translateX(316.2px); opacity: 1; animation-timing-function: linear; }
+        94.253% { transform: translateX(316.2px); opacity: 1; }
+        96.865%, 100% { transform: translateX(316.2px); opacity: 0; }
       }
-      .cursorTwo { animation: cursorTwo 23.5s infinite; }
+      .cursorTwo { animation: cursorTwo 19.14s infinite; }
       @keyframes listCallTwo {
-        0%, 74.468% { opacity: 0; transform: translateY(4px); }
-        75.957%, 93.617% { opacity: 1; transform: translateY(0); }
-        95.745%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 72.309% { opacity: 0; transform: translateY(4px); }
+        74.138%, 94.253% { opacity: 1; transform: translateY(0); }
+        96.865%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .listCallTwo { animation: listCallTwo 23.5s ease-out infinite; }
+      .listCallTwo { animation: listCallTwo 19.14s ease-out infinite; }
       @keyframes listResultTwo {
-        0%, 77.021% { opacity: 0; transform: translateY(4px); }
-        78.511%, 93.617% { opacity: 1; transform: translateY(0); }
-        95.745%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 74.922% { opacity: 0; transform: translateY(4px); }
+        76.75%, 94.253% { opacity: 1; transform: translateY(0); }
+        96.865%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .listResultTwo { animation: listResultTwo 23.5s ease-out infinite; }
+      .listResultTwo { animation: listResultTwo 19.14s ease-out infinite; }
       @keyframes blocked {
-        0%, 80.851% { opacity: 0; transform: translateY(4px); }
-        82.34%, 93.617% { opacity: 1; transform: translateY(0); }
-        95.745%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 78.579% { opacity: 0; transform: translateY(4px); }
+        80.408%, 94.253% { opacity: 1; transform: translateY(0); }
+        96.865%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .blocked { animation: blocked 23.5s ease-out infinite; }
+      .blocked { animation: blocked 19.14s ease-out infinite; }
       @keyframes reply {
-        0%, 85.957% { opacity: 0; transform: translateY(4px); }
-        87.447%, 93.617% { opacity: 1; transform: translateY(0); }
-        95.745%, 100% { opacity: 0; transform: translateY(0); }
+        0%, 83.804% { opacity: 0; transform: translateY(4px); }
+        85.632%, 94.253% { opacity: 1; transform: translateY(0); }
+        96.865%, 100% { opacity: 0; transform: translateY(0); }
       }
-      .reply { animation: reply 23.5s ease-out infinite; }
+      .reply { animation: reply 19.14s ease-out infinite; }
       @media (prefers-reduced-motion: reduce) {
-        .live, .blink, .scroll, .statusConnected, .statusReadOnly, .typeOne, .cursorOne, .listCall, .listResult, .mxCall, .mxResult, .spfCall, .spfResult, .dkimCall, .dkimResult, .done, .typeTwo, .cursorTwo, .listCallTwo, .listResultTwo, .blocked, .reply { animation: none; }
-        .scroll { transform: translateY(-52px); }
+        .live, .blink, .scroll, .statusConnected, .statusReadOnly, .typeOne, .cursorOne, .listCall, .listResult, .mxCall, .mxResult, .spfCall, .spfResult, .dkimCall, .dkimResult, .done, .promptTwo, .typeTwo, .cursorTwo, .listCallTwo, .listResultTwo, .blocked, .reply { animation: none; }
+        .scroll { transform: translateY(-56px); }
         .actTwo, .statusReadOnly, .cursorOne { display: none; }
       }
     </style>
@@ -158,7 +211,7 @@
   <rect width="1280" height="640" fill="#151619"/>
   <rect width="1280" height="640" fill="url(#grid)"/>
   <rect width="1280" height="640" fill="url(#grid-major)"/>
-  <ellipse cx="962" cy="332" rx="440" ry="310" fill="url(#glow)"/>
+  <ellipse cx="944" cy="336" rx="450" ry="320" fill="url(#glow)"/>
 
   <g fill="none" stroke="#968dfd" stroke-width="2">
     <path d="M24 48 V24 H48"/><path d="M1232 24 H1256 V48"/>
@@ -173,90 +226,91 @@
   </g>
   <g transform="translate(1004 62)">
     <rect width="204" height="32" rx="4" fill="#151619" stroke="#2e3034" stroke-width="1.5"/>
-    <text x="103" y="21" text-anchor="middle" class="mono" font-size="12" letter-spacing="2.6" fill="#cfd1d5">OPEN SOURCE · MIT</text>
+    <text x="103" y="21" text-anchor="middle" class="mono" font-size="13" letter-spacing="2.6" fill="#cfd1d5">OPEN SOURCE · MIT</text>
   </g>
 
-  <text x="72" y="196" class="mono" font-size="15" letter-spacing="4.5" fill="#cfd1d5">MCP SERVER<tspan fill="#a29aff" dx="10">/</tspan><tspan dx="10">DOMENESHOP API</tspan></text>
+  <text x="72" y="196" class="mono" font-size="16" letter-spacing="4.5" fill="#cfd1d5">MCP SERVER<tspan fill="#a29aff" dx="10">/</tspan><tspan dx="10">DOMENESHOP API</tspan></text>
   <text x="66" y="306" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="#e9ebef">Domeneshop</text>
   <text x="66" y="406" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="#e9ebef">MCP</text>
-  <text class="mono" font-size="19" fill="#cfd1d5">
+  <text class="mono" font-size="21" fill="#cfd1d5">
     <tspan x="72" y="468">Domains, DNS, HTTP forwards, dynamic DNS</tspan>
-    <tspan x="72" dy="30">and invoices — from any AI assistant.</tspan>
+    <tspan x="72" dy="32">and invoices — from any AI assistant.</tspan>
   </text>
 
-  <g transform="translate(716 140)" class="mono" font-size="15">
-    <rect width="492" height="384" rx="4" fill="#1b1c20" stroke="#e9ebef" stroke-width="1.5" filter="url(#shadow)"/>
-    <text x="22" y="30" font-size="12" letter-spacing="2.4" fill="#9b9ea5">ASSISTANT SESSION</text>
-    <text x="470" y="30" text-anchor="end" font-size="12" letter-spacing="2.4" fill="#a29aff" class="statusConnected"><tspan class="live">●</tspan> CONNECTED</text>
-    <text x="470" y="30" text-anchor="end" font-size="12" letter-spacing="2.4" fill="#ec6d3d" class="statusReadOnly" opacity="0"><tspan class="live">●</tspan> READ-ONLY · 8 TOOLS</text>
-    <line x1="0" y1="46" x2="492" y2="46" stroke="#e9ebef" stroke-width="1.5"/>
+  <g transform="translate(680 140)" class="mono" font-size="17">
+    <rect width="528" height="392" rx="4" fill="#1b1c20" stroke="#e9ebef" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="22" y="30" font-size="13" letter-spacing="2.4" fill="#9b9ea5">ASSISTANT SESSION</text>
+    <text x="506" y="30" text-anchor="end" font-size="13" letter-spacing="2.4" fill="#a29aff" class="statusConnected"><tspan class="live">●</tspan> CONNECTED</text>
+    <text x="506" y="30" text-anchor="end" font-size="13" letter-spacing="2.4" fill="#ec6d3d" class="statusReadOnly" opacity="0"><tspan class="live">●</tspan> READ-ONLY · 8 TOOLS</text>
+    <line x1="0" y1="46" x2="528" y2="46" stroke="#e9ebef" stroke-width="1.5"/>
 
     <g clip-path="url(#feed-clip)">
       <g class="scroll">
         <text x="22" y="84" fill="#9b9ea5">&gt;</text>
         <text x="42" y="84" fill="#e9ebef" class="typeOne">Set up email for example.no</text>
-        <g class="cursorOne"><rect class="blink" x="42" y="71" width="9" height="17" fill="#a29aff"/></g>
+        <g class="cursorOne"><rect class="blink" x="42" y="69" width="10.2" height="20" fill="#a29aff"/></g>
 
-        <g class="listCall"><rect x="22" y="115" width="8" height="8" fill="#a29aff"/>
-        <text x="42" y="124"><tspan fill="#a29aff" font-weight="700">list_dns_records</tspan><tspan fill="#9b9ea5"> domain_id=1337</tspan></text></g>
-        <g class="listResult"><text x="42" y="148" fill="#9b9ea5">└ 6 records · no MX, no SPF</text><text x="470" y="124" text-anchor="end" fill="#9b9ea5">0.3s <tspan fill="#a29aff">✓</tspan></text></g>
+        <g class="listCall"><rect x="22" y="120" width="9" height="9" fill="#a29aff"/>
+        <text x="42" y="130"><tspan fill="#a29aff" font-weight="700">list_dns_records</tspan><tspan fill="#9b9ea5"> domain_id=1337</tspan></text></g>
+        <g class="listResult"><text x="42" y="156" fill="#9b9ea5">└ 6 records · no MX, no SPF</text><text x="506" y="130" text-anchor="end" fill="#9b9ea5">0.3s <tspan fill="#a29aff">✓</tspan></text></g>
 
-        <g class="mxCall"><rect x="22" y="179" width="8" height="8" fill="#a29aff"/>
-        <text x="42" y="188"><tspan fill="#a29aff" font-weight="700">upsert_dns_record</tspan><tspan fill="#9b9ea5"></tspan></text></g>
-        <g class="mxResult"><text x="42" y="212" xml:space="preserve"><tspan fill="#9b9ea5">MX  </tspan><tspan fill="#ec6d3d">@ → mail.example.no</tspan><tspan fill="#9b9ea5"> prio </tspan><tspan fill="#ec6d3d">10</tspan></text><text x="470" y="188" text-anchor="end" fill="#9b9ea5">0.4s <tspan fill="#a29aff">✓</tspan></text></g>
+        <g class="mxCall"><rect x="22" y="190" width="9" height="9" fill="#a29aff"/>
+        <text x="42" y="200"><tspan fill="#a29aff" font-weight="700">upsert_dns_record</tspan><tspan fill="#9b9ea5"></tspan></text></g>
+        <g class="mxResult"><text x="42" y="226" xml:space="preserve"><tspan fill="#9b9ea5">MX  </tspan><tspan fill="#ec6d3d">@ → mail.example.no</tspan><tspan fill="#9b9ea5"> prio </tspan><tspan fill="#ec6d3d">10</tspan></text><text x="506" y="200" text-anchor="end" fill="#9b9ea5">0.4s <tspan fill="#a29aff">✓</tspan></text></g>
 
-        <g class="spfCall"><rect x="22" y="243" width="8" height="8" fill="#a29aff"/>
-        <text x="42" y="252"><tspan fill="#a29aff" font-weight="700">upsert_dns_record</tspan><tspan fill="#9b9ea5"></tspan></text></g>
-        <g class="spfResult"><text x="42" y="276" xml:space="preserve"><tspan fill="#9b9ea5">TXT </tspan><tspan fill="#ec6d3d">@ "v=spf1 mx ~all"</tspan></text><text x="470" y="252" text-anchor="end" fill="#9b9ea5">0.4s <tspan fill="#a29aff">✓</tspan></text></g>
+        <g class="spfCall"><rect x="22" y="260" width="9" height="9" fill="#a29aff"/>
+        <text x="42" y="270"><tspan fill="#a29aff" font-weight="700">upsert_dns_record</tspan><tspan fill="#9b9ea5"></tspan></text></g>
+        <g class="spfResult"><text x="42" y="296" xml:space="preserve"><tspan fill="#9b9ea5">TXT </tspan><tspan fill="#ec6d3d">@ "v=spf1 mx ~all"</tspan></text><text x="506" y="270" text-anchor="end" fill="#9b9ea5">0.4s <tspan fill="#a29aff">✓</tspan></text></g>
 
-        <g class="dkimCall"><rect x="22" y="307" width="8" height="8" fill="#a29aff"/>
-        <text x="42" y="316"><tspan fill="#a29aff" font-weight="700">upsert_dns_record</tspan><tspan fill="#9b9ea5"></tspan></text></g>
-        <g class="dkimResult"><text x="42" y="340" xml:space="preserve"><tspan fill="#9b9ea5">TXT </tspan><tspan fill="#ec6d3d">mail._domainkey "v=DKIM1; p=MIIB…"</tspan></text><text x="470" y="316" text-anchor="end" fill="#9b9ea5">0.5s <tspan fill="#a29aff">✓</tspan></text></g>
+        <g class="dkimCall"><rect x="22" y="330" width="9" height="9" fill="#a29aff"/>
+        <text x="42" y="340"><tspan fill="#a29aff" font-weight="700">upsert_dns_record</tspan><tspan fill="#9b9ea5"></tspan></text></g>
+        <g class="dkimResult"><text x="42" y="366" xml:space="preserve"><tspan fill="#9b9ea5">TXT </tspan><tspan fill="#ec6d3d">mail._domainkey "v=DKIM1; p=MIIB…"</tspan></text><text x="506" y="340" text-anchor="end" fill="#9b9ea5">0.5s <tspan fill="#a29aff">✓</tspan></text></g>
 
         <g class="done">
-          <rect x="22" y="362" width="448" height="36" rx="4" fill="none" stroke="#a29aff" stroke-width="1.5"/>
-          <text x="36" y="385" fill="#a29aff">✓ example.no can receive mail · 3 records</text>
-        </g>
-      </g>
-
-      <g class="actTwo">
-        <text x="42" y="84" fill="#e9ebef" class="typeTwo">Delete the old A record for www</text>
-        <g class="cursorTwo"><rect class="blink" x="42" y="71" width="9" height="17" fill="#a29aff"/></g>
-
-        <g class="listCallTwo"><rect x="22" y="115" width="8" height="8" fill="#a29aff"/>
-        <text x="42" y="124"><tspan fill="#a29aff" font-weight="700">list_dns_records</tspan><tspan fill="#9b9ea5"> domain_id=1337 host=www</tspan></text></g>
-        <g class="listResultTwo"><text x="42" y="148" fill="#9b9ea5">└ 1 record · www A 198.51.100.4</text><text x="470" y="124" text-anchor="end" fill="#9b9ea5">0.3s <tspan fill="#a29aff">✓</tspan></text></g>
-
-        <g class="blocked">
-          <rect x="22" y="180" width="448" height="62" rx="4" fill="none" stroke="#ec6d3d" stroke-width="1.5"/>
-          <text x="36" y="205" fill="#ec6d3d" font-weight="700">✕ delete_dns_record is not available</text>
-          <text x="36" y="227" fill="#9b9ea5">read-only mode hides every write tool</text>
+          <rect x="22" y="392" width="484" height="38" rx="4" fill="none" stroke="#a29aff" stroke-width="1.5"/>
+          <text x="38" y="417" fill="#a29aff">✓ example.no can receive mail · 3 records</text>
         </g>
 
-        <g class="reply">
-          <text x="22" y="276" fill="#e9ebef">I can look, but not change anything here.</text>
-          <text x="22" y="298" fill="#9b9ea5">Unset DOMENESHOP_READ_ONLY to allow edits.</text>
+        <g class="actTwo">
+          <text x="22" y="484" fill="#9b9ea5" class="promptTwo">&gt;</text>
+          <text x="42" y="484" fill="#e9ebef" class="typeTwo">Delete the old A record for www</text>
+          <g class="cursorTwo"><rect class="blink" x="42" y="469" width="10.2" height="20" fill="#a29aff"/></g>
+
+          <g class="listCallTwo"><rect x="22" y="520" width="9" height="9" fill="#a29aff"/>
+        <text x="42" y="530"><tspan fill="#a29aff" font-weight="700">list_dns_records</tspan><tspan fill="#9b9ea5"> domain_id=1337</tspan></text></g>
+          <g class="listResultTwo"><text x="42" y="556" fill="#9b9ea5">└ 1 record · www A 198.51.100.4</text><text x="506" y="530" text-anchor="end" fill="#9b9ea5">0.3s <tspan fill="#a29aff">✓</tspan></text></g>
+
+          <g class="blocked">
+            <rect x="22" y="584" width="484" height="66" rx="4" fill="none" stroke="#ec6d3d" stroke-width="1.5"/>
+            <text x="38" y="610" fill="#ec6d3d" font-weight="700">✕ delete_dns_record is not available</text>
+            <text x="38" y="634" fill="#9b9ea5">read-only mode hides every write tool</text>
+          </g>
+
+          <g class="reply">
+            <text x="22" y="684" fill="#e9ebef">I can look, but not change anything here.</text>
+            <text x="22" y="708" fill="#9b9ea5">Unset DOMENESHOP_READ_ONLY to allow edits.</text>
+          </g>
         </g>
       </g>
     </g>
   </g>
 
   <line x1="72" y1="556" x2="1208" y2="556" stroke="#2e3034" stroke-width="1.5"/>
-  <text x="72" y="587" class="mono" font-size="14" letter-spacing="3" fill="#e9ebef">NPX DOMENESHOP-MCP</text>
-  <g transform="translate(486.4 568)">
-    <rect width="156.8" height="28" rx="4" fill="none" stroke="#a29aff" stroke-width="1.5"/>
-    <text x="79.4" y="19" text-anchor="middle" class="mono" font-size="12" letter-spacing="2" fill="#a29aff">READ-ONLY MODE</text>
+  <text x="72" y="587" class="mono" font-size="15" letter-spacing="3" fill="#e9ebef">NPX DOMENESHOP-MCP</text>
+  <g transform="translate(473.8 566)">
+    <rect width="159.6" height="30" rx="4" fill="none" stroke="#a29aff" stroke-width="1.5"/>
+    <text x="80.6" y="20" text-anchor="middle" class="mono" font-size="13" letter-spacing="1.6" fill="#a29aff">READ-ONLY MODE</text>
   </g>
-  <g transform="translate(653.2 568)">
-    <rect width="193.6" height="28" rx="4" fill="none" stroke="#2e3034" stroke-width="1.5"/>
-    <text x="97.8" y="19" text-anchor="middle" class="mono" font-size="12" letter-spacing="2" fill="#cfd1d5">ALLOW / DENY LISTS</text>
+  <g transform="translate(643.4 566)">
+    <rect width="197.2" height="30" rx="4" fill="none" stroke="#2e3034" stroke-width="1.5"/>
+    <text x="99.4" y="20" text-anchor="middle" class="mono" font-size="13" letter-spacing="1.6" fill="#cfd1d5">ALLOW / DENY LISTS</text>
   </g>
-  <g transform="translate(856.8 568)">
-    <rect width="166.0" height="28" rx="4" fill="none" stroke="#2e3034" stroke-width="1.5"/>
-    <text x="84.0" y="19" text-anchor="middle" class="mono" font-size="12" letter-spacing="2" fill="#cfd1d5">VALIDATED INPUT</text>
+  <g transform="translate(850.6 566)">
+    <rect width="169.0" height="30" rx="4" fill="none" stroke="#2e3034" stroke-width="1.5"/>
+    <text x="85.3" y="20" text-anchor="middle" class="mono" font-size="13" letter-spacing="1.6" fill="#cfd1d5">VALIDATED INPUT</text>
   </g>
-  <g transform="translate(1032.8 568)">
-    <rect width="175.2" height="28" rx="4" fill="none" stroke="#2e3034" stroke-width="1.5"/>
-    <text x="88.6" y="19" text-anchor="middle" class="mono" font-size="12" letter-spacing="2" fill="#cfd1d5">17 TOOLS · STDIO</text>
+  <g transform="translate(1029.6 566)">
+    <rect width="178.4" height="30" rx="4" fill="none" stroke="#2e3034" stroke-width="1.5"/>
+    <text x="90.0" y="20" text-anchor="middle" class="mono" font-size="13" letter-spacing="1.6" fill="#cfd1d5">17 TOOLS · STDIO</text>
   </g>
 </svg>
