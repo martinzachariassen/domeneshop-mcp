@@ -135,30 +135,6 @@
         55.016%, 100% { opacity: 0; transform: translateY(0); }
       }
       .done { animation: done 19.14s ease-out infinite; }
-      @keyframes trackerLabel {
-        0%, 22.623% { opacity: 0; transform: translateY(4px); }
-        24.451%, 52.403% { opacity: 1; transform: translateY(0); }
-        55.016%, 100% { opacity: 0; transform: translateY(0); }
-      }
-      .trackerLabel { animation: trackerLabel 19.14s ease-out infinite; }
-      @keyframes trackerMx {
-        0%, 22.623% { opacity: 0; transform: translateY(4px); }
-        24.451%, 52.403% { opacity: 1; transform: translateY(0); }
-        55.016%, 100% { opacity: 0; transform: translateY(0); }
-      }
-      .trackerMx { animation: trackerMx 19.14s ease-out infinite; }
-      @keyframes trackerSpf {
-        0%, 28.37% { opacity: 0; transform: translateY(4px); }
-        30.199%, 52.403% { opacity: 1; transform: translateY(0); }
-        55.016%, 100% { opacity: 0; transform: translateY(0); }
-      }
-      .trackerSpf { animation: trackerSpf 19.14s ease-out infinite; }
-      @keyframes trackerDkim {
-        0%, 36.729% { opacity: 0; transform: translateY(4px); }
-        38.558%, 52.403% { opacity: 1; transform: translateY(0); }
-        55.016%, 100% { opacity: 0; transform: translateY(0); }
-      }
-      .trackerDkim { animation: trackerDkim 19.14s ease-out infinite; }
       @keyframes promptTwo {
         0%, 57.106% { opacity: 0; transform: translateY(4px); }
         58.934%, 94.253% { opacity: 1; transform: translateY(0); }
@@ -258,21 +234,6 @@
   <text x="72" y="196" class="mono" font-size="16" letter-spacing="4.5" fill="#3b3d40">MCP SERVER<tspan fill="#4d4691" dx="10">/</tspan><tspan dx="10">DOMENESHOP API</tspan></text>
   <text x="66" y="306" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="#101214">Domeneshop</text>
   <text x="66" y="406" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="#101214">MCP</text>
-  <g transform="translate(340 344)">
-    <text class="mono trackerLabel" font-size="12" letter-spacing="3" fill="#5c6166">EXAMPLE.NO · MAIL SETUP</text>
-    <g class="trackerMx">
-      <rect x="0.0" y="16" width="65.6" height="30" rx="4" fill="none" stroke="#4d4691" stroke-width="1.5"/>
-      <text x="33.6" y="36" text-anchor="middle" class="mono" font-size="13" letter-spacing="1.6" fill="#4d4691">✓ MX</text>
-    </g>
-    <g class="trackerSpf">
-      <rect x="75.6" y="16" width="75.0" height="30" rx="4" fill="none" stroke="#4d4691" stroke-width="1.5"/>
-      <text x="113.9" y="36" text-anchor="middle" class="mono" font-size="13" letter-spacing="1.6" fill="#4d4691">✓ SPF</text>
-    </g>
-    <g class="trackerDkim">
-      <rect x="160.6" y="16" width="84.4" height="30" rx="4" fill="none" stroke="#4d4691" stroke-width="1.5"/>
-      <text x="203.6" y="36" text-anchor="middle" class="mono" font-size="13" letter-spacing="1.6" fill="#4d4691">✓ DKIM</text>
-    </g>
-  </g>
   <text class="mono" font-size="21" fill="#3b3d40">
     <tspan x="72" y="468">Domains, DNS, HTTP forwards, dynamic DNS</tspan>
     <tspan x="72" dy="32">and invoices — from any AI assistant.</tspan>
