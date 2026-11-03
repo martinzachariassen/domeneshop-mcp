@@ -1,4 +1,4 @@
-name: spec-drift
+name: API spec drift check
 
 # Domeneshop can change its API docs without notice. This compares the
 # published OpenAPI spec with test/contract/domeneshop-openapi.json weekly.
