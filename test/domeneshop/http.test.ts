@@ -7,7 +7,13 @@ import {
   parseRetryAfter,
   type RequestEvent,
 } from "#domeneshop/http.js";
-import { sendJson, startTestServer, withTestServer } from "#testing/testServer.js";
+import {
+  dropConnection,
+  neverRespond,
+  sendJson,
+  startTestServer,
+  withTestServer,
+} from "#testing/testServer.js";
 
 describe("HttpTransport", () => {
   it("sends HTTP Basic Auth credentials", async () => {
@@ -215,7 +221,28 @@ describe("HttpTransport", () => {
     );
   });
 
-  it("never retries POST, since a create may already have happened", async () => {
+  it("retries a POST rate limited with 429, since the server did not process it", async () => {
+    let calls = 0;
+    await withTestServer(
+      (_req, res) => {
+        calls++;
+        if (calls === 1) {
+          res.writeHead(429, { "Retry-After": "0" });
+          res.end();
+          return;
+        }
+        sendJson(res, 201, { id: 7 });
+      },
+      async (server) => {
+        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
+        const { data } = await transport.request<{ id: number }>("POST", "/things", { body: {} });
+        expect(data).toEqual({ id: 7 });
+        expect(server.requests).toHaveLength(2);
+      },
+    );
+  });
+
+  it("never retries a POST on 5xx, since a create may already have happened", async () => {
     await withTestServer(
       (_req, res) => {
         res.writeHead(503);
@@ -249,21 +276,16 @@ describe("HttpTransport", () => {
   });
 
   it("times out a request that never answers", async () => {
-    await withTestServer(
-      () => {
-        // never respond
-      },
-      async (server) => {
-        const transport = new HttpTransport("token", "secret", {
-          baseUrl: server.baseUrl,
-          timeoutMs: 50,
-          maxRetries: 0,
-        });
-        const error = await transport.request("GET", "/slow").catch((e: unknown) => e);
-        expect(error).toBeInstanceOf(DomeneshopNetworkError);
-        expect((error as Error).message).toBe("domeneshop: GET /slow timed out after 50 ms");
-      },
-    );
+    await withTestServer(neverRespond, async (server) => {
+      const transport = new HttpTransport("token", "secret", {
+        baseUrl: server.baseUrl,
+        timeoutMs: 50,
+        maxRetries: 0,
+      });
+      const error = await transport.request("GET", "/slow").catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(DomeneshopNetworkError);
+      expect((error as Error).message).toBe("domeneshop: GET /slow timed out after 50 ms");
+    });
   });
 
   it("wraps connection failures in DomeneshopNetworkError", async () => {
@@ -278,22 +300,17 @@ describe("HttpTransport", () => {
   });
 
   it("warns that a timed-out POST may still have been applied", async () => {
-    await withTestServer(
-      () => {
-        // never respond
-      },
-      async (server) => {
-        const transport = new HttpTransport("token", "secret", {
-          baseUrl: server.baseUrl,
-          timeoutMs: 50,
-        });
-        const error = await transport.request("POST", "/things").catch((e: unknown) => e);
-        expect(error).toBeInstanceOf(DomeneshopNetworkError);
-        expect((error as Error).message).toContain("timed out after 50 ms");
-        expect((error as Error).message).toContain("may still have been applied");
-        expect(server.requests).toHaveLength(1);
-      },
-    );
+    await withTestServer(neverRespond, async (server) => {
+      const transport = new HttpTransport("token", "secret", {
+        baseUrl: server.baseUrl,
+        timeoutMs: 50,
+      });
+      const error = await transport.request("POST", "/things").catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(DomeneshopNetworkError);
+      expect((error as Error).message).toContain("timed out after 50 ms");
+      expect((error as Error).message).toContain("may still have been applied");
+      expect(server.requests).toHaveLength(1);
+    });
   });
 
   it("treats a 404 on a retried DELETE as success when the first attempt was lost", async () => {
@@ -302,8 +319,7 @@ describe("HttpTransport", () => {
       (req, res) => {
         calls++;
         if (calls === 1) {
-          // The server got the DELETE but the connection dies before a response.
-          req.socket.destroy();
+          dropConnection(req);
           return;
         }
         res.writeHead(404);
@@ -318,6 +334,31 @@ describe("HttpTransport", () => {
           data: undefined,
         });
         expect(server.requests).toHaveLength(2);
+      },
+    );
+  });
+
+  it("treats a 404 on a DELETE as success when any earlier attempt was lost", async () => {
+    let calls = 0;
+    await withTestServer(
+      (req, res) => {
+        calls++;
+        if (calls === 1) {
+          dropConnection(req);
+          return;
+        }
+        res.writeHead(calls === 2 ? 503 : 404);
+        res.end();
+      },
+      async (server) => {
+        const transport = new HttpTransport("token", "secret", {
+          baseUrl: server.baseUrl,
+          retryBaseDelayMs: 1,
+        });
+        await expect(transport.request("DELETE", "/things/1")).resolves.toMatchObject({
+          data: undefined,
+        });
+        expect(server.requests).toHaveLength(3);
       },
     );
   });
@@ -338,18 +379,13 @@ describe("HttpTransport", () => {
   });
 
   it("aborts an in-flight request when the caller's signal fires", async () => {
-    await withTestServer(
-      () => {
-        // never respond
-      },
-      async (server) => {
-        const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
-        const controller = new AbortController();
-        const pending = transport.request("GET", "/slow", { signal: controller.signal });
-        controller.abort(new Error("cancelled by client"));
-        await expect(pending).rejects.toThrow("cancelled by client");
-      },
-    );
+    await withTestServer(neverRespond, async (server) => {
+      const transport = new HttpTransport("token", "secret", { baseUrl: server.baseUrl });
+      const controller = new AbortController();
+      const pending = transport.request("GET", "/slow", { signal: controller.signal });
+      controller.abort(new Error("cancelled by client"));
+      await expect(pending).rejects.toThrow("cancelled by client");
+    });
   });
 
   it("aborts a pending retry wait when the caller's signal fires", async () => {
