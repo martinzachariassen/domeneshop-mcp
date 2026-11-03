@@ -57,12 +57,13 @@ const CALLS: Record<string, [(client: DomeneshopClient) => Promise<unknown>, unk
   "DELETE /domains/{domainId}/dns/{recordId}": [(c) => c.dns.delete(1, 1), undefined],
   "GET /domains/{domainId}/forwards/": [(c) => c.forwards.list(1), [FORWARD_FULL, FORWARD_MINIMAL]],
   "POST /domains/{domainId}/forwards/": [(c) => c.forwards.create(1, FORWARD_FULL), FORWARD_FULL],
-  "GET /domains/{domainId}/forwards/{host}": [(c) => c.forwards.get(1, "www"), FORWARD_FULL],
+  // A host the list does not contain, so a 404 by host stays a 404 after the list fallback.
+  "GET /domains/{domainId}/forwards/{host}": [(c) => c.forwards.get(1, "shop"), FORWARD_FULL],
   "PUT /domains/{domainId}/forwards/{host}": [
-    (c) => c.forwards.update(1, "www", FORWARD_FULL),
+    (c) => c.forwards.update(1, "shop", FORWARD_FULL),
     FORWARD_FULL,
   ],
-  "DELETE /domains/{domainId}/forwards/{host}": [(c) => c.forwards.delete(1, "www"), undefined],
+  "DELETE /domains/{domainId}/forwards/{host}": [(c) => c.forwards.delete(1, "shop"), undefined],
   "GET /invoices": [(c) => c.invoices.list(), [INVOICE_FULL, INVOICE_MINIMAL, CREDIT_NOTE]],
   "GET /invoices/{invoiceId}": [(c) => c.invoices.get(1), INVOICE_FULL],
   "GET /dyndns/update": [(c) => c.dynDns.update("www.example.com"), undefined],
@@ -147,6 +148,15 @@ describe("client requests match the spec", () => {
         "/domains/1/forwards/a%2Fb",
       ]);
     });
+  });
+
+  it("returns the sent forward when a forward update answers 204, as the live API does", async () => {
+    await withSpecServer(
+      async (client) => {
+        await expect(client.forwards.update(1, "www", FORWARD_FULL)).resolves.toEqual(FORWARD_FULL);
+      },
+      (key) => (key.startsWith("PUT") ? { status: 204 } : undefined),
+    );
   });
 
   it("falls back to the sent forward when the 201 carries no Location", async () => {

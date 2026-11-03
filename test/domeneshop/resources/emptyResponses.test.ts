@@ -27,10 +27,6 @@ describe("responses with an empty body", () => {
     ["DNS record", (c) => c.dns.get(1, 1)],
     ["created DNS record", (c) => c.dns.create(1, { host: "@", type: "TXT", data: "x" })],
     ["forward", (c) => c.forwards.get(1, "www")],
-    [
-      "updated forward",
-      (c) => c.forwards.update(1, "www", { host: "www", url: "https://x.no", frame: false }),
-    ],
     ["invoice", (c) => c.invoices.get(1)],
   ])("fail clearly for a single %s", async (what, call) => {
     await withEmptyBodies(async (client) => {
