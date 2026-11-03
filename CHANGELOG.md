@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 2.0.7
+
+### Patch Changes
+
+- [#83](https://github.com/martinzachariassen/domeneshop-mcp/pull/83) [`deebe8d`](https://github.com/martinzachariassen/domeneshop-mcp/commit/deebe8d1cb2712a914013613e8b770f73b6e1d6d) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Remove the mail-setup tracker from the README banner so the session card is the only animated focus. No change to the server's behaviour.
+
 ## 2.0.6
 
 ### Patch Changes
