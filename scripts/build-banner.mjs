@@ -65,6 +65,9 @@ const THEMES = {
 /** @typedef {{ time: number, chars: number }} Waypoint */
 /** @typedef {{ waypoints: Waypoint[], finish: number, length: number }} Typing */
 
+const DESCRIPTION =
+  "An assistant session. Asked to set up email for example.no, the assistant lists the DNS records and creates MX, SPF and DKIM records. In read-only mode, a request to delete a record is declined because the write tools are hidden.";
+
 const ACT_ONE_PROMPT = "Set up email for example.no";
 const ACT_TWO_PROMPT = "Delete the old A record for www";
 
@@ -240,6 +243,10 @@ const sequence = [
   appear("dkimCall", dkimCallAt, ACT_ONE_END),
   appear("dkimResult", dkimResultAt, ACT_ONE_END),
   appear("done", doneAt, ACT_ONE_END),
+  appear("trackerLabel", mxResultAt, ACT_ONE_END),
+  appear("trackerMx", mxResultAt, ACT_ONE_END),
+  appear("trackerSpf", spfResultAt, ACT_ONE_END),
+  appear("trackerDkim", dkimResultAt, ACT_ONE_END),
   appear("promptTwo", typingTwo.waypoints[0]?.time ?? scrollBEnd, ACT_TWO_END),
   typed("typeTwo", typingTwo, ACT_TWO_END),
   cursor("cursorTwo", scrollBEnd - 0.1, typingTwo, ACT_TWO_END),
@@ -298,6 +305,32 @@ const renderChips = (t) => {
     .join("\n  ");
 };
 
+const TRACKER_PILLS = [
+  { name: "trackerMx", label: "✓ MX" },
+  { name: "trackerSpf", label: "✓ SPF" },
+  { name: "trackerDkim", label: "✓ DKIM" },
+];
+const TRACKER_PILL_HEIGHT = 30;
+const TRACKER_PILL_GAP = 10;
+
+/** @param {Theme} t */
+const renderTracker = (t) => {
+  let left = 0;
+  const pills = TRACKER_PILLS.map(({ name, label }) => {
+    const width = chipWidth(label);
+    const x = left;
+    left += width + TRACKER_PILL_GAP;
+    return `<g class="${name}">
+      <rect x="${x.toFixed(1)}" y="16" width="${width.toFixed(1)}" height="${TRACKER_PILL_HEIGHT}" rx="4" fill="none" stroke="${t.accent}" stroke-width="1.5"/>
+      <text x="${(x + width / 2 + CHIP_SPACING / 2).toFixed(1)}" y="36" text-anchor="middle" class="mono" font-size="${CHIP_FONT_SIZE}" letter-spacing="${CHIP_SPACING}" fill="${t.accent}">${label}</text>
+    </g>`;
+  }).join("\n    ");
+  return `<g transform="translate(340 344)">
+    <text class="mono trackerLabel" font-size="12" letter-spacing="3" fill="${t.muted}">EXAMPLE.NO · MAIL SETUP</text>
+    ${pills}
+  </g>`;
+};
+
 /** @param {Theme} t @param {{ name: string, args: string, y: number }} call */
 const toolCall = (t, { name, args, y }) =>
   `<rect x="22" y="${y - 10}" width="9" height="9" fill="${t.accent}"/>
@@ -315,8 +348,9 @@ const cursorBlock = (t, y) =>
 const render = (
   t,
   fontFaces,
-) => `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="banner-title">
+) => `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="banner-title banner-desc">
   <title id="banner-title">domeneshop-mcp — MCP server for Domeneshop domains, DNS, HTTP forwards, dynamic DNS and invoices</title>
+  <desc id="banner-desc">${DESCRIPTION}</desc>
   <defs>
     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
       <path d="M40 0 H0 V40" fill="none" stroke="${t.line}" stroke-width="1" stroke-opacity="${t.gridOpacity}"/>
@@ -336,15 +370,15 @@ const render = (
       ${fontFaces}
       .mono { font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
       .display { font-family: Newsreader, Georgia, "Times New Roman", serif; font-style: italic; }
-      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-      @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-      .live { animation: pulse 2s ease-in-out infinite; }
-      .blink { animation: blink 1.1s steps(1, end) infinite; }
-      ${sequence}
-      @media (prefers-reduced-motion: reduce) {
-        .live, .blink, ${animatedClasses.map((name) => `.${name}`).join(", ")} { animation: none; }
-        .scroll { transform: translateY(-${SCROLL_A}px); }
-        .actTwo, .statusReadOnly, .cursorOne { display: none; }
+      .scroll { transform: translateY(-${SCROLL_A}px); }
+      .actTwo, .statusReadOnly, .cursorOne { display: none; }
+      @media (prefers-reduced-motion: no-preference) {
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+        @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+        .actTwo, .statusReadOnly, .cursorOne { display: inline; }
+        .live { animation: pulse 2s ease-in-out infinite; }
+        .blink { animation: blink 1.1s steps(1, end) infinite; }
+        ${sequence}
       }
     </style>
   </defs>
@@ -373,6 +407,7 @@ const render = (
   <text x="72" y="196" class="mono" font-size="16" letter-spacing="4.5" fill="${t.soft}">MCP SERVER<tspan fill="${t.accent}" dx="10">/</tspan><tspan dx="10">DOMENESHOP API</tspan></text>
   <text x="66" y="306" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="${t.ink}">Domeneshop</text>
   <text x="66" y="406" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="${t.ink}">MCP</text>
+  ${renderTracker(t)}
   <text class="mono" font-size="21" fill="${t.soft}">
     <tspan x="72" y="468">Domains, DNS, HTTP forwards, dynamic DNS</tspan>
     <tspan x="72" dy="32">and invoices — from any AI assistant.</tspan>
@@ -458,6 +493,10 @@ const PLEX_FONTS = [
 ];
 const NEWSREADER = "@fontsource/newsreader/files/newsreader-latin-500-italic.woff2";
 
+/** @param {string} svg */
+const unusedClasses = (svg) =>
+  animatedClasses.filter((name) => !new RegExp(`class="[^"]*\\b${name}\\b`).test(svg));
+
 for (const [name, theme] of Object.entries(THEMES)) {
   const characters = [...new Set(visibleText(render(theme, "")))].join("");
   const fontFaces = (
@@ -474,5 +513,10 @@ for (const [name, theme] of Object.entries(THEMES)) {
       }),
     ])
   ).join("\n      ");
-  writeFileSync(`${ASSET_DIR}banner-${name}.svg`, render(theme, fontFaces));
+  const svg = render(theme, fontFaces);
+  const unused = unusedClasses(svg);
+  if (unused.length > 0) {
+    throw new Error(`Animated classes missing from the markup: ${unused.join(", ")}`);
+  }
+  writeFileSync(`${ASSET_DIR}banner-${name}.svg`, svg);
 }
