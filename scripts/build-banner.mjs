@@ -250,10 +250,6 @@ const sequence = [
   appear("dkimCall", dkimCallAt, ACT_ONE_END),
   appear("dkimResult", dkimResultAt, ACT_ONE_END),
   appear("done", doneAt, ACT_ONE_END),
-  appear("trackerLabel", mxResultAt, ACT_ONE_END),
-  appear("trackerMx", mxResultAt, ACT_ONE_END),
-  appear("trackerSpf", spfResultAt, ACT_ONE_END),
-  appear("trackerDkim", dkimResultAt, ACT_ONE_END),
   appear("promptTwo", typingTwo.waypoints[0]?.time ?? scrollBEnd, ACT_TWO_END),
   typed("typeTwo", typingTwo, ACT_TWO_END),
   cursor("cursorTwo", scrollBEnd - 0.1, typingTwo, ACT_TWO_END),
@@ -310,32 +306,6 @@ const renderChips = (t) => {
     })
     .reverse()
     .join("\n  ");
-};
-
-const TRACKER_PILLS = [
-  { name: "trackerMx", label: "✓ MX" },
-  { name: "trackerSpf", label: "✓ SPF" },
-  { name: "trackerDkim", label: "✓ DKIM" },
-];
-const TRACKER_PILL_HEIGHT = 30;
-const TRACKER_PILL_GAP = 10;
-
-/** @param {Theme} t */
-const renderTracker = (t) => {
-  let left = 0;
-  const pills = TRACKER_PILLS.map(({ name, label }) => {
-    const width = chipWidth(label);
-    const x = left;
-    left += width + TRACKER_PILL_GAP;
-    return `<g class="${name}">
-      <rect x="${x.toFixed(1)}" y="16" width="${width.toFixed(1)}" height="${TRACKER_PILL_HEIGHT}" rx="4" fill="none" stroke="${t.accent}" stroke-width="1.5"/>
-      <text x="${(x + width / 2 + CHIP_SPACING / 2).toFixed(1)}" y="36" text-anchor="middle" class="mono" font-size="${CHIP_FONT_SIZE}" letter-spacing="${CHIP_SPACING}" fill="${t.accent}">${label}</text>
-    </g>`;
-  }).join("\n    ");
-  return `<g transform="translate(340 344)">
-    <text class="mono trackerLabel" font-size="12" letter-spacing="3" fill="${t.muted}">EXAMPLE.NO · MAIL SETUP</text>
-    ${pills}
-  </g>`;
 };
 
 /** @param {Theme} t @param {{ name: string, args: string, y: number }} call */
@@ -415,7 +385,6 @@ const render = (
   <text x="72" y="196" class="mono" font-size="16" letter-spacing="4.5" fill="${t.soft}">MCP SERVER<tspan fill="${t.accent}" dx="10">/</tspan><tspan dx="10">DOMENESHOP API</tspan></text>
   <text x="66" y="306" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="${t.ink}">Domeneshop</text>
   <text x="66" y="406" class="display" font-size="106" font-weight="500" letter-spacing="-1.5" fill="${t.ink}">MCP</text>
-  ${renderTracker(t)}
   <text class="mono" font-size="21" fill="${t.soft}">
     <tspan x="72" y="468">Domains, DNS, HTTP forwards, dynamic DNS</tspan>
     <tspan x="72" dy="32">and invoices — from any AI assistant.</tspan>
