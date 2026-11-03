@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 2.0.6
+
+### Patch Changes
+
+- [#81](https://github.com/martinzachariassen/domeneshop-mcp/pull/81) [`5637b2a`](https://github.com/martinzachariassen/domeneshop-mcp/commit/5637b2aac5cf7a5c92c0f7810f30afed35d64e07) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Animate the README banner with an email-setup scenario and a read-only act, and add a social preview image. No change to the server's behaviour.
+
 ## 2.0.5
 
 ### Patch Changes
