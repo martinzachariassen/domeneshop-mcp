@@ -477,14 +477,11 @@ const render = (
 </svg>
 `;
 
-/** @param {string} svg */
-const visibleText = (svg) =>
-  svg
-    .replace(/<style>[\s\S]*?<\/style>/g, "")
-    .replace(/<[^>]*>/g, "")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&amp;", "&");
+const PRINTABLE_ASCII = Array.from({ length: 95 }, (_, index) =>
+  String.fromCharCode(32 + index),
+).join("");
+const SYMBOLS = "·—→✓✕└…●";
+const SUBSET_CHARACTERS = PRINTABLE_ASCII + SYMBOLS;
 
 const PLEX_FONTS = [
   {
@@ -505,22 +502,28 @@ const unusedClasses = (svg) =>
 /** @type {string[]} */
 const problems = [];
 
-for (const [name, theme] of Object.entries(THEMES)) {
-  const characters = [...new Set(visibleText(render(theme, "")))].join("");
-  const fontFaces = (
-    await Promise.all([
-      ...PLEX_FONTS.map(({ weight, specifier }) =>
-        embedFont({ family: "IBM Plex Mono", weight, style: "normal", specifier, characters }),
-      ),
+const fontFaces = (
+  await Promise.all([
+    ...PLEX_FONTS.map(({ weight, specifier }) =>
       embedFont({
-        family: "Newsreader",
-        weight: 500,
-        style: "italic",
-        specifier: NEWSREADER,
-        characters: "DomeneshopMCP",
+        family: "IBM Plex Mono",
+        weight,
+        style: "normal",
+        specifier,
+        characters: SUBSET_CHARACTERS,
       }),
-    ])
-  ).join("\n      ");
+    ),
+    embedFont({
+      family: "Newsreader",
+      weight: 500,
+      style: "italic",
+      specifier: NEWSREADER,
+      characters: "DomeneshopMCP",
+    }),
+  ])
+).join("\n      ");
+
+for (const [name, theme] of Object.entries(THEMES)) {
   const svg = render(theme, fontFaces);
   const unused = unusedClasses(svg);
   if (unused.length > 0) {
