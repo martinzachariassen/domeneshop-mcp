@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 2.0.4
+
+### Patch Changes
+
+- [#75](https://github.com/martinzachariassen/domeneshop-mcp/pull/75) [`0e8c5fc`](https://github.com/martinzachariassen/domeneshop-mcp/commit/0e8c5fc789c65d2551cf3d51130010795857e509) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Reorganise the README for faster onboarding: a three-step getting started guide, collapsible per-client setup, and a single tool table. Development notes moved to CONTRIBUTING.md and undocumented API behaviour to docs/api-notes.md.
+
 ## 2.0.3
 
 ### Patch Changes
