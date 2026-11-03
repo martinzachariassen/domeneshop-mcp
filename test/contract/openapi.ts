@@ -70,6 +70,17 @@ function withOverlay(source: Spec): Spec {
     };
     oneOf.push({ $ref: `#/components/schemas/${type}` });
   }
+
+  // Where the live API differs from the spec (observed with the E2E suite, November 2026):
+  // credit notes have type "credit_note" (the spec misspells it "credit_node"), and
+  // PUT on a forward answers 204 without a body instead of 200 with the forward.
+  const invoiceType = (schemas["Invoice"] as { properties: Record<string, { enum: string[] }> })
+    .properties["type"];
+  invoiceType?.enum.push("credit_note");
+  const putForward = copy.paths["/domains/{domainId}/forwards/{host}"]?.["put"];
+  if (putForward) {
+    putForward.responses["204"] = {};
+  }
   return copy;
 }
 
@@ -267,7 +278,7 @@ export function validateRequestBody(match: MatchedOperation, body: string): stri
 
 export function validateResponse(key: string, status: number, body: unknown): string[] {
   const [method = "", path = ""] = key.split(" ");
-  const response = spec.paths[path]?.[method.toLowerCase()]?.responses[String(status)];
+  const response = overlaid.paths[path]?.[method.toLowerCase()]?.responses[String(status)];
   if (!response) {
     return [`${key}: status ${String(status)} is not documented`];
   }

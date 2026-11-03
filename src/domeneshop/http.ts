@@ -29,9 +29,10 @@ export class DomeneshopApiError extends Error {
   readonly body: string;
   readonly hint: string | undefined;
 
-  constructor(statusCode: number, body: string) {
+  /** `hint` replaces the generic advice for the status when the caller knows better. */
+  constructor(statusCode: number, body: string, hint?: string) {
     const detail = errorDetail(body);
-    const hint = STATUS_HINTS[statusCode] ?? (statusCode >= 500 ? SERVER_ERROR_HINT : undefined);
+    hint ??= STATUS_HINTS[statusCode] ?? (statusCode >= 500 ? SERVER_ERROR_HINT : undefined);
     const parts = [`domeneshop: API returned status ${String(statusCode)}`];
     if (detail) {
       parts[0] += `: ${detail}`;

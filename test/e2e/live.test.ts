@@ -14,7 +14,8 @@ const enabled = Boolean(token && secret && Number.isInteger(domainId) && domainI
 
 const suffix = randomBytes(4).toString("hex");
 const recordHost = `_mcp-e2e-${suffix}`;
-const forwardHost = `mcp-e2e-${suffix}`;
+// No hyphen: the live API cannot update or delete a forward whose host has one.
+const forwardHost = `mcpe2e${suffix}`;
 
 describe.skipIf(!enabled)("live Domeneshop API", () => {
   const api = new DomeneshopClient(token ?? "", secret ?? "");
@@ -35,13 +36,24 @@ describe.skipIf(!enabled)("live Domeneshop API", () => {
   });
 
   afterAll(async () => {
+    const leftovers: string[] = [];
     if (recordId !== undefined) {
-      await api.dns.delete(domainId, recordId).catch(() => undefined);
+      const id = recordId;
+      await api.dns.delete(domainId, id).catch((error: unknown) => {
+        leftovers.push(`DNS record ${String(id)} (${recordHost}): ${String(error)}`);
+      });
     }
     if (forwardCreated) {
-      await api.forwards.delete(domainId, forwardHost).catch(() => undefined);
+      await api.forwards.delete(domainId, forwardHost).catch((error: unknown) => {
+        leftovers.push(`forward ${forwardHost}: ${String(error)}`);
+      });
     }
     await mcp.close();
+    if (leftovers.length > 0) {
+      console.warn(
+        `E2E cleanup failed; remove these from domain ${String(domainId)} by hand:\n${leftovers.join("\n")}`,
+      );
+    }
   });
 
   describe("responses match the spec", () => {

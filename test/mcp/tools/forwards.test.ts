@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resultText, withHarness } from "#testing/mcpHarness.js";
-import { sendJson } from "#testing/testServer.js";
+import { type Handler, sendJson } from "#testing/testServer.js";
 
 describe("forward tools", () => {
   it("lists forwards for a domain", async () => {
@@ -109,7 +109,8 @@ describe("forward tools", () => {
         });
 
         expect(result.isError).toBe(true);
-        expect(harness.apiServer.requests.map((r) => r.method)).toEqual(["GET"]);
+        // The 404 by host falls back to the list, which fails too; nothing is written.
+        expect(harness.apiServer.requests.map((r) => r.method)).toEqual(["GET", "GET"]);
       },
     );
   });
@@ -129,6 +130,68 @@ describe("forward tools", () => {
         expect(result.isError).not.toBe(true);
         expect(harness.apiServer.requests[0]?.method).toBe("DELETE");
         expect(harness.apiServer.requests[0]?.url).toBe("/domains/42/forwards/www");
+      },
+    );
+  });
+
+  describe("with a host the live API cannot address by host", () => {
+    const stored = { host: "my-app", url: "https://example.com", frame: true };
+    // Like the live API: 404 by host for a hyphenated host, but listed.
+    const api: Handler = (req, res) => {
+      if (req.method === "GET" && req.url === "/domains/42/forwards/") {
+        sendJson(res, 200, [stored]);
+        return;
+      }
+      sendJson(res, 404, { code: "resource:unknown" });
+    };
+
+    it("get_forward finds it through the list", async () => {
+      await withHarness(api, async (harness) => {
+        const result = await harness.client.callTool({
+          name: "get_forward",
+          arguments: { domain_id: 42, host: "my-app" },
+        });
+
+        expect(result.isError).not.toBe(true);
+        expect(result.structuredContent).toEqual(stored);
+      });
+    });
+
+    it.each([
+      ["update_forward", { url: "https://example.org", frame: false }],
+      ["delete_forward", {}],
+    ])("%s explains that it must be done in the control panel", async (name, extra) => {
+      await withHarness(api, async (harness) => {
+        const result = await harness.client.callTool({
+          name,
+          arguments: { domain_id: 42, host: "my-app", ...extra },
+        });
+
+        expect(result.isError).toBe(true);
+        expect(resultText(result)).toContain("contains a hyphen");
+        expect(resultText(result)).toContain("control panel");
+      });
+    });
+  });
+
+  it("update_forward returns the sent forward when the API answers 204", async () => {
+    await withHarness(
+      (_req, res) => {
+        res.writeHead(204);
+        res.end();
+      },
+      async (harness) => {
+        const result = await harness.client.callTool({
+          name: "update_forward",
+          arguments: { domain_id: 42, host: "www", url: "https://example.org", frame: false },
+        });
+
+        expect(result.isError).not.toBe(true);
+        expect(result.structuredContent).toEqual({
+          host: "www",
+          url: "https://example.org",
+          frame: false,
+        });
       },
     );
   });
