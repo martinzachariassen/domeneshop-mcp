@@ -15,6 +15,10 @@ const MAX_BANNER_BYTES = 80_000;
 const CHECK_ONLY = process.argv.includes("--check");
 
 const CARD_X = 680;
+const CARD_Y = 140;
+const SHADOW_OFFSET = 8;
+const SPOTLIGHT_PAD = 96;
+const SPOTLIGHT_BLUR = 24;
 const CARD_WIDTH = 528;
 const CARD_HEIGHT = 392;
 const CARD_INNER_RIGHT = CARD_WIDTH - 22;
@@ -47,8 +51,7 @@ const THEMES = {
     corner: "#968dfd",
     string: "#ec6d3d",
     gridOpacity: "0.45",
-    glowOpacity: "0.28",
-    shadowOpacity: "0.35",
+    shadow: "#a29aff",
   },
   light: {
     background: "#ebeff2",
@@ -61,8 +64,7 @@ const THEMES = {
     corner: "#968dfd",
     string: "#c94c18",
     gridOpacity: "0.7",
-    glowOpacity: "0.28",
-    shadowOpacity: "0.16",
+    shadow: "#4d4691",
   },
 };
 
@@ -363,13 +365,13 @@ const render = (
     <pattern id="grid-major" width="160" height="160" patternUnits="userSpaceOnUse">
       <path d="M160 0 H0 V160" fill="none" stroke="${t.line}" stroke-width="1"/>
     </pattern>
-    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="${t.accent}" stop-opacity="${t.glowOpacity}"/>
-      <stop offset="1" stop-color="${t.accent}" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="${t.accent}" flood-opacity="${t.shadowOpacity}"/>
+    <filter id="spotlight-blur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="${SPOTLIGHT_BLUR}"/>
     </filter>
+    <mask id="grid-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="1280" height="640">
+      <rect width="1280" height="640" fill="#fff"/>
+      <rect x="${CARD_X - SPOTLIGHT_PAD}" y="${CARD_Y - SPOTLIGHT_PAD}" width="${CARD_WIDTH + 2 * SPOTLIGHT_PAD}" height="${CARD_HEIGHT + 2 * SPOTLIGHT_PAD}" rx="${SPOTLIGHT_PAD}" fill="#000" filter="url(#spotlight-blur)"/>
+    </mask>
     <clipPath id="feed-clip"><rect x="0" y="47" width="${CARD_WIDTH}" height="${CARD_HEIGHT - 47}"/></clipPath>
     <style>
       ${fontFaces}
@@ -389,9 +391,10 @@ const render = (
   </defs>
 
   <rect width="1280" height="640" fill="${t.background}"/>
-  <rect width="1280" height="640" fill="url(#grid)"/>
-  <rect width="1280" height="640" fill="url(#grid-major)"/>
-  <ellipse cx="${CARD_X + CARD_WIDTH / 2}" cy="336" rx="450" ry="320" fill="url(#glow)"/>
+  <g mask="url(#grid-mask)">
+    <rect width="1280" height="640" fill="url(#grid)"/>
+    <rect width="1280" height="640" fill="url(#grid-major)"/>
+  </g>
 
   <g fill="none" stroke="${t.corner}" stroke-width="2">
     <path d="M24 48 V24 H48"/><path d="M1232 24 H1256 V48"/>
@@ -418,8 +421,9 @@ const render = (
     <tspan x="72" dy="32">and invoices — from any AI assistant.</tspan>
   </text>
 
-  <g transform="translate(${CARD_X} 140)" class="mono" font-size="${FEED_FONT_SIZE}">
-    <rect width="${CARD_WIDTH}" height="${CARD_HEIGHT}" rx="4" fill="${t.card}" stroke="${t.ink}" stroke-width="1.5" filter="url(#shadow)"/>
+  <g transform="translate(${CARD_X} ${CARD_Y})" class="mono" font-size="${FEED_FONT_SIZE}">
+    <rect x="${SHADOW_OFFSET}" y="${SHADOW_OFFSET}" width="${CARD_WIDTH}" height="${CARD_HEIGHT}" rx="4" fill="${t.shadow}"/>
+    <rect width="${CARD_WIDTH}" height="${CARD_HEIGHT}" rx="4" fill="${t.card}" stroke="${t.ink}" stroke-width="1.5"/>
     <text x="22" y="30" font-size="13" letter-spacing="2.4" fill="${t.muted}">ASSISTANT SESSION</text>
     <text x="${CARD_INNER_RIGHT}" y="30" text-anchor="end" font-size="13" letter-spacing="2.4" fill="${t.accent}" class="statusConnected"><tspan class="live">●</tspan> CONNECTED</text>
     <text x="${CARD_INNER_RIGHT}" y="30" text-anchor="end" font-size="13" letter-spacing="2.4" fill="${t.string}" class="statusReadOnly" opacity="0"><tspan class="live">●</tspan> READ-ONLY · 8 TOOLS</text>
