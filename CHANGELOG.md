@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 2.0.5
+
+### Patch Changes
+
+- [#79](https://github.com/martinzachariassen/domeneshop-mcp/pull/79) [`0755ac5`](https://github.com/martinzachariassen/domeneshop-mcp/commit/0755ac52ae597d22c648ecba44d1b2df4bb9ee50) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Add `glama.json` to claim the Glama listing and give the CI workflows descriptive display names. No change to the server's behaviour.
+
 ## 2.0.4
 
 ### Patch Changes
