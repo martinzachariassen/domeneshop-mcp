@@ -1,17 +1,10 @@
 import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { destructive } from "../annotations.js";
-import { hostnameList, hostnameListField, ipListField, splitList } from "../fields.js";
+import { hostnameList, hostnameListField, ipListField, joinList, splitList } from "../fields.js";
 import type { ToolRegistrar } from "../registry.js";
 import { textResult } from "../result.js";
-import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
-
-const updateDynDNSShape = {
-  hostname: hostnameListField,
-  myip: ipListField.optional(),
-};
-type UpdateDynDNSArgs = InferShape<typeof updateDynDNSShape>;
 
 export function registerDynDNSTools(server: ToolRegistrar, client: DomeneshopClient): void {
   server.registerTool(
@@ -20,14 +13,15 @@ export function registerDynDNSTools(server: ToolRegistrar, client: DomeneshopCli
       description:
         "Point one or more hostnames at the given (or the caller's apparent) IP address using Domeneshop's dynamic DNS protocol. " +
         "The record type (A or AAAA) follows from the address; a missing record is created, an existing one overwritten.",
-      inputSchema: z.object(updateDynDNSShape),
+      inputSchema: z.object({
+        hostname: hostnameListField,
+        myip: ipListField.optional(),
+      }),
       ...destructive("Update dynamic DNS"),
     },
-    toolHandler<UpdateDynDNSArgs>(async (args, { signal }) => {
-      // The API takes bare comma-separated lists; spaces after commas would be sent verbatim.
-      const hostname = hostnameList(args.hostname).join(",");
-      const myip =
-        args.myip === undefined ? undefined : splitList(args.myip).join(",") || undefined;
+    toolHandler(async (args, { signal }) => {
+      const hostname = joinList(hostnameList(args.hostname));
+      const myip = joinList(splitList(args.myip ?? "")) || undefined;
       await client.dynDns.update(hostname, myip, { signal });
       return textResult(
         myip
