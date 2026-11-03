@@ -3,11 +3,16 @@
  * from one template, so both themes stay in sync. Animation is pure CSS and the
  * fonts are subset and embedded as WOFF2, because GitHub serves the SVG through an
  * `<img>` tag, which blocks scripts and every external request.
+ *
+ * `--check` writes nothing and exits 1 when a banner on disk is stale or too big.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import subsetFont from "subset-font";
+
+const MAX_BANNER_BYTES = 80_000;
+const CHECK_ONLY = process.argv.includes("--check");
 
 const CARD_X = 680;
 const CARD_WIDTH = 528;
@@ -497,6 +502,9 @@ const NEWSREADER = "@fontsource/newsreader/files/newsreader-latin-500-italic.wof
 const unusedClasses = (svg) =>
   animatedClasses.filter((name) => !new RegExp(`class="[^"]*\\b${name}\\b`).test(svg));
 
+/** @type {string[]} */
+const problems = [];
+
 for (const [name, theme] of Object.entries(THEMES)) {
   const characters = [...new Set(visibleText(render(theme, "")))].join("");
   const fontFaces = (
@@ -518,5 +526,23 @@ for (const [name, theme] of Object.entries(THEMES)) {
   if (unused.length > 0) {
     throw new Error(`Animated classes missing from the markup: ${unused.join(", ")}`);
   }
-  writeFileSync(`${ASSET_DIR}banner-${name}.svg`, svg);
+  const path = `${ASSET_DIR}banner-${name}.svg`;
+  if (!CHECK_ONLY) {
+    writeFileSync(path, svg);
+    continue;
+  }
+  const onDisk = existsSync(path) ? readFileSync(path, "utf8") : "";
+  if (onDisk !== svg) {
+    problems.push(`${path} is out of date; run npm run banner:build`);
+  }
+  if (Buffer.byteLength(svg) > MAX_BANNER_BYTES) {
+    problems.push(
+      `${path} is ${Buffer.byteLength(svg)} bytes, over the ${MAX_BANNER_BYTES} byte budget`,
+    );
+  }
+}
+
+if (problems.length > 0) {
+  console.error(problems.join("\n"));
+  process.exitCode = 1;
 }

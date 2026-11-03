@@ -38,6 +38,7 @@
     "spec:check": "node scripts/openapi.mjs --check",
     "spec:update": "node scripts/openapi.mjs --update && biome format --write test/contract/domeneshop-openapi.json",
     "banner:build": "node scripts/build-banner.mjs",
+    "banner:check": "node scripts/build-banner.mjs --check",
     "changeset": "changeset",
     "version": "changeset version && node scripts/sync-version.mjs && biome format --write server.json mcpb/manifest.json",
     "mcpb:build": "node scripts/build-mcpb.mjs",

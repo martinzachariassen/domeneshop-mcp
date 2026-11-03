@@ -15,6 +15,8 @@ npm run test:coverage  # with the 90 % coverage thresholds CI enforces
 npm run test:e2e   # opt-in, against the live API (see Tests)
 npm run spec:check # compare Domeneshop's published OpenAPI spec with the fixture
 npm run build      # tsc -> dist
+npm run banner:build  # regenerate the animated README banners (.github/assets)
+npm run banner:check  # fail if they are stale or over the size budget; CI runs it
 ```
 
 CI runs typecheck, lint, `format:check`, `test:coverage` and build on Node 22/24/26. A Husky

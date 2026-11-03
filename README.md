@@ -17,8 +17,8 @@ assistant.** DNS records, HTTP forwards, dynamic DNS and invoices, all in plain
 language. Works with Claude, Cursor, VS Code, Codex and any other
 [MCP](https://modelcontextprotocol.io) client.
 
+> "Set up email for example.no"<br>
 > "Point blog.example.no at 203.0.113.10"<br>
-> "Set up Fastmail's MX records on example.no"<br>
 > "Which of my domains renew this year?"
 
 The assistant picks the right tool, shows you what it is about to change and
