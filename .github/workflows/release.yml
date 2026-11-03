@@ -1,4 +1,4 @@
-name: release
+name: Publish release
 
 # Runs on a vX.Y.Z tag, which release-pr.yml creates when the release PR is
 # merged (pushing a tag by hand works too).

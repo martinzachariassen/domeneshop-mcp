@@ -1,4 +1,4 @@
-name: scorecard
+name: OpenSSF Scorecard
 
 # OpenSSF Scorecard: checks supply-chain practices (pinned actions, branch
 # protection, token permissions, ...) and publishes the result for the badge.

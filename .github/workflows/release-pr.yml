@@ -1,4 +1,4 @@
-name: release-pr
+name: Release PR and tag
 
 # Drives the whole release from main, so merging the release PR is the only
 # manual step:
