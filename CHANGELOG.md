@@ -1,5 +1,17 @@
 # domeneshop-mcp
 
+## 2.0.2
+
+### Patch Changes
+
+- [#71](https://github.com/martinzachariassen/domeneshop-mcp/pull/71) [`22c9569`](https://github.com/martinzachariassen/domeneshop-mcp/commit/22c9569140578687ed2783113924c9968f9a795b) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Fix the HTTP forward tools against the live Domeneshop API:
+  
+  - `update_forward` reported an error after every successful update, because the API answers `204` with no body; it now returns the stored forward.
+  - `get_forward`, and `update_forward` without `frame`, failed for hosts containing a hyphen (e.g. `my-app`), which the API cannot look up by host; they now find the forward through the list.
+  - `update_forward` and `delete_forward` cannot work around that limitation for such hosts, so they now say so and point to the Domeneshop control panel instead of reporting a bare "not found".
+
+- [#71](https://github.com/martinzachariassen/domeneshop-mcp/pull/71) [`22c9569`](https://github.com/martinzachariassen/domeneshop-mcp/commit/22c9569140578687ed2783113924c9968f9a795b) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Note for 2.0.1: since the move to MCP SDK v2, calling a tool that does not exist or is hidden by `DOMENESHOP_READ_ONLY`, `DOMENESHOP_TOOLS` or `DOMENESHOP_DISABLED_TOOLS` returns the JSON-RPC error `-32602` (as the MCP specification describes) instead of a tool result with `isError`. The call is still refused without reaching the API.
+
 ## 2.0.1
 
 ### Patch Changes
