@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import type { DNSRecord } from "#domeneshop/index.js";
 import { validateRecord } from "#mcp/records.js";
 
-// Written independently of src/mcp/records.ts so the property checks the
-// documented contract rather than echoing the implementation.
+/**
+ * Written independently of src/mcp/records.ts so the property checks the
+ * documented contract rather than echoing the implementation.
+ */
 const REQUIRED: Record<string, readonly (keyof DNSRecord)[]> = {
   MX: ["priority"],
   SRV: ["priority", "weight", "port"],

@@ -109,7 +109,6 @@ describe("forward tools", () => {
         });
 
         expect(result.isError).toBe(true);
-        // The 404 by host falls back to the list, which fails too; nothing is written.
         expect(harness.apiServer.requests.map((r) => r.method)).toEqual(["GET", "GET"]);
       },
     );
@@ -136,8 +135,7 @@ describe("forward tools", () => {
 
   describe("with a host the live API cannot address by host", () => {
     const stored = { host: "my-app", url: "https://example.com", frame: true };
-    // Like the live API: 404 by host for a hyphenated host, but listed.
-    const api: Handler = (req, res) => {
+    const listedButNotFoundByHost: Handler = (req, res) => {
       if (req.method === "GET" && req.url === "/domains/42/forwards/") {
         sendJson(res, 200, [stored]);
         return;
@@ -146,7 +144,7 @@ describe("forward tools", () => {
     };
 
     it("get_forward finds it through the list", async () => {
-      await withHarness(api, async (harness) => {
+      await withHarness(listedButNotFoundByHost, async (harness) => {
         const result = await harness.client.callTool({
           name: "get_forward",
           arguments: { domain_id: 42, host: "my-app" },
@@ -161,7 +159,7 @@ describe("forward tools", () => {
       ["update_forward", { url: "https://example.org", frame: false }],
       ["delete_forward", {}],
     ])("%s explains that it must be done in the control panel", async (name, extra) => {
-      await withHarness(api, async (harness) => {
+      await withHarness(listedButNotFoundByHost, async (harness) => {
         const result = await harness.client.callTool({
           name,
           arguments: { domain_id: 42, host: "my-app", ...extra },

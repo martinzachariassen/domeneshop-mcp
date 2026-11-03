@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// Domeneshop publishes its OpenAPI spec only embedded in the Redoc docs page.
-// `--update` stores it as the contract-test fixture; `--check` exits 1 if the
-// published spec differs from the fixture and prints the changed paths.
+/**
+ * Domeneshop publishes its OpenAPI spec only embedded in the Redoc docs page.
+ * `--update` stores it as the contract-test fixture; `--check` exits 1 if the
+ * published spec differs from the fixture and prints the changed paths.
+ */
 import { readFile, writeFile } from "node:fs/promises";
 
 const DOCS_URL = "https://api.domeneshop.no/docs/";

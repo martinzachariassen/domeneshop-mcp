@@ -8,7 +8,6 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html", "lcov"],
       include: ["src/**/*.ts"],
-      // The bin shim only wires src/cli.ts to the process; test/index.test.ts runs it as a child.
       exclude: ["src/index.ts"],
       thresholds: {
         statements: 90,

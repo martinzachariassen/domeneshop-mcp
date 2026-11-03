@@ -10,7 +10,7 @@ const MAX_ERROR_DETAIL_LENGTH = 500;
 const MAX_RETRY_DELAY_MS = 30_000;
 
 const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
-/** POST is not idempotent: retrying a create that reached the server could duplicate it. */
+/** Excludes POST: retrying a create that reached the server could duplicate it. */
 const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "PUT", "DELETE"]);
 
 const STATUS_HINTS: Record<number, string> = {
@@ -60,7 +60,10 @@ export interface HttpTransportOptions {
   baseUrl?: string | undefined;
   /** Per-attempt timeout. Defaults to 30 seconds. */
   timeoutMs?: number | undefined;
-  /** Retries for 429/502/503/504 and network errors on idempotent methods. Defaults to 2. */
+  /**
+   * Retries for 429 on any method, and for 502/503/504 and network errors on
+   * idempotent ones. Defaults to 2.
+   */
   maxRetries?: number | undefined;
   userAgent?: string | undefined;
   retryBaseDelayMs?: number | undefined;
@@ -139,10 +142,10 @@ export class HttpTransport {
     }
 
     const upperMethod = method.toUpperCase();
-    const canRetry = IDEMPOTENT_METHODS.has(upperMethod);
-    let previousAttemptLost = false;
+    const idempotent = IDEMPOTENT_METHODS.has(upperMethod);
+    let earlierAttemptLost = false;
     for (let attempt = 1; ; attempt++) {
-      const retriesLeft = canRetry && attempt <= this.maxRetries;
+      const retriesLeft = attempt <= this.maxRetries;
       const started = performance.now();
       let response: Response;
       let text: string;
@@ -159,24 +162,23 @@ export class HttpTransport {
         if (options.signal?.aborted) {
           throw options.signal.reason;
         }
-        const networkError = toNetworkError(error, method, path, this.timeoutMs, canRetry);
-        if (!retriesLeft) {
+        const networkError = toNetworkError(error, method, path, this.timeoutMs, idempotent);
+        if (!idempotent || !retriesLeft) {
           throw networkError;
         }
-        previousAttemptLost = true;
+        earlierAttemptLost = true;
         await sleep(this.backoffDelay(attempt, null), options.signal);
         continue;
       }
       this.emit(method, path, response.status, started, attempt);
 
       if (!response.ok) {
-        // A DELETE whose first attempt was lost may already have succeeded;
-        // the retry then finds nothing to delete, which is the desired end state.
-        if (upperMethod === "DELETE" && previousAttemptLost && response.status === 404) {
+        const deleteAlreadyApplied =
+          upperMethod === "DELETE" && earlierAttemptLost && response.status === 404;
+        if (deleteAlreadyApplied) {
           return { data: undefined, headers: response.headers };
         }
-        previousAttemptLost = false;
-        if (retriesLeft && RETRYABLE_STATUSES.has(response.status)) {
+        if (retriesLeft && isRetryable(response.status, idempotent)) {
           await sleep(
             this.backoffDelay(attempt, response.headers.get("Retry-After")),
             options.signal,
@@ -263,6 +265,15 @@ function sleep(ms: number, signal: AbortSignal | undefined): Promise<void> {
   });
 }
 
+/** 429 means the request was not processed, so even a POST can safely be sent again. */
+function isRetryable(status: number, idempotent: boolean): boolean {
+  return status === 429 || (idempotent && RETRYABLE_STATUSES.has(status));
+}
+
+/**
+ * A request without a response may still have been applied, so for a
+ * non-idempotent one the message warns against blindly repeating it.
+ */
 function toNetworkError(
   error: unknown,
   method: string,
@@ -270,8 +281,6 @@ function toNetworkError(
   timeoutMs: number,
   idempotent: boolean,
 ): DomeneshopNetworkError {
-  // A request without a response may still have been applied. Retrying an
-  // idempotent one is harmless, but repeating a create could duplicate it.
   const suffix = idempotent
     ? ""
     : ". The request may still have been applied; check with the matching list tool before retrying";

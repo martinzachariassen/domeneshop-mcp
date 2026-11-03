@@ -2,23 +2,11 @@ import { z } from "zod";
 import type { DomeneshopClient } from "../../domeneshop/index.js";
 import { INVOICE_STATUSES } from "../../domeneshop/index.js";
 import { readOnly } from "../annotations.js";
-import { invoiceIdField, invoiceOutput, optionalFilter } from "../fields.js";
+import { invoiceIdField, optionalFilter } from "../fields.js";
+import { invoiceOutput } from "../outputs.js";
 import type { ToolRegistrar } from "../registry.js";
 import { jsonResult, listResult } from "../result.js";
-import type { InferShape } from "../schema.js";
 import { toolHandler } from "../tool.js";
-
-const listInvoicesShape = {
-  status: optionalFilter(INVOICE_STATUSES).describe(
-    "only return invoices with this status; 'settled' applies only to credit notes",
-  ),
-};
-type ListInvoicesArgs = InferShape<typeof listInvoicesShape>;
-
-const getInvoiceShape = {
-  invoice_id: invoiceIdField,
-};
-type GetInvoiceArgs = InferShape<typeof getInvoiceShape>;
 
 export function registerInvoiceTools(server: ToolRegistrar, client: DomeneshopClient): void {
   server.registerTool(
@@ -26,11 +14,15 @@ export function registerInvoiceTools(server: ToolRegistrar, client: DomeneshopCl
     {
       description:
         "List invoices from the past three years on the Domeneshop account, optionally filtered by status.",
-      inputSchema: z.object(listInvoicesShape),
+      inputSchema: z.object({
+        status: optionalFilter(INVOICE_STATUSES).describe(
+          "only return invoices with this status; 'settled' applies only to credit notes",
+        ),
+      }),
       outputSchema: z.object({ invoices: z.array(invoiceOutput) }),
       ...readOnly("List invoices"),
     },
-    toolHandler<ListInvoicesArgs>(async ({ status }, { signal }) => {
+    toolHandler(async ({ status }, { signal }) => {
       const invoices = await client.invoices.list(status, { signal });
       return listResult("invoices", invoices);
     }),
@@ -40,11 +32,11 @@ export function registerInvoiceTools(server: ToolRegistrar, client: DomeneshopCl
     "get_invoice",
     {
       description: "Get details for a single invoice, including a link to the PDF.",
-      inputSchema: z.object(getInvoiceShape),
+      inputSchema: z.object({ invoice_id: invoiceIdField }),
       outputSchema: invoiceOutput,
       ...readOnly("Get invoice"),
     },
-    toolHandler<GetInvoiceArgs>(async ({ invoice_id }, { signal }) => {
+    toolHandler(async ({ invoice_id }, { signal }) => {
       const invoice = await client.invoices.get(invoice_id, { signal });
       return jsonResult(invoice);
     }),

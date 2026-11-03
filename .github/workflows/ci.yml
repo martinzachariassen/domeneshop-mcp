@@ -57,9 +57,6 @@ jobs:
 
       - run: npm run build
 
-      # Unpacks the tarball and installs only its runtime dependencies from the
-      # lockfile, so a file missing from `files`, a broken bin entry or a
-      # runtime dependency listed under devDependencies all fail here.
       - name: Pack and install the tarball
         run: |
           npm pack --pack-destination "$RUNNER_TEMP"

@@ -28,8 +28,9 @@ Two layers, kept separate:
   query building and error mapping; one resource class per endpoint group under
   `resources/`, composed by `DomeneshopClient`.
 - `src/mcp/` — MCP surface. One `register*Tools` function per resource in `tools/`,
-  wired together in `server.ts`. Shared input fields are in `fields.ts`, and DNS
-  record handling (`pickRecord`, `mergeRecord`, `validateRecord`) is in `records.ts`.
+  wired together in `server.ts`. Shared input fields are in `fields.ts`, output
+  schemas in `outputs.ts`, and DNS record handling (`pickRecord`, `mergeRecord`,
+  `validateRecord`) in `records.ts`.
 
 The package publishes only the `domeneshop-mcp` bin (`"exports": {}`); nothing in
 `src/` is a public API.
@@ -64,14 +65,25 @@ Imports use subpath aliases in tests only (`#domeneshop/*`, `#mcp/*`, `#testing/
   `validateRecord()` the rules that span fields. Every rule needs a case in
   `test/mcp/validation.test.ts`, which asserts `isError` and zero API requests;
   new tools must be added to its `VALID` map.
-- Zod shapes are defined as objects and the arg type derived with `InferShape`.
+- Pass `inputSchema` as a `z.object(...)` and write handlers as
+  `toolHandler(async (args, { signal }) => …)`: the argument type is inferred
+  from the schema, so don't declare arg types or pass a type parameter. Name a
+  schema in a constant only when several tools share it.
   Every field gets a `.describe()` — the model relies on it, so mention required
   combinations (e.g. `priority` for MX/SRV) there.
 - Tool names and arguments are `snake_case`; the client layer stays `camelCase`.
-- Keep comments to a minimum. Use JSDoc (`/** */`) on functions, classes and
-  exports only when the name and types don't already say it: the *why*, a
-  non-obvious contract, an undocumented API quirk. Use `//` only for code that
-  is genuinely hard to follow. Never restate what the code does.
+- Code explains itself; avoid comments. Before writing one, try a clearer name,
+  a named variable (`const deleteAlreadyApplied = …`) or a small helper with a
+  descriptive name instead. This applies to `src/`, `test/` and `scripts/`.
+- Document functions, classes, interfaces, constants and exports with JSDoc
+  (`/** */`), never with `//`, and only when the name and types don't already
+  say it: the *why*, a non-obvious contract, an undocumented API quirk. Never
+  restate what the code does. Script files (`scripts/*.mjs`) start with a
+  `/** */` block saying what the script is for.
+- `//` inside a function body only when absolutely necessary: code that stays
+  hard to follow after renaming and extracting. Tests are no exception — use a
+  named helper (`neverRespond`, `dropConnection` in `test/support/testServer.ts`)
+  or a descriptive test/variable name rather than a comment.
 - tsconfig is strict with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`,
   so optional interface fields are written `foo?: T | undefined`.
 

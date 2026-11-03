@@ -75,6 +75,14 @@ export async function withTestServer<T>(
   }
 }
 
+/** Leaves every request hanging, so only a timeout or an abort can end it. */
+export const neverRespond: Handler = () => undefined;
+
+/** Drops the connection after the request arrived, as if the response got lost on the way back. */
+export function dropConnection(req: IncomingMessage): void {
+  req.socket.destroy();
+}
+
 export function sendJson(res: ServerResponse, status: number, body: unknown): void {
   const text = JSON.stringify(body);
   res.writeHead(status, { "Content-Type": "application/json" });

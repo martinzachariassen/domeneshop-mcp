@@ -28,14 +28,20 @@ export function pickRecord(
   return mergeRecord({ host: source.host, type: source.type, data: source.data }, source);
 }
 
+const FIELDS_SHARED_BY_ALL_TYPES: ReadonlySet<string> = new Set(["host", "type", "data", "ttl"]);
+
 /**
  * Overlays the fields set in `patch` onto `existing`. Fields the patch leaves
- * undefined keep their stored value; the read-only `id` is not sent back.
+ * undefined keep their stored value, except type-specific ones (e.g. MX
+ * `priority`) when the patch changes the type. The read-only `id` is not sent back.
  */
 export function mergeRecord(existing: DNSRecord, patch: RecordFields): DNSRecord {
+  const typeChanged =
+    patch.type !== undefined && patch.type.toUpperCase() !== existing.type.toUpperCase();
   const merged: DNSRecord = { host: existing.host, type: existing.type, data: existing.data };
   for (const field of RECORD_FIELDS) {
-    const value = patch[field] !== undefined ? patch[field] : existing[field];
+    const keepStored = !typeChanged || FIELDS_SHARED_BY_ALL_TYPES.has(field);
+    const value = patch[field] ?? (keepStored ? existing[field] : undefined);
     if (value !== undefined) {
       Object.assign(merged, { [field]: value });
     }

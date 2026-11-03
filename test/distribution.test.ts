@@ -20,9 +20,7 @@ const manifest = readJson("mcpb/manifest.json") as {
   tools: { name: string }[];
 };
 
-// These files are published to the MCP Registry and as a Claude Desktop bundle;
-// `npm run version` keeps them in sync, and this catches anything that slips.
-describe("distribution metadata", () => {
+describe("MCP Registry and Claude Desktop bundle metadata", () => {
   it("uses the package.json version everywhere", () => {
     expect(server.version).toBe(pkg.version);
     expect(manifest.version).toBe(pkg.version);
@@ -62,9 +60,7 @@ describe("distribution metadata", () => {
   });
 });
 
-// The README's one-click install links carry the server config encoded in the
-// URL, so a typo there would only surface when a user clicks the button.
-describe("README install links", () => {
+describe("README one-click install links (server config encoded in the URL)", () => {
   const readme = readFileSync(path.join(repoRoot, "README.md"), "utf8");
   const links = (prefix: string): URL[] =>
     [...readme.matchAll(/https:\/\/[^\s"')]+/g)]

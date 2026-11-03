@@ -14,8 +14,7 @@ const enabled = Boolean(token && secret && Number.isInteger(domainId) && domainI
 
 const suffix = randomBytes(4).toString("hex");
 const recordHost = `_mcp-e2e-${suffix}`;
-// No hyphen: the live API cannot update or delete a forward whose host has one.
-const forwardHost = `mcpe2e${suffix}`;
+const forwardHostWithoutHyphen = `mcpe2e${suffix}`;
 
 describe.skipIf(!enabled)("live Domeneshop API", () => {
   const api = new DomeneshopClient(token ?? "", secret ?? "");
@@ -44,8 +43,8 @@ describe.skipIf(!enabled)("live Domeneshop API", () => {
       });
     }
     if (forwardCreated) {
-      await api.forwards.delete(domainId, forwardHost).catch((error: unknown) => {
-        leftovers.push(`forward ${forwardHost}: ${String(error)}`);
+      await api.forwards.delete(domainId, forwardHostWithoutHyphen).catch((error: unknown) => {
+        leftovers.push(`forward ${forwardHostWithoutHyphen}: ${String(error)}`);
       });
     }
     await mcp.close();
@@ -145,26 +144,26 @@ describe.skipIf(!enabled)("live Domeneshop API", () => {
     it("creates, reads, updates (keeping frame) and deletes a forward", async () => {
       const created = await call("create_forward", {
         domain_id: domainId,
-        host: forwardHost,
+        host: forwardHostWithoutHyphen,
         url: "https://example.com/",
         frame: true,
       });
       forwardCreated = true;
-      expect(created.structuredContent).toMatchObject({ host: forwardHost });
+      expect(created.structuredContent).toMatchObject({ host: forwardHostWithoutHyphen });
 
-      const fetched = await api.forwards.get(domainId, forwardHost);
+      const fetched = await api.forwards.get(domainId, forwardHostWithoutHyphen);
       expect(validateResponse("GET /domains/{domainId}/forwards/{host}", 200, fetched)).toEqual([]);
 
       const updated = await call("update_forward", {
         domain_id: domainId,
-        host: forwardHost,
+        host: forwardHostWithoutHyphen,
         url: "https://example.org/",
       });
       expect(updated.structuredContent).toMatchObject({ url: "https://example.org/", frame: true });
 
-      await call("delete_forward", { domain_id: domainId, host: forwardHost });
+      await call("delete_forward", { domain_id: domainId, host: forwardHostWithoutHyphen });
       forwardCreated = false;
-      await expect(api.forwards.get(domainId, forwardHost)).rejects.toMatchObject({
+      await expect(api.forwards.get(domainId, forwardHostWithoutHyphen)).rejects.toMatchObject({
         statusCode: 404,
       });
     });

@@ -238,6 +238,27 @@ describe("patch_dns_record", () => {
     });
   });
 
+  it("does not send the old type's fields when the type changes", async () => {
+    const zone = fakeZone([
+      { id: 7, host: "mail", type: "MX", data: "mx1.example.com", ttl: 300, priority: 10 },
+    ]);
+    await withHarness(zone.handler, async (harness) => {
+      const result = await harness.client.callTool({
+        name: "patch_dns_record",
+        arguments: { domain_id: 42, record_id: 7, type: "CNAME", data: "mail.example.net" },
+      });
+
+      expect(result.isError).not.toBe(true);
+      const put = harness.apiServer.requests.find((r) => r.method === "PUT");
+      expect(JSON.parse(put?.body ?? "{}")).toEqual({
+        host: "mail",
+        type: "CNAME",
+        data: "mail.example.net",
+        ttl: 300,
+      });
+    });
+  });
+
   it("sends a stored priority the API returned as a string back as a number", async () => {
     const zone = fakeZone([
       {
