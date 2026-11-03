@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// Copies the version from package.json into server.json (MCP Registry) and
-// mcpb/manifest.json (Claude Desktop bundle). Runs after `changeset version`
-// via `npm run version`; test/distribution.test.ts fails if they drift.
+/**
+ * Copies the version from package.json into server.json (MCP Registry) and
+ * mcpb/manifest.json (Claude Desktop bundle). Runs after `changeset version`
+ * via `npm run version`; test/distribution.test.ts fails if they drift.
+ */
 import { readFileSync, writeFileSync } from "node:fs";
 
 /** @param {string} file */

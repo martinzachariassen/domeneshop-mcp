@@ -70,18 +70,25 @@ function withOverlay(source: Spec): Spec {
     };
     oneOf.push({ $ref: `#/components/schemas/${type}` });
   }
+  addLiveApiDifferences(copy);
+  return copy;
+}
 
-  // Where the live API differs from the spec (observed with the E2E suite, November 2026):
-  // credit notes have type "credit_note" (the spec misspells it "credit_node"), and
-  // PUT on a forward answers 204 without a body instead of 200 with the forward.
-  const invoiceType = (schemas["Invoice"] as { properties: Record<string, { enum: string[] }> })
-    .properties["type"];
+/**
+ * Where the live API differs from the spec (observed with the E2E suite,
+ * November 2026): credit notes have type "credit_note" (the spec misspells it
+ * "credit_node"), and PUT on a forward answers 204 without a body instead of
+ * 200 with the forward.
+ */
+function addLiveApiDifferences(spec: Spec): void {
+  const invoiceType = (
+    spec.components.schemas["Invoice"] as { properties: Record<string, { enum: string[] }> }
+  ).properties["type"];
   invoiceType?.enum.push("credit_note");
-  const putForward = copy.paths["/domains/{domainId}/forwards/{host}"]?.["put"];
+  const putForward = spec.paths["/domains/{domainId}/forwards/{host}"]?.["put"];
   if (putForward) {
     putForward.responses["204"] = {};
   }
-  return copy;
 }
 
 /** Request bodies omit readOnly properties, so they must not stay `required`. */

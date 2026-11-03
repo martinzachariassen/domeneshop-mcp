@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// Builds domeneshop-mcp-<version>.mcpb, a one-click install bundle for Claude
-// Desktop. Run `npm run build` first. The bundle contains the compiled server,
-// its production dependencies and mcpb/manifest.json.
+/**
+ * Builds domeneshop-mcp-<version>.mcpb, a one-click install bundle for Claude
+ * Desktop. Run `npm run build` first. The bundle contains the compiled server,
+ * its production dependencies and mcpb/manifest.json.
+ */
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
@@ -25,8 +27,8 @@ for (const file of ["package.json", "package-lock.json", "README.md", "LICENSE",
 }
 cpSync(path.join(root, "mcpb", "manifest.json"), path.join(staging, "manifest.json"));
 
-// --ignore-scripts skips the husky `prepare` hook, which needs devDependencies.
-execFileSync(npm, ["ci", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund"], {
+const skipHuskyPrepareHook = "--ignore-scripts";
+execFileSync(npm, ["ci", "--omit=dev", skipHuskyPrepareHook, "--no-audit", "--no-fund"], {
   cwd: staging,
   stdio: "inherit",
 });

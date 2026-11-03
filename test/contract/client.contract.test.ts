@@ -43,6 +43,9 @@ function withoutId<T extends { id: number }>(record: T): Omit<T, "id"> {
   return rest;
 }
 
+/** Not in the spec server's forward list, so a 404 by host stays a 404 after the list fallback. */
+const HOST_NOT_IN_LIST = "shop";
+
 /** One call per spec operation, with the value the client should return. */
 const CALLS: Record<string, [(client: DomeneshopClient) => Promise<unknown>, unknown]> = {
   "GET /domains": [(c) => c.domains.list(), [DOMAIN_FULL, DOMAIN_MINIMAL]],
@@ -57,13 +60,18 @@ const CALLS: Record<string, [(client: DomeneshopClient) => Promise<unknown>, unk
   "DELETE /domains/{domainId}/dns/{recordId}": [(c) => c.dns.delete(1, 1), undefined],
   "GET /domains/{domainId}/forwards/": [(c) => c.forwards.list(1), [FORWARD_FULL, FORWARD_MINIMAL]],
   "POST /domains/{domainId}/forwards/": [(c) => c.forwards.create(1, FORWARD_FULL), FORWARD_FULL],
-  // A host the list does not contain, so a 404 by host stays a 404 after the list fallback.
-  "GET /domains/{domainId}/forwards/{host}": [(c) => c.forwards.get(1, "shop"), FORWARD_FULL],
-  "PUT /domains/{domainId}/forwards/{host}": [
-    (c) => c.forwards.update(1, "shop", FORWARD_FULL),
+  "GET /domains/{domainId}/forwards/{host}": [
+    (c) => c.forwards.get(1, HOST_NOT_IN_LIST),
     FORWARD_FULL,
   ],
-  "DELETE /domains/{domainId}/forwards/{host}": [(c) => c.forwards.delete(1, "shop"), undefined],
+  "PUT /domains/{domainId}/forwards/{host}": [
+    (c) => c.forwards.update(1, HOST_NOT_IN_LIST, FORWARD_FULL),
+    FORWARD_FULL,
+  ],
+  "DELETE /domains/{domainId}/forwards/{host}": [
+    (c) => c.forwards.delete(1, HOST_NOT_IN_LIST),
+    undefined,
+  ],
   "GET /invoices": [(c) => c.invoices.list(), [INVOICE_FULL, INVOICE_MINIMAL, CREDIT_NOTE]],
   "GET /invoices/{invoiceId}": [(c) => c.invoices.get(1), INVOICE_FULL],
   "GET /dyndns/update": [(c) => c.dynDns.update("www.example.com"), undefined],

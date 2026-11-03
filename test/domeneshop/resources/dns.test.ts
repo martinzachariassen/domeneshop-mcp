@@ -63,7 +63,6 @@ describe("DnsResource", () => {
         expect(byType.get("SRV")).toMatchObject({ weight: 100, port: 5060 });
         expect(byType.get("TLSA")).toMatchObject({ usage: 3, selector: 1, dtype: 1 });
         expect(byType.get("DS")).toMatchObject({ alg: 13, digest: 2, tag: 12345 });
-        // A CAA tag arrives as a string; the loosely typed field must keep it as one.
         expect(byType.get("CAA")).toMatchObject({ flags: 0, tag: "issue" });
       },
     );
@@ -102,7 +101,6 @@ describe("DnsResource", () => {
         });
         expect(srv).toMatchObject({ priority: 10, weight: 100, port: 5060 });
         expect(ds).toMatchObject({ tag: 12345, alg: 13, digest: 2 });
-        // A CAA tag is a property name, not a number.
         expect(caa).toMatchObject({ flags: 0, tag: "issue" });
         expect(odd?.priority).toBe("high");
 

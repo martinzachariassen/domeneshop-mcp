@@ -107,7 +107,6 @@ describe("CLI entry point", () => {
       env: { ...baseEnv, DOMENESHOP_API_TOKEN: "token", DOMENESHOP_API_SECRET: "secret" },
       stdio: ["pipe", "pipe", "pipe"],
     });
-    // Leave stdin open so only the signal can end the process.
     await new Promise((resolve) => setTimeout(resolve, 1500));
     const exited = new Promise<number | null>((resolve) => {
       child.on("exit", (code) => resolve(code));

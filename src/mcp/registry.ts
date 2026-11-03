@@ -10,7 +10,12 @@ export interface ToolFilter {
 
 /**
  * Hides tools excluded by the filter, so calls to them fail as unknown tools.
- * `names` maps every tool offered, hidden or not, to whether it is read-only.
+ * Hidden tools are registered and then removed, which before `connect` sends
+ * no `list_changed` notification. `names` maps every tool offered, hidden or
+ * not, to whether it is read-only.
+ *
+ * `registerTool` is overloaded, so the wrapper spreads the parameters of one
+ * overload and casts back to the full type.
  */
 export function filteredRegistrar(
   server: McpServer,
@@ -18,7 +23,6 @@ export function filteredRegistrar(
 ): { registrar: ToolRegistrar; names: Map<string, boolean>; exposed: Set<string> } {
   const names = new Map<string, boolean>();
   const exposed = new Set<string>();
-  // registerTool is overloaded, so its parameters can't be inferred from the annotation.
   const registerTool = ((...args: Parameters<McpServer["registerTool"]>) => {
     const [name, config] = args;
     const readOnly = config.annotations?.readOnlyHint === true;
@@ -27,7 +31,6 @@ export function filteredRegistrar(
     if (isAllowed(name, readOnly, filter)) {
       exposed.add(name);
     } else {
-      // Removing before connect sends no list_changed notification.
       tool.remove();
     }
     return tool;

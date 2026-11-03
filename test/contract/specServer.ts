@@ -67,7 +67,6 @@ export const INVOICE_FULL = {
 export const INVOICE_MINIMAL = { id: 2 };
 export const CREDIT_NOTE = {
   id: 3,
-  // What the live API sends; the spec's enum misspells it "credit_node".
   type: "credit_note",
   amount: -120,
   currency: "NOK",
