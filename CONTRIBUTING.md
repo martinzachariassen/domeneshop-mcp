@@ -27,6 +27,30 @@ Please keep `npm run typecheck`, `npm run lint` and `npm test` clean on
 anything you touch — CI checks all three, plus formatting and a build, on
 every push and pull request.
 
+The tests stub the Domeneshop API with a local `node:http` server and drive the
+MCP server over an in-memory transport, so they need no credentials and make no
+network calls.
+
+## Project layout
+
+```
+src/
+  domeneshop/       Domeneshop API client (HTTP transport + one resource per endpoint group)
+  mcp/              MCP server: tool registration, input fields, record validation, results
+  cli.ts            Flag parsing, configuration and startup, with injectable process I/O
+  index.ts          bin entry point, wiring cli.ts to stdio
+test/
+  domeneshop/       Client tests, against a local HTTP server
+  mcp/              Tool tests over an in-memory MCP transport, mirroring src/mcp
+  contract/         Client and tools checked against Domeneshop's OpenAPI spec
+  e2e/              Opt-in tests against the live API
+  support/          Test server and MCP harness helpers
+scripts/            Release, bundle and spec-sync scripts
+```
+
+Domeneshop API behaviour that the published spec leaves out is collected in
+[docs/api-notes.md](docs/api-notes.md).
+
 ## Testing against the Domeneshop API
 
 `test/contract/` validates every request and response against Domeneshop's
