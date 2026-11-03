@@ -37,6 +37,7 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "spec:check": "node scripts/openapi.mjs --check",
     "spec:update": "node scripts/openapi.mjs --update && biome format --write test/contract/domeneshop-openapi.json",
+    "banner:build": "node scripts/build-banner.mjs",
     "changeset": "changeset",
     "version": "changeset version && node scripts/sync-version.mjs && biome format --write server.json mcpb/manifest.json",
     "mcpb:build": "node scripts/build-mcpb.mjs",
