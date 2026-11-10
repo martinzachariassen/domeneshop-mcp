@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 2.0.8
+
+### Patch Changes
+
+- [#88](https://github.com/martinzachariassen/domeneshop-mcp/pull/88) [`460ef3e`](https://github.com/martinzachariassen/domeneshop-mcp/commit/460ef3e748de82b5eb2a63896e0cb8db8c04e2ec) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Update development and CI dependencies: Biome 2.6.5, softprops/action-gh-release 3.0.4 and the CodeQL actions.
+
 ## 2.0.7
 
 ### Patch Changes
