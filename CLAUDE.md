@@ -137,6 +137,14 @@ runs `scripts/bump-homebrew-formula.sh`, which opens an auto-merging PR in `mart
 tarball `url` and `sha256`. The tap has no versioning of its own; never edit the
 formula by hand for a release.
 
+A release is done only when the tap PR is merged and the formula's `url` points at
+the new version: check `gh pr list -R martinzachariassen/homebrew-tap` and
+`Formula/domeneshop-mcp.rb` after the workflow finishes. Its auto-merge waits for the
+tap's macOS test-bot, so this can take a few minutes. If `release.yml` fails (the
+MCP Registry step can outlast npm propagation), re-run the failed job with
+`gh run rerun <id> --failed`: the npm, Registry and tap steps skip what is already
+done. Never bump the formula by hand.
+
 Both workflows write with a token from one GitHub App installed on both repos
 (`HOMEBREW_APP_CLIENT_ID` variable + `HOMEBREW_APP_PRIVATE_KEY` secret), not
 `GITHUB_TOKEN` or a PAT: App commits are signed (both repos require signatures),
