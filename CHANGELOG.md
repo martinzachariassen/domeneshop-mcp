@@ -1,5 +1,11 @@
 # domeneshop-mcp
 
+## 2.0.9
+
+### Patch Changes
+
+- [#91](https://github.com/martinzachariassen/domeneshop-mcp/pull/91) [`1cce467`](https://github.com/martinzachariassen/domeneshop-mcp/commit/1cce467faab9f02e30b30e765039fa181c029a9c) Thanks [@martinzachariassen](https://github.com/martinzachariassen)! - Update development and CI dependencies (Biome 2.6.8, Vitest 5.1.1, fast-check 4.11.0, create-github-app-token 3.4.0, OpenSSF Scorecard 2.6.0, CodeQL 4.39.4) and run CI, release and local tooling on Node 26 LTS.
+
 ## 2.0.8
 
 ### Patch Changes
