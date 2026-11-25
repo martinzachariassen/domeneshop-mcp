@@ -10,6 +10,7 @@
   <a href="https://www.npmjs.com/package/domeneshop-mcp"><img src="https://img.shields.io/npm/v/domeneshop-mcp" alt="npm version"></a>
   <a href="https://www.npmjs.com/package/domeneshop-mcp"><img src="https://img.shields.io/npm/dm/domeneshop-mcp" alt="npm downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/npm/l/domeneshop-mcp" alt="License"></a>
+  <a href="https://glama.ai/mcp/servers/martinzachariassen/domeneshop-mcp"><img src="https://glama.ai/mcp/servers/martinzachariassen/domeneshop-mcp/badges/score.svg" alt="martinzachariassen/domeneshop-mcp MCP server"></a>
 </p>
 
 **Manage your [Domeneshop](https://www.domeneshop.no) domains by asking your AI
